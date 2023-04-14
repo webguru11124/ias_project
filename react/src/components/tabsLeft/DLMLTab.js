@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AccordionSummary,
   Accordion,
@@ -23,6 +23,7 @@ import { COLORS } from '@/constants';
 import '@/styles/ML.css';
 import { useSelector } from 'react-redux';
 import store from '@/reducers';
+import { useViewerStore } from '@/state';
 
 export default function DLMLTab() {
   const [expanded, setExpanded] = useState(false);
@@ -36,6 +37,12 @@ export default function DLMLTab() {
   const imagePathForResult = useSelector(
     (state) => state.files.imagePathForResult,
   );
+
+  useEffect(() => {
+    if (imagePathForResult) {
+      setViewMode('processed');
+    }
+  }, [imagePathForResult]);
 
   const handleChangeViewMode = (e, newViewMode) => {
     e.stopPropagation();

@@ -73,38 +73,42 @@ function MLLabelCanvas(props) {
   }, []);
 
   const onUp = () => {
-    // add the drawn curve to the specific label position information.
-    if (mouseTrack?.length === 0) return;
-    processedTrackInfo = processTrackInfo(mouseTrack);
-
-    if (MLSelectTargetMode === 'object') {
-      store.dispatch({
-        type: 'setMLObjectLabelPosInfo',
-        content: processedTrackInfo,
-      });
-      // let _labelPosInfo = objectLabelPosInfo;
-      // _labelPosInfo.push(...mouseTrack)
-      // setObjectLabelPosInfo(_labelPosInfo)
-      // console.log('===============> objet pos', _labelPosInfo)
-    } else if (MLSelectTargetMode === 'background') {
-      store.dispatch({
-        type: 'setMLBackgroundLabelPosInfo',
-        content: processedTrackInfo,
-      });
-      // let _labelPosInfo = backgroundLabelPosInfo;
-      // _labelPosInfo.push(...mouseTrack)
-      // setBackgroundLabelPosInfo(_labelPosInfo)
-      // console.log('===============> background pos', _labelPosInfo)
-    }
-
     let draw_style = localStorage.getItem('CANV_ STYLE');
     if (draw_style == 'user_custom_area') {
+      // add the drawn curve to the specific label position information.
+      if (mouseTrack?.length === 0) return;
+      processedTrackInfo = processTrackInfo(mouseTrack);
+
+      if (MLSelectTargetMode === 'object') {
+        store.dispatch({
+          type: 'setMLObjectLabelPosInfo',
+          content: processedTrackInfo,
+        });
+        // let _labelPosInfo = objectLabelPosInfo;
+        // _labelPosInfo.push(...mouseTrack)
+        // setObjectLabelPosInfo(_labelPosInfo)
+        // console.log('===============> objet pos', _labelPosInfo)
+      } else if (MLSelectTargetMode === 'background') {
+        store.dispatch({
+          type: 'setMLBackgroundLabelPosInfo',
+          content: processedTrackInfo,
+        });
+        // let _labelPosInfo = backgroundLabelPosInfo;
+        // _labelPosInfo.push(...mouseTrack)
+        // setBackgroundLabelPosInfo(_labelPosInfo)
+        // console.log('===============> background pos', _labelPosInfo)
+      }
+
       user_custom_area.push(mouseTrack);
+      // console.log('user_area', user_custom_area)
+      setMouseTrack([]);
+      // console.log('set-drawing-false');
+      setDrawing(false);
+      setPosition(null);
+    } else {
+      setDrawing(false);
+      setPosition(null);
     }
-    // console.log('user_area', user_custom_area)
-    setMouseTrack([]);
-    setDrawing(false);
-    setPosition(null);
   };
 
   const getCoordinates = (event) => {
@@ -190,6 +194,7 @@ function MLLabelCanvas(props) {
   };
 
   const drawEllipse = (originalPosition, newPosition) => {
+    // console.log('drawing-ellipse');
     if (!canvas.current) {
       return null;
     }

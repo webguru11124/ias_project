@@ -39,7 +39,7 @@ from mainApi.app.images.sub_routers.tile.models import (
     MetadataModel,
     UserCustomModel,
 )
-from mainApi.app.images.utils.align_tiles import align_tiles_naive, align_ashlar
+from mainApi.app.images.utils.asyncio import shell
 from mainApi.app.images.utils.tiling import (
     add_image_tiles,
     delete_tiles_in,
@@ -88,7 +88,7 @@ async def upload_tiles(
     clear_previous: bool = Form(False),
     current_user: UserModelDB = Depends(get_current_user),
     db: AsyncIOMotorDatabase = Depends(get_database),
-) -> List[TileModelDB]:
+) -> List[FileModelDB]:
     current_user_path = os.path.join(
         STATIC_PATH, str(PyObjectId(current_user.id)), "images"
     )
@@ -135,6 +135,97 @@ async def delete_tiles(
     res = await delete_tiles_in(tile_ids, db)
     return JSONResponse(res)
 
+
+@router.post(
+    "/update_tiles_meta_info",
+    response_description="Update Tiles Metainfo",
+    status_code=status.HTTP_200_OK,
+)
+async def update_tiles_meta_info(
+    request: Request,
+    db: AsyncIOMotorDatabase = Depends(get_database),
+) -> Any:
+    body_bytes = await request.body()
+    data = json.loads(body_bytes)
+
+    for meta_info in data["tiles_meta_info"]:
+        dir = meta_info["path"].rsplit("/", 1)[0]
+        ext = meta_info["filename"].rsplit(".", 1)[1]
+        new_path = f"{CURRENT_STATIC}/{dir}/tile_image_series{str(meta_info['series']).rjust(5, '0')}.{ext}"
+        old_rel_path = meta_info["path"].rsplit("/static/", 1)[1]
+        new_rel_path = new_path.rsplit("/static/", 1)[1]
+        old_abs_path = os.path.join(STATIC_PATH, old_rel_path)
+        new_abs_path = os.path.join(STATIC_PATH, new_rel_path)
+        os.rename(old_abs_path, new_abs_path)
+
+        await db["tile-image-cache"].update_one(
+            {"_id": ObjectId(meta_info["_id"])},
+            {
+                "$set": {
+                    "series": int(meta_info["series"]),
+                    "ashlar_path": new_path
+                }
+            },
+        )
+
+@router.post(
+    "/create_tiles",
+    response_description="Delete Tiles",
+    status_code=status.HTTP_200_OK,
+)
+async def create_tiles(
+    request: Request,
+    user: UserModelDB = Depends(get_current_user),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+) -> List[FileModelDB]:
+    body_bytes = await request.body()
+    data = json.loads(body_bytes)
+    tiles = []
+    for tile_path in data["paths"]:
+        tiles.append({
+            "user_id": user.id,
+            "filename": tile_path.rsplit('/', 1)[1],
+            "path": f"{CURRENT_STATIC}/{user.id}/{tile_path}"
+        })
+
+    await db["tile-image-cache"].delete_many(
+        {"user_id": user.id}
+    )
+
+    # insert new tile images
+    insert_res = await db["tile-image-cache"].insert_many(tiles)
+    inserted_ids = [str(id) for id in insert_res.inserted_ids]
+
+    return JSONResponse(inserted_ids)
+
+@router.post(
+    "/build_pyramid",
+    response_description="Delete Tiles",
+    status_code=status.HTTP_200_OK,
+)
+async def build_pyramid(
+    request: Request,
+    user: UserModelDB = Depends(get_current_user),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+) -> List[FileModelDB]:
+    body_bytes = await request.body()
+    ashlar_params = json.loads(body_bytes)
+
+    tile = await db["tile-image-cache"].find_one(
+        {"user_id": user.id}
+    )
+    rel_path = tile["path"].rsplit('/static/', 1)[1]
+    rel_dir = rel_path.rsplit("/", 1)[0]
+    tiles_dir = os.path.join(STATIC_PATH, rel_dir)
+    ext = tile["filename"].rsplit(".", 1)[1]
+    output_filename = "ashlar_output.ome.tiff"
+    output_path = os.path.join(STATIC_PATH, rel_dir, output_filename)
+    output_rel_path = os.path.join(CURRENT_STATIC, rel_dir, output_filename)
+
+    ashlar_cmd = f'ashlar --output {output_path} "fileseries|{tiles_dir}|pattern=tile_image_series{{series}}.{ext}|overlap=0.2|width={ashlar_params["width"]}|height={ashlar_params["height"]}|layout={ashlar_params["layout"]}"'
+    await shell(ashlar_cmd)
+
+    return JSONResponse(output_rel_path)
 
 #############################################################################
 # Register Experiment
@@ -607,29 +698,29 @@ async def get_tile_list(
     return pydantic.parse_obj_as(List[TileModelDB], tiles)
 
 
-@router.get(
-    "/align_tiles_naive",
-    response_description="Align Tiles",
-    response_model=List[AlignedTiledModel],
-    status_code=status.HTTP_200_OK,
-)
-async def _align_tiles_naive(
-    request: AlignNaiveRequest, tiles: List[TileModelDB] = Depends(get_tile_list)
-) -> List[AlignedTiledModel]:
-    """
-    performs a naive aligning of the tiles simply based on the given rows and method.
-    does not perform any advanced stitching or pixel checking
+# @router.get(
+#     "/align_tiles_naive",
+#     response_description="Align Tiles",
+#     response_model=List[AlignedTiledModel],
+#     status_code=status.HTTP_200_OK,
+# )
+# async def _align_tiles_naive(
+#     request: AlignNaiveRequest, tiles: List[TileModelDB] = Depends(get_tile_list)
+# ) -> List[AlignedTiledModel]:
+#     """
+#     performs a naive aligning of the tiles simply based on the given rows and method.
+#     does not perform any advanced stitching or pixel checking
 
-    Called using concurrent.futures to make it async
-    """
-    print(tiles, " : align_tiles_naive : ----------------------------")
-    loop = asyncio.get_event_loop()
-    with concurrent.futures.ProcessPoolExecutor() as pool:
-        # await result
-        aligned_tiles = await loop.run_in_executor(
-            pool, align_tiles_naive, request, tiles
-        )
-        return aligned_tiles
+#     Called using concurrent.futures to make it async
+#     """
+#     print(tiles, " : align_tiles_naive : ----------------------------")
+#     loop = asyncio.get_event_loop()
+#     with concurrent.futures.ProcessPoolExecutor() as pool:
+#         # await result
+#         aligned_tiles = await loop.run_in_executor(
+#             pool, align_tiles_naive, request, tiles
+#         )
+#         return aligned_tiles
 
 
 # @router.get("/align_tiles_ashlar",

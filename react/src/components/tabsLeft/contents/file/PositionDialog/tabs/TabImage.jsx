@@ -5,27 +5,25 @@ import ImageListItemBar from '@mui/material/ImageListItemBar';
 import IconButton from '@mui/material/IconButton';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import CheckIcon from '@mui/icons-material/Check';
-import Box from '@mui/material/Box';
-import Dropzone from 'react-dropzone';
 import DialogContent from '@/components/mui/DialogContent';
 import { Button, DialogActions, Typography } from '@mui/material';
-import { deleteTiles, uploadTiles } from '@/api/tiling';
+import { createTilesFromCloud, deleteTiles } from '@/api/tiling';
 import useTilingStore from '@/stores/useTilingStore';
+import ExperimentDialog from '../../ExperimentDialog';
 
-const DEFAULT_PAGE_SIZE = 48;
+const DEFAULT_PAGE_SIZE = 80;
 
 export default function TabImage({ onClose }) {
   const [loading, setLoading] = useState(false);
   const { tiles, loading: loadingTiles, loadTiles } = useTilingStore();
   const [selectedTiles, setSelectedTiles] = useState([]);
-  const [files, setFiles] = useState([]);
+  const [cloudOpen, setCloudOpen] = useState(false);
   const [infoMessage, setInfoMessage] = useState('');
   const [page, setPage] = useState(1);
   const pageTiles = useMemo(
     () => tiles.slice(0, page * DEFAULT_PAGE_SIZE),
     [tiles, page],
   );
-  const forceClickRef = useRef();
 
   useEffect(() => {
     loadTiles().then((tiles) => {
@@ -33,25 +31,15 @@ export default function TabImage({ onClose }) {
     });
   }, [loadTiles]);
 
-  const handleAddImages = () => {
-    forceClickRef.current.click();
-  };
-
-  const handleDropFiles = (files) => {
-    setFiles(files);
-    setInfoMessage(`Picked ${files.length} images to upload`);
-  };
-
-  const handleUploadTiles = async () => {
+  const handleSelectFiles = async (files) => {
     try {
       setLoading(true);
-      const res = await uploadTiles(files);
+      const res = await createTilesFromCloud(files);
       await loadTiles();
       setInfoMessage(`Successfully uploaded ${res.length} tiles`);
     } catch (err) {
       setInfoMessage(err);
     }
-    setFiles([]);
     setLoading(false);
   };
 
@@ -92,28 +80,6 @@ export default function TabImage({ onClose }) {
         loading={loadingTiles || loading}
         onScroll={handleScrollContent}
       >
-        <Dropzone onDrop={handleDropFiles}>
-          {({ getRootProps, getInputProps }) => (
-            <Box {...getRootProps()} flexGrow={1} ref={forceClickRef}>
-              <input {...getInputProps()} multiple />
-              {!tiles.length && (
-                <Box
-                  sx={{
-                    p: 2,
-                    height: 300,
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    border: 'solid lightgray thin',
-                    borderRadius: 2,
-                  }}
-                >
-                  Drag 'n' drop tile images here, or click to select images
-                </Box>
-              )}
-            </Box>
-          )}
-        </Dropzone>
         <ImageList sx={{ mb: 0 }} cols={8}>
           {pageTiles.map(({ _id, thumbnail, filename }) => (
             <ImageListItem key={_id}>
@@ -140,16 +106,12 @@ export default function TabImage({ onClose }) {
       </DialogContent>
       <DialogActions sx={{ px: 3, py: 2 }}>
         <Typography sx={{ flexGrow: 1 }}>{infoMessage}</Typography>
-        <Button color="success" variant="contained" onClick={handleAddImages}>
-          Add Images
-        </Button>
         <Button
           color="primary"
           variant="contained"
-          onClick={handleUploadTiles}
-          disabled={!files.length}
+          onClick={() => setCloudOpen(true)}
         >
-          Upload
+          Cloud
         </Button>
         <Button
           color="error"
@@ -163,6 +125,12 @@ export default function TabImage({ onClose }) {
           Cancel
         </Button>
       </DialogActions>
+      <ExperimentDialog
+        title="Clould image dataset"
+        open={cloudOpen}
+        onClose={() => setCloudOpen(false)}
+        onSelectFiles={handleSelectFiles}
+      />
     </>
   );
 }

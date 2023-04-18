@@ -66,6 +66,8 @@ export default function MLBoxSelect() {
   // })
 
   const start = async () => {
+    ClearRegion();
+
     const state = store.getState();
     if (state.files.imagePathForAvivator == null) {
       toast.error('Please select the image file!', {

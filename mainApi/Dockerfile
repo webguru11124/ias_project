@@ -12,7 +12,8 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends \
         software-properties-common \
-        ca-certificates
+        ca-certificates \
+        wget
 
 # Install Wine
 RUN dpkg --add-architecture i386 && \

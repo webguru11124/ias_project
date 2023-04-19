@@ -2,20 +2,13 @@ FROM daisukekubota0823/mainapi:1.0.0
 
 RUN pip install ashlar
 
-RUN apt install -y wine64
-RUN dpkg --add-architecture i386
-RUN apt-get update -y
-RUN apt-get install -y wine32
-RUN apt install -y wget
-RUN apt-get install -y xvfb
+ENV DEBIAN_FRONTEND=noninteractive
+RUN dpkg --add-architecture i386 && apt-get update && apt-get install -y wine xorg xvfb
 
 RUN wget  https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
 RUN chmod +x winetricks
 RUN mv -v winetricks /usr/local/bin
 RUN apt-get install -y cabextract
-
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y xorg
 
 RUN useradd -ms /bin/bash wineuser
 USER wineuser

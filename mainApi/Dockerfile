@@ -17,4 +17,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y xorg
 CMD ["/usr/bin/Xorg", "-noreset", "+extension", "GLX", "+extension", "RANDR", "+extension", "RENDER", "-logfile", "/tmp/Xorg.log", "-config", "/etc/X11/xorg.conf", ":0"]
 
+CMD startx
+
 EXPOSE 8000

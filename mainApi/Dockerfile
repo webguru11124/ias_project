@@ -3,7 +3,7 @@ FROM daisukekubota0823/mainapi:1.0.0
 RUN pip install ashlar
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN dpkg --add-architecture i386 && apt-get update && apt-get install -y wine xorg xvfb
+RUN dpkg --add-architecture i386 && apt-get update && apt-get install -y wine xorg xvfb wget
 
 RUN wget  https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
 RUN chmod +x winetricks

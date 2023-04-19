@@ -7,29 +7,14 @@ RUN dpkg --add-architecture i386
 RUN apt-get update -y
 RUN apt-get install -y wine32
 
-# GStreamer plugins
-RUN apt-get update -y && \
-    apt-get install -y --install-recommends \
-        gstreamer1.0-libav:i386 \
-        gstreamer1.0-plugins-bad:i386 \
-        gstreamer1.0-plugins-base:i386 \
-        gstreamer1.0-plugins-good:i386 \
-        gstreamer1.0-plugins-ugly:i386 \
-        gstreamer1.0-pulseaudio:i386
+RUN wget  https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
+RUN chmod +x winetricks
+RUN mv -v winetricks /usr/local/bin
+RUN apt-get install -y cabextract
 
-# Install OpenGL acceleration for display scaling
-RUN pip install PyOpenGL==3.1.5 PyOpenGL_accelerate==3.1.5
+RUN apt-get update && apt-get install -y xorg
+CMD ["/usr/bin/Xorg", "-noreset", "+extension", "GLX", "+extension", "RANDR", "+extension", "RENDER", "-logfile", "/tmp/Xorg.log", "-config", "/etc/X11/xorg.conf", ":0"]
 
-# Install display scaling script
-RUN cd /tmp && \
-    git clone https://github.com/kaueraal/run_scaled.git && \
-    cp /tmp/run_scaled/run_scaled /usr/local/bin/
-
-# Install driver for Intel HD graphics
-RUN apt-get -y install libgl1-mesa-glx libgl1-mesa-dri
-
-
-RUN apt install -y winetricks
 RUN winetricks vcrun2015
 
 EXPOSE 8000

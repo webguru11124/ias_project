@@ -6,6 +6,7 @@ RUN apt install -y wine64
 RUN dpkg --add-architecture i386
 RUN apt-get update -y
 RUN apt-get install -y wine32
+RUN apt install -y wget
 
 RUN wget  https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
 RUN chmod +x winetricks
@@ -14,7 +15,5 @@ RUN apt-get install -y cabextract
 
 RUN apt-get update && apt-get install -y xorg
 CMD ["/usr/bin/Xorg", "-noreset", "+extension", "GLX", "+extension", "RANDR", "+extension", "RENDER", "-logfile", "/tmp/Xorg.log", "-config", "/etc/X11/xorg.conf", ":0"]
-
-RUN winetricks vcrun2015
 
 EXPOSE 8000

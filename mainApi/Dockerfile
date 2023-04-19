@@ -17,15 +17,6 @@ RUN apt-get update -y && \
         gstreamer1.0-plugins-ugly:i386 \
         gstreamer1.0-pulseaudio:i386
 
-# Install dependencies for display scaling
-RUN apt-get update -y && \
-    apt-get install -y --install-recommends \
-        build-essential \
-        bc \
-        git \
-        xpra \
-        xvfb
-
 # Install OpenGL acceleration for display scaling
 RUN pip install PyOpenGL==3.1.5 PyOpenGL_accelerate==3.1.5
 

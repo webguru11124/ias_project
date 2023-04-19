@@ -7,6 +7,7 @@ RUN dpkg --add-architecture i386
 RUN apt-get update -y
 RUN apt-get install -y wine32
 RUN apt install -y wget
+RUN apt-get install -y xvfb
 
 RUN wget  https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
 RUN chmod +x winetricks

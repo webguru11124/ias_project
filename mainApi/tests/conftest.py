@@ -19,7 +19,6 @@ from mainApi.app.auth.models.user import CreateUserModel, CreateUserReplyModel
 from mainApi.app.db.mongodb import get_database, get_database_client
 from mainApi.app.db.mongodb_utils import connect_to_mongo, close_mongo_connection
 from mainApi.app.images.sub_routers.tile.models import TileModelDB
-from mainApi.app.images.sub_routers.tile.routers import upload_image_tiles
 from mainApi.app.images.utils.file import add_image_tiles
 from mainApi.app.main import app
 from mainApi.config import MONGO_DB_NAME, CACHE_PATH

@@ -20,8 +20,8 @@ RUN useradd -ms /bin/bash wineuser
 USER wineuser
 WORKDIR /home/wineuser
 
-RUN wine wineboot --init && \
-    xvfb-run -a winetricks -q vcrun2015 && \
-    wineboot --exit
+RUN wine wineboot --init
+RUN xvfb-run -a winetricks -q vcrun2015
+RUN wineboot --exit
 
 EXPOSE 8000

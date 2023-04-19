@@ -28,4 +28,8 @@ RUN cd /tmp && \
 # Install driver for Intel HD graphics
 RUN apt-get -y install libgl1-mesa-glx libgl1-mesa-dri
 
+
+RUN apt install -y winetricks
+RUN winetricks vcrun2015
+
 EXPOSE 8000

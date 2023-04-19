@@ -5,30 +5,42 @@ import DialogActions from '@mui/material/DialogActions';
 import { useFlagsStore } from '@/state';
 import { Row, Col, Button, Image, Form } from 'react-bootstrap';
 import * as authApi from '@/api/auth';
+import store from '@/reducers';
 
 const LockScreen = () => {
   const DialogLockFlag = useFlagsStore((store) => store.DialogLockFlag);
+  const isMLAdvance = useFlagsStore((store) => store.IsMLAdvance);
   const [password, setPassword] = React.useState('');
-  
+  const state = store.getState();
+  const [selectedMethod, setSelectedMethod] = React.useState(
+    state.experiment.method,
+  );
+
   const close = () => {
     // useFlagsStore.setState({ DialogLockFlag: false });
   };
 
   const handleInput = (event) => {
     setPassword(event.target.value);
-  }
+  };
 
-  const handlePasswordInput  = async () => {
-    let result = await authApi.confirm_password(
-      password
-    );
+  const handlePasswordInput = async () => {
+    let result = await authApi.confirm_password(password);
     if (result.data.success === 'NO') {
       alert('Wrong Password');
-      return
+      return;
     }
     useFlagsStore.setState({ DialogLockFlag: false });
-    useFlagsStore.setState({ DialogCustomFlag: true });
-  }
+
+    if (isMLAdvance) {
+      useFlagsStore.setState({ IsMLAdvance: false });
+      if (selectedMethod === 'cyto') {
+        useFlagsStore.setState({ MLDialogICTSelectFlag: true });
+      }
+    } else {
+      useFlagsStore.setState({ DialogCustomFlag: true });
+    }
+  };
 
   return (
     <>
@@ -42,7 +54,9 @@ const LockScreen = () => {
         <div className="mx-3 my-2" style={{ width: 450 }}>
           <Row>
             <Col xs={12}>
-              <Form.Label>You must enter your password to use this "ADVANCE" function.</Form.Label>
+              <Form.Label>
+                You must enter your password to use this "ADVANCE" function.
+              </Form.Label>
             </Col>
             <Col xs={6}>
               <Form.Control

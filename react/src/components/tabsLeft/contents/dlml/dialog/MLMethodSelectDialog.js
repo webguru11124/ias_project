@@ -38,7 +38,7 @@ TabContainer.propTypes = {
 
 const MLMethodSelectDialog = () => {
   const MLMethodList = useSelector((state) => state.experiment.MLMethodList);
-  const MLDialogMethodSelecFlag = useFlagsStore(
+  const MLDialogMethodSelectFlag = useFlagsStore(
     (store) => store.MLDialogMethodSelectFlag,
   );
   // const showCellposeDialog = () => {
@@ -67,7 +67,7 @@ const MLMethodSelectDialog = () => {
 
   return (
     <>
-      <Dialog open={MLDialogMethodSelecFlag} onClose={close} maxWidth={'450'}>
+      <Dialog open={MLDialogMethodSelectFlag} onClose={close} maxWidth={'450'}>
         <div className="d-flex border-bottom flex-row justify-content-between">
           <DialogTitle>{`Select the Method`}</DialogTitle>
           <IconButton

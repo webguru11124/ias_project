@@ -24,12 +24,10 @@ RUN apt-get update -y && \
         bc \
         git \
         xpra \
-        xvfb \
-        python3 \
-        python3-pip
+        xvfb
 
 # Install OpenGL acceleration for display scaling
-RUN pip3 install PyOpenGL==3.1.5 PyOpenGL_accelerate==3.1.5
+RUN pip install PyOpenGL==3.1.5 PyOpenGL_accelerate==3.1.5
 
 # Install display scaling script
 RUN cd /tmp && \

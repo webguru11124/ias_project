@@ -15,7 +15,7 @@ class TestML:
         if not os.path.exists(cls.TEST_OUTPUT_FOLDER):
             os.makedirs(cls.TEST_OUTPUT_FOLDER)
 
-    @pytest.mark.asynico
+    @pytest.mark.asyncio
     async def test_basic(self):
         cmd_str = "su -p -l wine -c 'wine /app/mainApi/ml_lib/lung/grid_analize.exe {inputPath} {outputPath} /app/mainApi/ml_lib/lung/src_param.txt'".format(
             inputPath=self.INPUT_FILE_PATH, outputPath=self.OUTPUT_FILE_PATH

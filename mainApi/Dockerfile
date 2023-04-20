@@ -24,8 +24,7 @@ RUN apt-get install -y cabextract
 #    xvfb-run -a winetricks -q vcrun2015 && \
 #    wineboot --exit
 
-RUN mv ~/.wine ~/.wine.bak && \
-    wineboot --init && \
+RUN sudo wineboot --init && \
     xvfb-run -a winetricks -q vcrun2015 && \
     wineboot --exit
 

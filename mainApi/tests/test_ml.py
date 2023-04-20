@@ -23,7 +23,7 @@ class TestML:
         # subprocess.call(cmd_str, shell=True)
         await asyncio.create_subprocess_shell(cmd_str)
 
-        cmd_str = "cp '{inputPath}' '{outputPath}'".format(
+        cmd_str = "cp {inputPath} {outputPath}".format(
             inputPath=self.WINE_OUTPUT_FOLDER + '/*.*', outputPath=self.TEST_OUTPUT_FOLDER + '/'
         )
         # subprocess.call(cmd_str, shell=True)

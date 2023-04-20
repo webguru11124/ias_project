@@ -6,7 +6,7 @@ import subprocess
 class TestML:
 
     INPUT_FILE_PATH = '/app/mainApi/tests/test_image_tiles/aaa.tif'
-    OUTPUT_FILE_PATH = 'aaa.jpg'
+    OUTPUT_FILE_PATH = '/ml_out/aaa.jpg'
     WINE_OUTPUT_FOLDER = '/home/wine/ml_out'
     TEST_OUTPUT_FOLDER = '/app/mainApi/tests/ml_out'
 

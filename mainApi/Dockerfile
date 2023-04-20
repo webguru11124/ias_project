@@ -5,7 +5,7 @@ RUN pip install ashlar
 ENV DEBIAN_FRONTEND=noninteractive
 RUN dpkg --add-architecture i386 && apt-get update && apt-get install -y xorg xvfb wget
 
-RUN apt update
+RUN apt update && apt-get install -y lsb-release && apt-get clean all
 RUN apt -y install gnupg2 software-properties-common
 RUN wget -nc https://dl.winehq.org/wine-builds/winehq.key
 RUN apt-key add winehq.key
@@ -16,7 +16,7 @@ RUN wget  https://raw.githubusercontent.com/Winetricks/winetricks/master/src/win
 RUN chmod +x winetricks
 RUN mv -v winetricks /usr/local/bin
 RUN apt-get install -y cabextract
-RUN winetricks -q ole32
+#RUN winetricks -q ole32
 
 #RUN useradd -ms /bin/bash wineuser
 #USER wineuser

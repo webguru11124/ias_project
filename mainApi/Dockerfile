@@ -17,11 +17,6 @@ RUN wget  https://raw.githubusercontent.com/Winetricks/winetricks/master/src/win
 RUN chmod +x winetricks
 RUN mv -v winetricks /usr/local/bin
 RUN apt-get install -y cabextract
-RUN winetricks -q ole32
-
-RUN useradd -ms /bin/bash wineuser
-USER wineuser
-WORKDIR /home/wineuser
 
 RUN wine wineboot --init
 RUN xvfb-run -a winetricks -q vcrun2015

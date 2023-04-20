@@ -22,7 +22,7 @@ class TestML:
         subprocess.call(cmd_str, shell=True)
 
         cmd_str = "cp '{inputPath}' '{outputPath}'".format(
-            inputPath=self.WINE_OUTPUT_FOLDER + '/*', outputPath=self.TEST_OUTPUT_FOLDER + '/*'
+            inputPath=self.WINE_OUTPUT_FOLDER + '/*.*', outputPath=self.TEST_OUTPUT_FOLDER + '/'
         )
         subprocess.call(cmd_str, shell=True)
 

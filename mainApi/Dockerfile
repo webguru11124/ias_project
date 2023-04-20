@@ -18,9 +18,14 @@ RUN chmod +x winetricks
 RUN mv -v winetricks /usr/local/bin
 RUN apt-get install -y cabextract
 
-RUN Xvfb :99 -screen 0 1024x768x16 & \
-    export DISPLAY=:99 && \
-    wine wineboot --init && \
+#RUN Xvfb :99 -screen 0 1024x768x16 & \
+#    export DISPLAY=:99 && \
+#    wine wineboot --init && \
+#    xvfb-run -a winetricks -q vcrun2015 && \
+#    wineboot --exit
+
+RUN mv ~/.wine ~/.wine.bak && \
+    wineboot --init && \
     xvfb-run -a winetricks -q vcrun2015 && \
     wineboot --exit
 

@@ -11,7 +11,7 @@ RUN wget -nc https://dl.winehq.org/wine-builds/winehq.key
 RUN apt-key add winehq.key
 RUN apt-add-repository https://dl.winehq.org/wine-builds/debian/
 RUN apt update
-RUN apt install --install-recommends winehq-stable
+RUN apt install -y --install-recommends winehq-stable
 
 RUN wget  https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
 RUN chmod +x winetricks

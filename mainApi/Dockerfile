@@ -18,8 +18,11 @@ RUN chmod +x winetricks
 RUN mv -v winetricks /usr/local/bin
 RUN apt-get install -y cabextract
 
-RUN wine wineboot --init
-RUN xvfb-run -a winetricks -q vcrun2015
-RUN wineboot --exit
+RUN Xvfb :99 -screen 0 1024x768x16 & \
+    export DISPLAY=:99 && \
+    wine wineboot --init && \
+    xvfb-run -a winetricks -q vcrun2015 && \
+    wineboot --exit
+
 
 EXPOSE 8000

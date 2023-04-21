@@ -14,6 +14,7 @@ import InputBase from '@mui/material/InputBase';
 import { useState } from 'react';
 import * as api_experiment from '@/api/experiment';
 import store from '@/reducers';
+import { getImageUrl } from '@/helpers/file';
 
 const ICTMethodDialog = () => {
   const DialogICTSelectFlag = useFlagsStore(
@@ -49,6 +50,10 @@ const ICTMethodDialog = () => {
     };
     res = await api_experiment.MLConvertResult(_payload);
     // console.log('ICT-convert-result:', res);
+    let source = getImageUrl(res.image_path, false, true);
+    store.dispatch({ type: 'set_image_path_for_result', content: source });
+    store.dispatch({ type: 'set_image_path_for_avivator', content: source });
+    useFlagsStore.setState({ MLDialogICTSelectFlag: false });
   };
 
   const handleDaysChange = (event) => {

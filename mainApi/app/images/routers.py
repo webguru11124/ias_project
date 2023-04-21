@@ -110,3 +110,27 @@ async def mlIPSProcess(request: Request, current_user: UserModelDB = Depends(get
     cmd_str = cmd_str.format(inputPath=imagePath, outputPath=OUT_PUT_PATH)
     subprocess.call(cmd_str, shell=True)
     return JSONResponse({"success": "success", "image_path": WINE_OUTPUT_FOLDER + '/' + fileName})
+
+@router.post(
+    "/ml_convert_result",
+    response_description="ML Convert Processed images to Ome.Tiff file",
+)
+async def mlConvertResult(request: Request):
+    data = await request.form()
+    imagePath = data.get("image_path")
+    fileName = imagePath.split("/")[len(imagePath.split("/")) - 1]
+    realName = os.path.splitext(fileName)
+    print("ml-convert-result-filename:", realName)
+    realPath = os.path.splitext(imagePath) + '_250.jpg'
+    tempPath = tempfile.mkdtemp()
+    outputFolder = '/app/mainApi/app/static' + tempPath
+    outputPath = outputFolder + '/' + realName + '_250.ome.tiff'
+
+    if not os.path.exists(outputFolder):
+        os.makedirs(outputFolder)
+
+    cmd_str = "sh /app/mainApi/bftools/bfconvert -separate -overwrite '" + realPath + "' '" + outputPath + "'"
+    print('=====>', cmd_str)
+    subprocess.run(cmd_str, shell=True)
+
+    return JSONResponse({"success": "success", "image_path": tempPath + '/' + realName + '_250.ome.tiff'})

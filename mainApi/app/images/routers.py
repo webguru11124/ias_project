@@ -106,6 +106,6 @@ async def mlIPSProcess(request: Request, current_user: UserModelDB = Depends(get
         cmd_str += " /app/mainApi/ml_lib/ips/src_paramD.txt"
 
     cmd_str += " " + sensitivity + "'"
-    cmd_str = cmd_str.format(inputPaht=imagePath, outputPath=OUT_PUT_PATH)
+    cmd_str = cmd_str.format(inputPath=imagePath, outputPath=OUT_PUT_PATH)
     subprocess.call(cmd_str, shell=True)
     return JSONResponse({"success": "success", "image_path": WINE_OUTPUT_FOLDER + '/' + fileName})

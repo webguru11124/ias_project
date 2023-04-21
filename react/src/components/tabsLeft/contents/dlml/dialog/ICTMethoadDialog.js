@@ -12,12 +12,15 @@ import Slider from '@mui/material/Slider';
 import { range } from '@/helpers/avivator';
 import InputBase from '@mui/material/InputBase';
 import { useState } from 'react';
+import * as api_experiment from '@/api/experiment';
+import store from '@/reducers';
 
 const ICTMethodDialog = () => {
   const DialogICTSelectFlag = useFlagsStore(
     (store) => store.MLDialogICTSelectFlag,
   );
   const [sensitivity, setSensitivity] = useState(50);
+  const [type, setType] = useState('a');
 
   const close = (event, reason) => {
     useFlagsStore.setState({ MLDialogICTSelectFlag: false });
@@ -28,11 +31,25 @@ const ICTMethodDialog = () => {
     return false;
   };
 
-  const handleSelectedMethod = (newValue) => {};
+  const handleSelectedMethod = async () => {
+    const state = store.getState();
+    let fullPath = state.files.imagePathForAvivator;
+    let subPath = /path=(.*)/.exec(fullPath)[1];
+    let imgPath = subPath.split('/').slice(1).join('/');
+
+    const _payload = {
+      original_image_url: imgPath,
+      type,
+      sensitivity,
+    };
+    let res = await api_experiment.MLICTProcessImage(_payload);
+    // console.log('ICT-result:', res);
+  };
 
   const handleDaysChange = (event) => {
     // let value = event.target.value;
     // console.log('handle-days-change:', value);
+    setType(event.target.value);
   };
 
   return (
@@ -58,7 +75,11 @@ const ICTMethodDialog = () => {
                 </div>
                 <div style={{ padding: '15px' }}>
                   <FormControl component="fieldset">
-                    <RadioGroup aria-label="days" onChange={handleDaysChange}>
+                    <RadioGroup
+                      aria-label="days"
+                      onChange={handleDaysChange}
+                      value={type}
+                    >
                       <FormControlLabel
                         value="a"
                         control={<Radio />}

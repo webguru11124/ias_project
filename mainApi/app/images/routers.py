@@ -88,7 +88,8 @@ async def mlIPSProcess(request: Request, current_user: UserModelDB = Depends(get
     type = data.get("type")
 
     fileName = imagePath.split("/")[len(imagePath.split("/")) - 1]
-    OUT_PUT_FOLDER = tempfile.mkdtemp().split("/")[len(imagePath.split("/")) - 1]
+    tempPath = tempfile.mkdtemp()
+    OUT_PUT_FOLDER = tempPath.split("/")[len(tempPath.split("/")) - 1]
     OUT_PUT_PATH = OUT_PUT_FOLDER + "/" + fileName
     WINE_OUTPUT_FOLDER = '/home/wine/' + OUT_PUT_FOLDER
 

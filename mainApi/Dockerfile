@@ -19,7 +19,7 @@ RUN mv -v winetricks /usr/local/bin
 RUN apt-get install -y cabextract
 
 RUN useradd -u 1001 -d /home/wine -m -s /bin/bash wine
-ENV HOME /home/wine
+ENV HOME /app/mainApi/app/static
 ENV WINEPREFIX /home/wine/.wine
 ENV WINEDEBUG -all
 ENV WINEARCH win32

@@ -24,6 +24,7 @@ const WellPlates = (props) => {
     calculateDRect.width = props.width;
     calculateDRect.height = props.width * VESSEL_WELLPLATE_RATIO;
   }
+  const maxWellPlateNumbers = 384;
   const a_rows = props.rows + (props.showName ? 1 : 0);
   const a_cols = props.cols + (props.showName ? 1 : 0);
   let radiusCalculated =
@@ -197,12 +198,14 @@ const WellPlates = (props) => {
     e.preventDefault();
     //console.log("WellPlates.js handleVesselClick  activeHoles  Hole Number: ", activeHoles, holeNumber, ". Row: ", row, ". Col: ", col);
     setHoleClicked(holeNumber);
-    if (!activeHoles.includes(holeNumber)) activeHoles.push(holeNumber);
+    //if (!activeHoles.includes(holeNumber)) activeHoles.push(holeNumber);
+
+    for (let i = 0; i < maxWellPlateNumbers; i++) activeHoles.push(i);
+
     if (activeHoles.includes(holeNumber)) {
       // let dataHoleChosen = content[holeNumber]
       // let viewConfigs = getViewConfigs(dataHoleChosen);
       // console.log("WellPlates.js handleVesselClick  > viewConfigs : ", viewConfigs, "Hole number : ", holeNumber, ":  CLICKED : ", dataHoleChosen);
-
       // console.log("Vessel Clicked");
       store.dispatch({
         type: 'vessel_selectedVesselHole',

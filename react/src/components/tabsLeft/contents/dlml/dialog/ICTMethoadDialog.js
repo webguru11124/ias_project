@@ -37,13 +37,18 @@ const ICTMethodDialog = () => {
     let subPath = /path=(.*)/.exec(fullPath)[1];
     let imgPath = subPath.split('/').slice(1).join('/');
 
-    const _payload = {
+    let _payload = {
       original_image_url: imgPath,
       type,
       sensitivity,
     };
     let res = await api_experiment.MLICTProcessImage(_payload);
     // console.log('ICT-result:', res);
+    _payload = {
+      image_path: res.image_path,
+    };
+    res = await api_experiment.MLConvertResult(_payload);
+    // console.log('ICT-convert-result:', res);
   };
 
   const handleDaysChange = (event) => {

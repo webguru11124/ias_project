@@ -119,9 +119,9 @@ async def mlConvertResult(request: Request):
     data = await request.form()
     imagePath = data.get("image_path")
     fileName = imagePath.split("/")[len(imagePath.split("/")) - 1]
-    realName = os.path.splitext(fileName)
+    realName = os.path.splitext(fileName)[0]
     print("ml-convert-result-filename:", realName)
-    realPath = os.path.splitext(imagePath) + '_250.jpg'
+    realPath = os.path.splitext(imagePath)[0] + '_250.jpg'
     tempPath = tempfile.mkdtemp()
     outputFolder = '/app/mainApi/app/static' + tempPath
     outputPath = outputFolder + '/' + realName + '_250.ome.tiff'

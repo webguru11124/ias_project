@@ -201,7 +201,12 @@ const WellPlates = (props) => {
       // console.log("WellPlates.js handleVesselClick  > viewConfigs : ", viewConfigs, "Hole number : ", holeNumber, ":  CLICKED : ", dataHoleChosen);
       store.dispatch({
         type: 'files_selectedVesselHole',
-        content: { row: row, col: col + 1 },
+        content: {
+          row: row,
+          col: col + 1,
+          rowCount: props.rows,
+          colCount: props.cols,
+        },
       });
     } else {
       // console.log("NO DATA Content Hole number ", holeNumber);

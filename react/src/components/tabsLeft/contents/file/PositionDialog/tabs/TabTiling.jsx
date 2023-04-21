@@ -13,7 +13,7 @@ import {
   Paper,
   Select,
 } from '@mui/material';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
 import {
   AlignmentLabels,
@@ -42,16 +42,44 @@ export default function TabTiling() {
       return sorted;
     }
     const cols = dim[1];
+    const rows = dim[0];
     // Split the array into sub-arrays of cols
-    const chunks = [];
-    for (let i = 0; i < sorted.length; i += cols) {
-      chunks.push(sorted.slice(i, i + cols));
-    }
+    let chunks = [];
 
-    // Reverse every second sub-array for snake layout
-    if (align === Alignments.snake) {
-      for (let i = 1; i < chunks.length; i += 2) {
-        chunks[i].reverse();
+    // if the direction is horizontal
+    if (dir === Directions.horizontal) {
+      for (let i = 0; i < sorted.length; i += cols) {
+        chunks.push(sorted.slice(i, i + cols));
+      }
+
+      // Reverse every second sub-array for snake layout
+      if (align === Alignments.snake) {
+        for (let i = 1; i < chunks.length; i += 2) {
+          chunks[i].reverse();
+        }
+      }
+    } // if the direction is vertical
+    else if (dir === Directions.vertical) {
+      for (let i = 0; i < rows; i++) chunks.push([]);
+      for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+          const id = j * rows + i;
+          chunks[i].push(sorted.at(j * rows + i));
+        }
+      }
+
+      if (align === Alignments.snake) {
+        let temp = chunks;
+        chunks = [];
+        for (let i = 0; i < rows; i++) chunks.push([]);
+        for (let i = 0; i < rows; i++) {
+          for (let j = 0; j < cols; j++) {
+            //Reverse every second cols for snake layout
+            if (j % 2 == 1) {
+              chunks[i][j] = temp[rows - i - 1][j];
+            } else chunks[i][j] = temp[i][j];
+          }
+        }
       }
     }
 
@@ -72,7 +100,9 @@ export default function TabTiling() {
 
     setBuilding(true);
     const output = await buildPyramid(ashlarParams);
+
     store.dispatch({ type: 'set_image_path_for_avivator', content: output });
+
     setBuilding(false);
   };
 

@@ -68,6 +68,7 @@ const WellPlates = (props) => {
         calculateDRect.width / a_cols > calculateDRect.height / a_rows
           ? calculateDRect.height / a_rows
           : calculateDRect.width / a_cols;
+
       setShowNumber(props.showNumber);
       setShowName(props.showName);
       setWidth(props.width);
@@ -75,6 +76,7 @@ const WellPlates = (props) => {
       setCols(props.cols);
       setRadious(Math.floor(Math.floor(radiusCalculated) * 0.9));
       setRect(calculateDRect);
+
       setFontSize(
         radiusCalculated / 2 > VESSEL_WELLPLATE_MAX_FONTSIZE
           ? VESSEL_WELLPLATE_MAX_FONTSIZE
@@ -133,9 +135,9 @@ const WellPlates = (props) => {
   const sortArrayBasedOnHoleNumber = (content) => {
     let new_array_content = [];
     let old_content = [...content];
-    // console.log("Active Holes: ", activeHolesNumbers);
+    //console.log("Active Holes: ", activeHolesNumbers);
     let maxIterate = Math.max(...activeHolesNumbers) + 1;
-    // console.log("Max Holes: ", maxIterate);
+    //console.log("Max Holes: ", maxIterate);
     for (let i = 0; i < maxIterate; i++) {
       let data = {};
       let one_array = [];
@@ -193,8 +195,9 @@ const WellPlates = (props) => {
 
   const handleVesselClick = (e, holeNumber, row, col) => {
     e.preventDefault();
-    // console.log("WellPlates.js handleVesselClick  activeHoles  Hole Number: ", activeHoles, holeNumber, ". Row: ", row, ". Col: ", col);
+    //console.log("WellPlates.js handleVesselClick  activeHoles  Hole Number: ", activeHoles, holeNumber, ". Row: ", row, ". Col: ", col);
     setHoleClicked(holeNumber);
+    if (!activeHoles.includes(holeNumber)) activeHoles.push(holeNumber);
     if (activeHoles.includes(holeNumber)) {
       // let dataHoleChosen = content[holeNumber]
       // let viewConfigs = getViewConfigs(dataHoleChosen);

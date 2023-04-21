@@ -140,7 +140,8 @@ const Viewer = ({ isFullScreen }) => {
   }, []);
 
   const onViewStateChange = ({ viewState }) => {
-    // console.log(`X-${viewState.target[0]} Y:${viewState.target[1]}`)
+    //console.log(`X-${viewState.target[0]} Y:${viewState.target[1]}`);
+
     let deck_width = localStorage.getItem('imageViewSizeWidth');
     let deck_height = localStorage.getItem('imageViewSizeHeight');
     // console.log(`Width: ${width} Height: ${height}`)

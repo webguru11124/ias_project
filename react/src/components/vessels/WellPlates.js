@@ -47,6 +47,7 @@ const WellPlates = (props) => {
   const [activeHoles, setActiveHoles] = useState([]);
 
   useEffect(() => {
+    //console.log(props.rows);
     if (
       width !== props.width ||
       rows !== props.rows ||
@@ -191,11 +192,12 @@ const WellPlates = (props) => {
 
   const handleVesselClick = (e, holeNumber, row, col) => {
     e.preventDefault();
-    // console.log("WellPlates.js handleVesselClick  activeHoles  Hole Number: ", activeHoles, holeNumber, ". Row: ", row, ". Col: ", col);
+
+    //  console.log("WellPlates.js handleVesselClick  activeHoles  Hole Number: ", activeHoles, holeNumber, ". Row: ", row, ". Col: ", col);
     setHoleClicked(holeNumber);
     if (activeHoles.includes(holeNumber)) {
-      // let dataHoleChosen = content[holeNumber]
-      // let viewConfigs = getViewConfigs(dataHoleChosen);
+      //let dataHoleChosen = content[holeNumber]
+      //let viewConfigs = getViewConfigs(dataHoleChosen);
       // console.log("WellPlates.js handleVesselClick  > viewConfigs : ", viewConfigs, "Hole number : ", holeNumber, ":  CLICKED : ", dataHoleChosen);
       store.dispatch({
         type: 'files_selectedVesselHole',

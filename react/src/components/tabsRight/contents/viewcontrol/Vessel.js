@@ -123,6 +123,9 @@ const Vessel = (props) => {
     if (props.content && props.content !== []) {
       let current_contents = JSON.parse(JSON.stringify(props.content));
       setContents(JSON.parse(JSON.stringify(current_contents)));
+
+      //console.log("Current Content is ");
+      //console.log(current_contents);
       let current_vessel = {
         id: 12,
         type: 'WellPlate',

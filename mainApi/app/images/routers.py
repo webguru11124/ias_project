@@ -13,6 +13,7 @@ from mainApi.config import STATIC_PATH
 from mainApi.app.auth.auth import get_current_user
 from mainApi.app.auth.models.user import UserModelDB, PyObjectId
 import subprocess
+import tempfile
 from datetime import date
 
 router = APIRouter(prefix="/image", tags=[])
@@ -74,3 +75,37 @@ async def processImage(request: Request, current_user: UserModelDB = Depends(get
     subprocess.call(cmd_str, shell=True)
 
     return JSONResponse({"success": "success", "image_path": newImagePath})
+
+
+@router.post(
+    "/ml_ips_process",
+    response_description="ML IPS Process",
+)
+async def mlIPSProcess(request: Request, current_user: UserModelDB = Depends(get_current_user)):
+    data = await request.form()
+    imagePath = '/app/mainApi/app/static/' + str(PyObjectId(current_user.id)) + '/' + data.get("original_image_url")
+    sensitivity = data.get("sensitivity")
+    type = data.get("type")
+
+    fileName = imagePath.split("/")[len(imagePath.split("/")) - 1]
+    OUT_PUT_FOLDER = tempfile.mkdtemp()
+    OUT_PUT_PATH = OUT_PUT_FOLDER + "/" + fileName
+    WINE_OUTPUT_FOLDER = '/home/wine/' + OUT_PUT_FOLDER
+
+    cmd_str = "su -c 'mkdir {folderPath}' wine".format(folderPath=WINE_OUTPUT_FOLDER)
+    subprocess.call(cmd_str, shell=True)
+
+    cmd_str = "su -p -l wine -c 'wine /app/mainApi/ml_lib/ips/segmantation-typeB-v2.exe {inputPath} {outputPath}"
+    if type == 'a':
+        cmd_str += " /app/mainApi/ml_lib/ips/src_paramA.txt"
+    if type == 'b':
+        cmd_str += " /app/mainApi/ml_lib/ips/src_paramB.txt"
+    if type == 'c':
+        cmd_str += " /app/mainApi/ml_lib/ips/src_paramC.txt"
+    if type == 'd':
+        cmd_str += " /app/mainApi/ml_lib/ips/src_paramD.txt"
+
+    cmd_str += " " + sensitivity + "'"
+    cmd_str = cmd_str.format(inputPaht=imagePath, outputPath=OUT_PUT_PATH)
+    subprocess.call(cmd_str, shell=True)
+    return JSONResponse({"success": "success", "image_path": WINE_OUTPUT_FOLDER + '/' + fileName})

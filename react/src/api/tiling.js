@@ -27,6 +27,13 @@ export const deleteTiles = async (tileIds) => {
 };
 
 export const updateTilesMetaInfo = async (tilesMetaInfo) => {
+  const config = {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+    },
+  };
+
   return await mainApiService.post('/image/tile/update_tiles_meta_info', {
     tiles_meta_info: tilesMetaInfo,
   });

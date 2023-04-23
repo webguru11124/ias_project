@@ -24,7 +24,6 @@ const WellPlates = (props) => {
     calculateDRect.width = props.width;
     calculateDRect.height = props.width * VESSEL_WELLPLATE_RATIO;
   }
-  const maxWellPlateNumbers = 384;
   const a_rows = props.rows + (props.showName ? 1 : 0);
   const a_cols = props.cols + (props.showName ? 1 : 0);
   let radiusCalculated =
@@ -200,6 +199,7 @@ const WellPlates = (props) => {
     setHoleClicked(holeNumber);
     //if (!activeHoles.includes(holeNumber)) activeHoles.push(holeNumber);
 
+    const maxWellPlateNumbers = 384;
     for (let i = 0; i < maxWellPlateNumbers; i++) activeHoles.push(i);
 
     if (activeHoles.includes(holeNumber)) {

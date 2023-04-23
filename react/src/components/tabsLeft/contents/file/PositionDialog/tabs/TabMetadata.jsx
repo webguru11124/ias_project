@@ -10,11 +10,23 @@ import { METADATA_COLUMNS } from './constants';
 
 export default function TabMetadata() {
   const { tiles } = useTilingStore();
+
+  //console.log(tiles);
+
   const urls = useMemo(
-    () => tiles.filter((tile) => /tif?f/.test(tile.path)).map((img) => img.url),
+    () =>
+      tiles
+        .filter((tile) => /tif?f|jpg|jpeg|png|JPG|PNG/.test(tile.path))
+        .map((img) => img.url),
     [tiles],
   );
+
+  //console.log(urls);
+
   const [metadata, loading] = useMetadata(urls);
+
+  //console.log(metadata);
+
   const rows = useMemo(
     () =>
       metadata.map((data, idx) => ({

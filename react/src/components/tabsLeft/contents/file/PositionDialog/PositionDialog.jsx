@@ -14,6 +14,7 @@ import TabImage from './tabs/TabImage';
 import TabMetadata from './tabs/TabMetadata';
 import TabNaming from './tabs/TabNaming';
 import TabTiling from './tabs/TabTiling';
+import TabGroup from './tabs/TabGroup';
 
 const TabPanel = ({ value, selected, children }) =>
   value === selected ? children : null;
@@ -80,6 +81,9 @@ const PositionDialog = ({ open, onClose }) => {
         </TabPanel>
         <TabPanel value={PositionTabs.naming} selected={selectedTab}>
           <TabNaming />
+        </TabPanel>
+        <TabPanel value={PositionTabs.groups} selected={selectedTab}>
+          <TabGroup />
         </TabPanel>
       </TabContext>
     </Dialog>

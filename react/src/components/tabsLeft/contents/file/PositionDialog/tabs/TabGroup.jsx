@@ -1,4 +1,3 @@
-import { buildPyramid } from '@/api/tiling';
 import DialogContent from '@/components/mui/DialogContent';
 import useTilingStore from '@/stores/useTilingStore';
 import {
@@ -14,17 +13,29 @@ import {
   Select,
 } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
-import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
-import {
-  AlignmentLabels,
-  Alignments,
-  DirectionLabels,
-  Directions,
-} from './constants';
-import { getAvailableDimensions } from './helpers';
 import store from '@/reducers';
+import { connect } from 'react-redux';
 
-export default function TabTiling() {
+const TabGroup = (props) => {
+  useEffect(() => {
+    //console.log(props.content)
+  }, []);
+
+  return (
+    <div>
+      <p>this is the TabGroup field</p>
+    </div>
+  );
+};
+
+const mapStateToProps = (state) => ({
+  content: state,
+});
+
+export default connect(mapStateToProps)(TabGroup);
+
+/*
+export default function TabGroup() {
   const { tiles } = useTilingStore();
   const [align, setAlign] = useState(Alignments.raster);
   const [dir, setDir] = useState(Directions.horizontal);
@@ -105,7 +116,7 @@ export default function TabTiling() {
 
     setBuilding(false);
   };
-
+   
   return (
     <>
       <DialogContent dividers sx={{ height: '100%' }} loading={building}>
@@ -214,3 +225,4 @@ export default function TabTiling() {
     </>
   );
 }
+*/

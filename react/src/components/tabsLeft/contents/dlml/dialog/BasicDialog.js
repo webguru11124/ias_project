@@ -31,6 +31,7 @@ const BasicDialog = (props) => {
       useFlagsStore.setState({ IsMLAdvance: true });
       useFlagsStore.setState({ DialogBasicFlag: false });
       store.dispatch({ type: 'setMethod', content: selectedMethod });
+      store.dispatch({ type: 'set_current_model', content: selectedMethod });
       useFlagsStore.setState({ DialogLockFlag: true });
     } else {
       useFlagsStore.setState({ DialogBasicFlag: false });

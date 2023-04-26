@@ -16,6 +16,8 @@ import subprocess
 import tempfile
 from datetime import date
 
+import h5py as h5
+
 router = APIRouter(prefix="/image", tags=[])
 
 router.include_router(tile_router)
@@ -76,7 +78,6 @@ async def processImage(request: Request, current_user: UserModelDB = Depends(get
 
     return JSONResponse({"success": "success", "image_path": newImagePath})
 
-
 @router.post(
     "/ml_ips_process",
     response_description="ML IPS Process",
@@ -134,3 +135,23 @@ async def mlConvertResult(request: Request):
     subprocess.run(cmd_str, shell=True)
 
     return JSONResponse({"success": "success", "image_path": tempPath + '/' + realName + '_250.ome.tiff'})
+
+@router.get("/test")
+def read_root():
+    print('sdfsdfsdf')
+    with h5.File('example.h5', 'w') as f:
+    # create a group
+        group = f.create_group('mygroup')
+        
+        # create a dataset inside the group
+        data = [1, 2, 3, 4, 5]
+        group.create_dataset('mydata', data=data)
+    
+# read the data from the file
+    with h5.File('example.h5', 'r') as f:
+        # get the dataset
+        dataset = f['mygroup/mydata']
+        
+        # print the dataset
+        print(dataset[:])
+    return {"Ping": "Pang"}

@@ -18,7 +18,6 @@ import * as Icon from './ModelIcons';
 import { toTiffPath } from '@/helpers/avivator';
 import { getImageUrl } from '@/helpers/file';
 
-
 function TabContainer(props) {
   return (
     <Typography component="div" style={{ padding: 0 }}>
@@ -33,64 +32,68 @@ TabContainer.propTypes = {
 
 const CustomDialog = () => {
   const DialogCustomFlag = useFlagsStore((store) => store.DialogCustomFlag);
+  const LockFlag = useFlagsStore((store) => store.LockFlag);
   const DialogCustomNameFlag = useFlagsStore(
     (store) => store.DialogCustomNameFlag,
   );
 
   const showCustomNameDialog = async () => {
-    const state = store.getState();
-    if (isNull(state.files.imagePathForAvivator)) {
-      alert('Please enter your image file!');
-      return;
-    }
-    if (selectedIcon === '') {
-      alert('Please select your model!');
-      useFlagsStore.setState({ DialogLoadingFlag: false });
-      return;
-    }
-
-    let imgPath = '';
-    if(typeof state.files.imagePathForAvivator === 'string') {
-      imgPath = state.files.imagePathForAvivator;
-    }
-    else if (typeof state.files.imagePathForAvivator === 'object') {
-      imgPath = state.files.imagePathForAvivator[0].path;
-    }
-    let exp_name = imgPath.split('/');
-    useFlagsStore.setState({ DialogCustomFlag: false });
-    useFlagsStore.setState({ DialogLoadingFlag: true });
-    let result = await api_experiment.testSegment(
-      imgPath,
-      exp_name,
-      selectedIcon,
-      );
-    let imagePathForAvivator = null;
-    if (result.data.error) {
-      //alert("Error occured while getting the tree")
+    if (LockFlag) {
+      useFlagsStore.setState({ DialogLockFlag: true });
     } else {
-      if (result.data.success === 'NO') {
-        alert(
-          'Your custom model is not suitable for this image. Please choose another model',
-        );
+      const state = store.getState();
+      if (isNull(state.files.imagePathForAvivator)) {
+        alert('Please enter your image file!');
+        return;
+      }
+      if (selectedIcon === '') {
+        alert('Please select your model!');
         useFlagsStore.setState({ DialogLoadingFlag: false });
         return;
       }
-      let file_path = result.data.success;
-      exp_name = exp_name[exp_name.length-2];
-      console.log('exp_name', exp_name);
-      const file = await getImageUrl(exp_name + '/' + file_path, true, true);
-      if (file) imagePathForAvivator = file
+
+      let imgPath = '';
+      if (typeof state.files.imagePathForAvivator === 'string') {
+        imgPath = state.files.imagePathForAvivator;
+      } else if (typeof state.files.imagePathForAvivator === 'object') {
+        imgPath = state.files.imagePathForAvivator[0].path;
+      }
+      let exp_name = imgPath.split('/');
+      useFlagsStore.setState({ DialogCustomFlag: false });
+      useFlagsStore.setState({ DialogLoadingFlag: true });
+      let result = await api_experiment.testSegment(
+        imgPath,
+        exp_name,
+        selectedIcon,
+      );
+      let imagePathForAvivator = null;
+      if (result.data.error) {
+        //alert("Error occured while getting the tree")
+      } else {
+        if (result.data.success === 'NO') {
+          alert(
+            'Your custom model is not suitable for this image. Please choose another model',
+          );
+          useFlagsStore.setState({ DialogLoadingFlag: false });
+          return;
+        }
+        let file_path = result.data.success;
+        exp_name = exp_name[exp_name.length - 2];
+        // console.log('exp_name', exp_name);
+        const file = await getImageUrl(exp_name + '/' + file_path, true, true);
+        if (file) imagePathForAvivator = file;
+      }
+      // if (imagePathForAvivator.length <= 0) imagePathForAvivator = null;
+      store.dispatch({
+        type: 'set_image_path_for_avivator',
+        content: imagePathForAvivator,
+      });
+      useFlagsStore.setState({ DialogLoadingFlag: false });
     }
-    // if (imagePathForAvivator.length <= 0) imagePathForAvivator = null;
-    store.dispatch({
-      type: 'set_image_path_for_avivator',
-      content: imagePathForAvivator,
-    });
-    useFlagsStore.setState({ DialogLoadingFlag: false });
   };
 
   const close = (event, reason) => {
-    if (reason != 'backdropClick') {
+    if (reason !== 'backdropClick') {
       useFlagsStore.setState({ DialogCustomFlag: false });
     }
   };
@@ -155,7 +158,7 @@ const CustomDialog = () => {
     noun19: Icon.imgNoun19,
     noun20: Icon.imgNoun20,
     noun21: Icon.imgNoun21,
-    noun22: Icon.imgNoun22
+    noun22: Icon.imgNoun22,
   };
 
   const [selectedIcon, setSelectedIcon] = useState('');

@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { useState } from 'react';
+
 import SmallCard from '../../../custom/SmallCard';
 import CustomButton from '../../../custom/CustomButton';
 import {
@@ -9,8 +11,15 @@ import {
   mdiCubeOutline,
   mdiLayersOutline,
 } from '@mdi/js';
+import MultilineTextBox from '@/components/custom/MultiLineText';
 
 export default function FirstPage() {
+  const [information, setInformation] = useState('');
+
+  const handleChangeInformation = (event) => {
+    setInformation(event.target.value);
+  };
+
   const onClick1 = () => {};
   const onClick2 = () => {};
   const onClick3 = () => {};
@@ -43,7 +52,16 @@ export default function FirstPage() {
             click={onClick7}
           />
         </SmallCard>
-        <SmallCard title="Method Information"></SmallCard>
+        <SmallCard title="Method Information">
+          <MultilineTextBox
+            style={{ fontSize: '12px' }}
+            label="Information"
+            value={information}
+            onChange={handleChangeInformation}
+            minRows={6}
+            placeholder="Enter some description here..."
+          />
+        </SmallCard>
       </div>
     </>
   );

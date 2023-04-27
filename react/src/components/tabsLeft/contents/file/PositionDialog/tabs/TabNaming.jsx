@@ -155,6 +155,8 @@ export default function TabNaming() {
       ...getNamePatternPerFileForProcessing(oldContent)[1],
     }));
 
+    //console.log(newContents);
+
     await updateTilesMetaInfo(newContents);
     await loadTiles();
     setSearchRows(newContents);

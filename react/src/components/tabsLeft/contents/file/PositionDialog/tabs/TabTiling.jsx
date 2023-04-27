@@ -101,6 +101,8 @@ export default function TabTiling() {
     setBuilding(true);
     const output = await buildPyramid(ashlarParams);
 
+    //console.log(output);
+
     store.dispatch({ type: 'set_image_path_for_avivator', content: output });
 
     setBuilding(false);

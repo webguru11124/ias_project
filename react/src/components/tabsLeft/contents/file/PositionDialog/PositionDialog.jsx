@@ -82,9 +82,10 @@ const PositionDialog = ({ open, onClose }) => {
         <TabPanel value={PositionTabs.naming} selected={selectedTab}>
           <TabNaming />
         </TabPanel>
-        <TabPanel value={PositionTabs.groups} selected={selectedTab}>
+
+        {/* <TabPanel value={PositionTabs.groups} selected={selectedTab}>
           <TabGroup />
-        </TabPanel>
+        </TabPanel> */}
       </TabContext>
     </Dialog>
   );

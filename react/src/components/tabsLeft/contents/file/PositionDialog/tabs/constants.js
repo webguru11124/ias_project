@@ -11,7 +11,6 @@ export const PositionTabLabels = {
   [PositionTabs.tiling]: 'Tiling',
   [PositionTabs.metadata]: 'Metadata',
   [PositionTabs.naming]: 'Naming & Files',
-  [PositionTabs.groups]: 'Groups',
 };
 
 export const TilingTabs = {

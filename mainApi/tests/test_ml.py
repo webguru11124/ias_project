@@ -1,6 +1,6 @@
 import pytest
-import os
-import subprocess
+import ctypes
+import pathlib
 import asyncio
 
 class TestML:
@@ -10,17 +10,17 @@ class TestML:
     WINE_OUTPUT_FOLDER = '/home/wine/ml_temp'
     TEST_OUTPUT_FOLDER = '/app/mainApi/tests/ml_out'
 
+    LIB_PATH = '/app/mainApi/ml_lib/mylib.so'
+
     @pytest.mark.asyncio
     async def test_basic(self):
+        c_lib = ctypes.CDLL(self.LIB_PATH)
+        x, y = 6, 2.3
 
-        cmd_str = "su -c 'mkdir {folderPath}' wine".format(folderPath=self.WINE_OUTPUT_FOLDER)
-        await asyncio.create_subprocess_shell(cmd_str)
+        c_lib.cmult.restype = ctypes.c_float
+        answer = c_lib.cmult(x, ctypes.c_float(y))
+        print(f"    In Python: int: {x} float {y:.1f} return val {answer:.1f}")
 
-        cmd_str = "su -p -l wine -c 'wine /app/mainApi/ml_lib/lung/grid_analize.exe {inputPath} {outputPath} /app/mainApi/ml_lib/lung/src_param.txt'".format(
-            inputPath=self.INPUT_FILE_PATH, outputPath=self.OUTPUT_FILE_PATH
-        )
-        # subprocess.call(cmd_str, shell=True)
-        await asyncio.create_subprocess_shell(cmd_str)
 
 
 

@@ -24,6 +24,7 @@ const mapStateToProps = (state) => ({
 });
 
 const Vessel = (props) => {
+  const [shape, setShape] = useState('rect'); // ['rect', 'circle']
   const [currentVesselId, setCurrentVesselId] = useState(1);
   const [currentVessel, setCurrentVessel] = useState(getVesselById(1));
   const [showSelectDialog, setShowSelectDialog] = useState(false);

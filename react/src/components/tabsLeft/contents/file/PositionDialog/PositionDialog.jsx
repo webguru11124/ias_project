@@ -13,7 +13,7 @@ import { PositionTabLabels, PositionTabs } from './tabs/constants';
 import TabImage from './tabs/TabImage';
 import TabMetadata from './tabs/TabMetadata';
 import TabNaming from './tabs/TabNaming';
-import TabTiling from './tabs/TabTiling';
+import TabTiling from './tabs/TabTilingPart';
 import TabGroup from './tabs/TabGroup';
 
 const TabPanel = ({ value, selected, children }) =>

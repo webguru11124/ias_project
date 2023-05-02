@@ -55,7 +55,11 @@ export default function TabMetadata() {
           </BoxCenter>
         ) : (
           <Box sx={{ height: '100%', width: '100%' }}>
-            <DataTable columns={METADATA_COLUMNS} rows={rows} />
+            <DataTable
+              columns={METADATA_COLUMNS}
+              rows={rows}
+              type={'TabMetadata'}
+            />
           </Box>
         )}
       </DialogContent>

@@ -34,6 +34,7 @@ const Input = styled(TextField)`
 `;
 
 const mapStateToProps = (state) => ({
+  displayOption: state.display,
   content: state.files.content,
   files: state.files.files,
   selectedVesselHole: state.vessel.selectedVesselHole,
@@ -62,6 +63,16 @@ const Timeline = (props) => {
   const [value, setValue] = useState(1);
   const [minSlider, setMinSlider] = useState(1);
   const [maxSlider, setMaxSlider] = useState(10);
+
+  // useEffect(() => {
+  //   console.log(props.displayOption);
+  //   if(props.displayOption.id == "Metadata") {
+
+  //     const v = props.displayOption.sizeT;
+  //     if(!isNaN(v)) updateTime(5);
+  //   }
+
+  // }, [props])
 
   const [selections, setPropertiesForChannel] = useChannelsStore(
     (store) => [store.selections, store.setPropertiesForChannel],

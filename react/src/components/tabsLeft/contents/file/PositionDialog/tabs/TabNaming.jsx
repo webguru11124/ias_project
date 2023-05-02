@@ -35,7 +35,23 @@ export default function TabNaming() {
       id: idx + 1,
     }));
     setContents(contents);
+
     setSearchRows(contents);
+
+    if (tiles.length > 0) {
+      setSelectedFileName(tiles[0].filename.split('.')[0]);
+    }
+  }, []);
+
+  useEffect(() => {
+    const contents = tiles.map((tile, idx) => ({
+      ...tile,
+      id: idx + 1,
+    }));
+    setContents(contents);
+
+    //setSearchRows(contents);
+
     if (tiles.length > 0) {
       setSelectedFileName(tiles[0].filename.split('.')[0]);
     }
@@ -61,6 +77,7 @@ export default function TabNaming() {
             }
           }
         }
+        //console.log(namePatternsPrimaryValue);
         setNamePattern(namePatternsPrimaryValue);
       }
     }
@@ -103,6 +120,7 @@ export default function TabNaming() {
           resultContent[key] = objectPerFile.id;
         } else if (key === 'series') {
           const matches = tempString.match(/\d+/);
+          //console.log(matches);
           if (matches) {
             result[key] = Number(matches[0]);
             resultContent[key] = Number(matches[0]);
@@ -144,6 +162,12 @@ export default function TabNaming() {
         }
       }
     }
+    //result["series"] = "scan_Top Slide_D";
+    //resultContent["series"] = "scan_Top Slide_D";
+
+    //console.log(result);
+    //console.log("Result Content");
+    //console.log(resultContent);
     return [result, resultContent];
   };
 
@@ -156,10 +180,13 @@ export default function TabNaming() {
     }));
 
     //console.log(newContents);
+    //await updateTilesMetaInfo(newContents);
 
-    await updateTilesMetaInfo(newContents);
     await loadTiles();
     setSearchRows(newContents);
+
+    //setUpdating(true);
+
     setUpdating(false);
   };
 
@@ -264,7 +291,11 @@ export default function TabNaming() {
             );
           })}
         </BoxBetween>
-        <DataTable rows={searchrows} columns={NAME_TABLE_COLUMNS} />
+        <DataTable
+          rows={searchrows}
+          columns={NAME_TABLE_COLUMNS}
+          type={'TabNaming'}
+        />
       </DialogContent>
       <DialogActions sx={{ px: 3, py: 2 }}>
         <LoadingButton

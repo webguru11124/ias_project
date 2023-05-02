@@ -167,3 +167,15 @@ export const NAME_TABLE_COLUMNS = [
   { headerName: 'Z', field: 'z', width: 60 },
   { headerName: 'T', field: 'time', width: 60 },
 ];
+
+export const NAME_TILING_OPTIONS = [
+  { id: 0, name: 'Edit' },
+  { id: 1, name: 'Alignment' },
+  { id: 2, name: 'Bonding' },
+  { id: 3, name: 'Shading' },
+  { id: 4, name: 'Display' },
+  { id: 5, name: 'Result' },
+  { id: 6, name: 'Option' },
+];
+
+export const NAME_BONDING_OPTIONS = ['None', 'Snap To Edge', 'Pattern Match'];

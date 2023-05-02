@@ -171,7 +171,7 @@ async def update_tiles_meta_info(
 
 @router.post(
     "/create_tiles",
-    response_description="Delete Tiles",
+    response_description="Create Tiles",
     status_code=status.HTTP_200_OK,
 )
 async def create_tiles(
@@ -201,7 +201,7 @@ async def create_tiles(
 
 @router.post(
     "/build_pyramid",
-    response_description="Delete Tiles",
+    response_description="Build Pyramid",
     status_code=status.HTTP_200_OK,
 )
 async def build_pyramid(

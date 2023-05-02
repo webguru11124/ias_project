@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import Grid from '@mui/material/Grid';
 import Slider from '@mui/material/Slider';
 import Box from '@mui/material/Box';
@@ -12,8 +12,13 @@ import {
   useImageSettingsStore,
   useLoader,
 } from '@/state';
+import { connect } from 'react-redux';
 
-export default function ZPosition() {
+const mapStateToProps = (state) => ({
+  display: state.display,
+});
+
+function ZPosition(props) {
   const loader = useLoader();
   const { shape, labels } = loader[0];
   const size = shape[labels.indexOf('z')];
@@ -67,6 +72,7 @@ export default function ZPosition() {
     ),
     [loader, selections, setPropertiesForChannel],
   );
+
   return (
     <Grid container sx={{ p: 1 }}>
       <Grid item xs={12}>
@@ -97,3 +103,4 @@ export default function ZPosition() {
     </Grid>
   );
 }
+export default connect(mapStateToProps)(ZPosition);

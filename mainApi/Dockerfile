@@ -7,7 +7,8 @@ RUN apt-get update && \
 
 RUN apt update && apt install -y cmake g++ wget unzip
 RUN wget -O opencv.zip https://github.com/opencv/opencv/archive/4.x.zip
-RUN unzip opencv.zip && ls
+RUN unzip opencv.zip
+RUN cd opencv
 RUN mkdir -p build && cd build
 RUN cmake
 RUN make -j4

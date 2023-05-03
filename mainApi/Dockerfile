@@ -2,14 +2,7 @@ FROM daisukekubota0823/mainapi:1.0.0
 
 RUN pip install ashlar
 
-RUN apt update && apt install -y cmake g++ wget unzip
-RUN wget -O opencv.zip https://github.com/opencv/opencv/archive/4.x.zip
-RUN unzip opencv.zip && ls
-RUN mkdir -p build
-RUN cd build && ls
-RUN cmake  ../opencv-4.x
-RUN cmake --build .
-RUN make -j4
-RUN make install
+RUN apt-get update && \
+    apt-get install -y libopencv-dev
 
 EXPOSE 8000

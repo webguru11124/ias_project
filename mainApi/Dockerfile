@@ -5,13 +5,4 @@ RUN pip install ashlar
 RUN apt-get update && \
     apt-get install -y libopencv-dev
 
-RUN apt update && apt install -y cmake g++ wget unzip
-RUN wget -O opencv.zip https://github.com/opencv/opencv/archive/4.x.zip
-RUN unzip opencv.zip
-RUN cd opencv-4.x
-RUN mkdir -p build && cd build
-RUN cmake ../
-RUN make -j4
-RUN make install
-
 EXPOSE 8000

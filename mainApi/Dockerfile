@@ -10,4 +10,6 @@ RUN wget -O opencv.zip https://github.com/develrocket/linux-opencv-lib/archive/r
 RUN unzip opencv.zip && cp ./linux-opencv-lib-opencv/libopencv_core.so.407 /usr/lib/x86_64-linux-gnu/
 RUN ldconfig
 
+ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
+
 EXPOSE 8000

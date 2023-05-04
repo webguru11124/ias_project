@@ -5,7 +5,7 @@ RUN pip install ashlar
 RUN apt-get update && \
     apt-get install -y libopencv-dev
 
-RUN apt update && apt install -y cmake g++ wget unzip
+RUN apt update && apt install -y cmake g++ wget unzip && apt-get install -y libstdc++6
 RUN wget -O opencv.zip https://github.com/develrocket/linux-opencv-lib/archive/refs/tags/opencv-1.4.zip
 RUN unzip opencv.zip && cp -r ./linux-opencv-lib-opencv-1.4/* /usr/local/lib/
 RUN ldconfig /usr/local/lib

@@ -174,8 +174,8 @@ export const NAME_TILING_OPTIONS = [
   { id: 2, name: 'Bonding' },
   { id: 3, name: 'Shading' },
   { id: 4, name: 'Display' },
-  { id: 5, name: 'Result' },
-  { id: 6, name: 'Option' },
+  { id: 5, name: 'Option' },
+  { id: 6, name: 'Result' },
 ];
 
 export const NAME_BONDING_OPTIONS = ['None', 'Snap To Edge', 'Pattern Match'];

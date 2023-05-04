@@ -25,6 +25,7 @@ const ExperimentDialog = ({
   onClose,
   title,
   onSelectFiles,
+
   folderUploadable = false,
 }) => {
   const { experiments, loadExperiments } = useExperimentStore();

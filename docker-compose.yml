@@ -11,8 +11,6 @@ services:
             - ./env_files/mongoDB_connect.env
         depends_on:
             - mongo
-        environment:
-            - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/app/mainApi/ml_lib
         volumes:
             - image-storage:/image-storage
             - cache-storage:/cache-storage

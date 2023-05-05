@@ -91,13 +91,10 @@ async def mlIPSProcess(request: Request, current_user: UserModelDB = Depends(get
     fileName = imagePath.split("/")[len(imagePath.split("/")) - 1]
     tempPath = tempfile.mkdtemp()
     OUT_PUT_FOLDER = tempPath.split("/")[len(tempPath.split("/")) - 1]
-    OUT_PUT_PATH = OUT_PUT_FOLDER + "/" + fileName
-    WINE_OUTPUT_FOLDER = '/home/wine/' + OUT_PUT_FOLDER
+    OUT_PUT_PATH = '/app/mainApi/app/static/' + OUT_PUT_FOLDER + "/" + fileName
 
-    cmd_str = "su -c 'mkdir {folderPath}' wine".format(folderPath=WINE_OUTPUT_FOLDER)
-    subprocess.call(cmd_str, shell=True)
 
-    cmd_str = "su -p -l wine -c 'wine /app/mainApi/ml_lib/ips/segmantation-typeB-v2.exe {inputPath} {outputPath}"
+    cmd_str = "/app/mainApi/ml_lib/segA {inputPath} {outputPath}"
     if type == 'a':
         cmd_str += " /app/mainApi/ml_lib/ips/src_paramA.txt"
     if type == 'b':
@@ -110,7 +107,7 @@ async def mlIPSProcess(request: Request, current_user: UserModelDB = Depends(get
     cmd_str += " " + sensitivity + "'"
     cmd_str = cmd_str.format(inputPath=imagePath, outputPath=OUT_PUT_PATH)
     subprocess.call(cmd_str, shell=True)
-    return JSONResponse({"success": "success", "image_path": WINE_OUTPUT_FOLDER + '/' + fileName})
+    return JSONResponse({"success": "success", "image_path": OUT_PUT_PATH})
 
 @router.post(
     "/ml_convert_result",

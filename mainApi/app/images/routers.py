@@ -91,23 +91,25 @@ async def mlIPSProcess(request: Request, current_user: UserModelDB = Depends(get
     fileName = imagePath.split("/")[len(imagePath.split("/")) - 1]
     tempPath = tempfile.mkdtemp()
     OUT_PUT_FOLDER = tempPath.split("/")[len(tempPath.split("/")) - 1]
-    OUT_PUT_PATH = '/app/mainApi/app/static/' + OUT_PUT_FOLDER + "/" + fileName
+    OUT_PUT_PATH = '/app/mainApi/app/static/ml_out' + OUT_PUT_FOLDER
 
+    if not os.path.exists(OUT_PUT_PATH):
+        os.makedirs(OUT_PUT_PATH)
 
     cmd_str = "/app/mainApi/ml_lib/segA {inputPath} {outputPath}"
     if type == 'a':
-        cmd_str += " /app/mainApi/ml_lib/ips/src_paramA.txt"
+        cmd_str += " /app/mainApi/ml_lib/src_paramA.txt"
     if type == 'b':
-        cmd_str += " /app/mainApi/ml_lib/ips/src_paramB.txt"
+        cmd_str += " /app/mainApi/ml_lib/src_paramB.txt"
     if type == 'c':
-        cmd_str += " /app/mainApi/ml_lib/ips/src_paramC.txt"
+        cmd_str += " /app/mainApi/ml_lib/src_paramC.txt"
     if type == 'd':
-        cmd_str += " /app/mainApi/ml_lib/ips/src_paramD.txt"
+        cmd_str += " /app/mainApi/ml_lib/src_paramD.txt"
 
     cmd_str += " " + sensitivity + "'"
-    cmd_str = cmd_str.format(inputPath=imagePath, outputPath=OUT_PUT_PATH)
+    cmd_str = cmd_str.format(inputPath=imagePath, outputPath=OUT_PUT_PATH + "/" + fileName)
     subprocess.call(cmd_str, shell=True)
-    return JSONResponse({"success": "success", "image_path": OUT_PUT_PATH})
+    return JSONResponse({"success": "success", "image_path": OUT_PUT_PATH + "/" + fileName})
 
 @router.post(
     "/ml_convert_result",

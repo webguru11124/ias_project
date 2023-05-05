@@ -1,0 +1,85 @@
+0		//前処理1,モルホロジーのタイプ、-1:minmax, 1:maxmin, 0:nothing
+3		//前処理2,モルホロジーの直径
+21		//前処理3,暈しの半径
+3		//前処理予備1
+4		//前処理予備2
+2001   		//0:ポジネガ、0ネガ、1ポジ(0/1)
+1		//1:rate 検索作業中の画像縮小率(1～10)
+10		//2:step 二値化の刻み幅
+80		//3:評価関数(同じ領域での競合解消ルール)(0,-1),(43,-1),(45,-1),(39,4000)
+-1		//4:評価フラグ(0/1) -1大きいほど良い,他は指定値に近いほど良い
+0		//大きさ
+200
+200000
+63
+20
+255
+
+
+
+
+
+
+
+
+//評価関数
+//	toku[80] = 大きさ   * 円形度;
+//	toku[81] = 円形度   * toku[65](=ave-外)
+//	toku[82] = toku[65] * 大きさ
+//	toku[83] = 円形度 　* toku[63](=max-min)  //埋め込み用
+//	toku[84] = toku[63] * 大きさ　　　　　　　//埋め込み用
+//
+//	toku[85] = 大きさ   * (10000-円形度);　　 //細長い用
+//	toku[86] = (10000 - 円形度) * toku[65])(ave-外) //細長い用
+//寸法系
+//		toku[0] = 0;//カウンタ
+//		toku[1] +=i;//x重心
+//		toku[2] +=j;//y重心
+//		toku[3] = i;//xmin
+//		toku[4] = i;//xmax
+//		toku[5] = j;//ymin
+//		toku[6] = j;//ymax
+//		toku[7] = width;
+//		toku[8] = height;50
+//					9->9+15=24 16方位の長さ
+//		toku[9] = len[0]
+//		toku[24]= len[15];
+//					25->31 %の寸法
+//      	toku[25] =count %
+//		toku[26] +=i;//x重心%
+//		toku[27] +=j;//y重心%
+//		toku[28] = i;//xmin%
+//		toku[29] = i;//xmax%
+//		toku[30] = j;//ymin%
+//		toku[31] = j;//ymax%
+	
+//形状系(丸い用）43
+//		toku[39]=maxL*1000/minL;//逆扁平率
+//		toku[40]=minL;//短辺
+//		toku[41]=maxL;//長辺
+//		toku[42]=minL*10000/maxL;//扁平率(0-10000)
+//		toku[43]=count*1000.0/(maxL*maxL*3.14159/2.0/2.0)+0.5);//円形度(0-10000)
+//		toku[44]=count*1000.0/(minL*maxL*3.14159/2.0/2.0)+0.5);//楕円度
+// 		toku[45]=round;//四角充填度（90度四角形に対し)
+//形状系(細長い用）47,48,49,51
+//		toku[46] =round;//外周長(そのもの)
+//		toku[47] =count*2/(round);//平均太さ
+//		toku[48] =count/toku[47];//細長さ＝全面積/太さ
+//		toku[49] =round*1000/(minL+maxL)/2;//折り返し数
+//		toku[50] =mindeg;//向き(度)
+//		toku[51] =count/round;//外周面積比
+//値系
+//		toku[60] bufの値;//平均値
+//		toku[61] min　bufの値
+//		toku[62] max　bufの値
+//		toku[63]//最初は最外郭のピクセル母数
+//		toku[64]/=toku[i * DATA_N +63];//外平均
+//		toku[63]=toku[i * DATA_N +62]-toku[i * DATA_N +61];//con_inner内部差
+//		toku[65]=toku[i * DATA_N +60]-toku[i * DATA_N +64];//con_outer内外差
+
+//制御変数
+//		toku[DATA_N-5]=key;不合格理由
+//		toku[DATA_N-4]=min0;不合格理由
+//		toku[DATA_N-3]=max0;不合格理由
+//		toku[DATA_N-2]=65535-abs(toku[i * DATA_N +key]-value);評価関数
+//		toku[DATA_N-1]=0,-1;領域結合フラグ

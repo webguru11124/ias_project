@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useState } from 'react';
-
+import { useSelector } from 'react-redux';
+import { useFlagsStore } from '@/state';
 import SmallCard from '../../../custom/SmallCard';
 import CustomButton from '../../../custom/CustomButton';
 import {
@@ -12,19 +13,59 @@ import {
   mdiLayersOutline,
 } from '@mdi/js';
 import MultilineTextBox from '@/components/custom/MultiLineText';
+import store from '@/reducers';
+
+const defaultLabelList = [
+  {
+    id: 0,
+    name: 'object',
+    label_color: '#FF0000',
+    map_color: '#FF0000',
+    positions: [],
+  },
+  {
+    id: 1,
+    name: 'background',
+    label_color: '#00FF00',
+    map_color: '#00FF00',
+    positions: [],
+  },
+];
 
 export default function FirstPage() {
   const [information, setInformation] = useState('');
+  const MLCanvasFlag = useFlagsStore((store) => store.MLCanvasFlag);
+  const MLMethod = useSelector((state) => state.experiment.MLMethod);
+
+  const experiment = useSelector(
+    (state) => state.experiment.MLSelectTargetMode,
+  );
+
+  // console.log("====> first tab", experiment)
 
   const handleChangeInformation = (event) => {
     setInformation(event.target.value);
   };
+  const liveUpdate = async () => {
+    const state = store.getState();
 
+    // store.dispatch({ type: 'set_image_path_for_avivator', content: source });
+  };
   const onClick1 = () => {};
   const onClick2 = () => {};
-  const onClick3 = () => {};
-  const onClick4 = () => {};
-  const onClick5 = () => {};
+  const onClick3 = () => {
+    setInformation(
+      'We use the Deep learning to analyse the image\n It separatess the cells',
+    );
+  };
+  const onClick4 = () => {
+    setInformation(
+      'We use the Machine learning to analyse the image\n It highlihgts the cells',
+    );
+  };
+  const onClick5 = () => {
+    liveUpdate();
+  };
   const onClick6 = () => {};
   const onClick7 = () => {};
   return (

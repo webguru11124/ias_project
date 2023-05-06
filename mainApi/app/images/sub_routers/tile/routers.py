@@ -26,6 +26,7 @@ import uuid
 import aiofiles
 import subprocess
 
+
 from mainApi.app.auth.auth import get_current_user
 from mainApi.app.db.mongodb import get_database
 from mainApi.app.images.sub_routers.tile.models import (
@@ -61,7 +62,7 @@ from mainApi.app.auth.models.user import UserModelDB, PyObjectId
 from mainApi.config import STATIC_PATH, CURRENT_STATIC
 import tifftools
 from mainApi.app.images.utils.convert import get_metadata
-
+import shutil
 
 # import bioformats
 # from bioformats import logback
@@ -155,9 +156,12 @@ async def update_tiles_meta_info(
         new_path = f"{CURRENT_STATIC}/{dir}/tile_image_series{str(meta_info['series']).rjust(5, '0')}.{ext}"
         old_rel_path = meta_info["path"].rsplit("/static/", 1)[1]
         new_rel_path = new_path.rsplit("/static/", 1)[1]
+        
+       
         old_abs_path = os.path.join(STATIC_PATH, old_rel_path)
         new_abs_path = os.path.join(STATIC_PATH, new_rel_path)
-        os.rename(old_abs_path, new_abs_path)
+
+        shutil.copy(old_abs_path, new_abs_path)
 
         await db["tile-image-cache"].update_one(
             {"_id": ObjectId(meta_info["_id"])},
@@ -682,46 +686,62 @@ async def merge_image(
 
 
 # Alignment tilings
-@router.get(
-    "/list",
-    response_description="Upload Image Tiles",
-    response_model=List[TileModelDB],
-    status_code=status.HTTP_200_OK,
-)
-async def get_tile_list(
-    current_user: UserModelDB = Depends(get_current_user),
-    db: AsyncIOMotorDatabase = Depends(get_database),
-) -> List[TileModelDB]:
-    print(current_user, "tiles -----------")
-    tiles = await db["tile-image-cache"].find({"user_id": current_user.id})[
-        "absolute_path"
-    ]
-    return pydantic.parse_obj_as(List[TileModelDB], tiles)
+# @router.get(
+#     "/list",
+#     response_description="Upload Image Tiles",
+#     response_model=List[TileModelDB],
+#     status_code=status.HTTP_200_OK,
+# )
+# async def get_tile_list(
+#     current_user: UserModelDB = Depends(get_current_user),
+#     db: AsyncIOMotorDatabase = Depends(get_database),
+# ) -> List[TileModelDB]:
+#     print(current_user, "tiles -----------")
+#     tiles = []
 
 
-@router.get(
-    "/align_tiles_naive",
-    response_description="Align Tiles",
-    response_model=List[AlignedTiledModel],
-    status_code=status.HTTP_200_OK,
-)
-async def _align_tiles_naive(
-    request: AlignNaiveRequest, tiles: List[TileModelDB] = Depends(get_tile_list)
-) -> List[AlignedTiledModel]:
-    """
-    performs a naive aligning of the tiles simply based on the given rows and method.
-    does not perform any advanced stitching or pixel checking
+#     id = 1
+    
+#     async for doc in  db["tile-image-cache"].find({"user_id": current_user.id}):
+#         tiles.append({ 
+#             "id" : doc["_id"],
+#             "absolute_path" :  doc["path"],
+#              "file_name": doc["filename"],
+#              "content_type": "image/jpeg",  # MIME type
+#              "width_px":  320,
+#              "height_px" : 180
+#              })
 
-    Called using concurrent.futures to make it async
-    """
-    print(tiles, " : align_tiles_naive : ----------------------------")
-    loop = asyncio.get_event_loop()
-    with concurrent.futures.ProcessPoolExecutor() as pool:
-        # await result
-        aligned_tiles = await loop.run_in_executor(
-            pool, align_tiles_naive, request, tiles
-        )
-        return aligned_tiles
+#         id = id + 1
+
+
+    
+#     return pydantic.parse_obj_as(List[TileModelDB], tiles)
+
+
+# @router.get(
+#     "/align_tiles_naive",
+#     response_description="Align Tiles",
+#     response_model=List[AlignedTiledModel],
+#     status_code=status.HTTP_200_OK,
+# )
+# async def _align_tiles_naive(
+#     request: AlignNaiveRequest, tiles: List[TileModelDB] = Depends(get_tile_list)
+# ) -> any:
+#     """
+#     performs a naive aligning of the tiles simply based on the given rows and method.
+#     does not perform any advanced stitching or pixel checking
+
+#     Called using concurrent.futures to make it async
+#     """
+#     print(tiles, " : align_tiles_naive : ----------------------------")
+#     loop = asyncio.get_event_loop()
+#     with concurrent.futures.ProcessPoolExecutor() as pool:
+#         # await result
+#         aligned_tiles = await loop.run_in_executor(
+#             pool, align_tiles_naive, request, tiles
+#         )
+#         return aligned_tiles
 
 
 # @router.get("/align_tiles_ashlar",

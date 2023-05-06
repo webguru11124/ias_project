@@ -22,7 +22,7 @@ export const deleteImageFiles = async (images) => {
   const formData = new FormData();
   formData.append('images', images);
 
-  return api.post('image/tile/delete_image_files', formData, {
+  return api.post('image/tile/delete_tiles', formData, {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS',
@@ -280,7 +280,7 @@ export const get_mask_path = async (file_url, exp_name) => {
       Authorization: state.auth.tokenType + ' ' + state.auth.token,
     },
   });
-}
+};
 
 /**
  * @author QmQ

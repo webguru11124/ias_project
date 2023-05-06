@@ -15,12 +15,6 @@ export const getImageByUrl = async function (folderName, imgName) {
   try {
     const state = store.getState();
 
-    //console.log("FIle path");
-    //console.log(folderName);
-    //console.log(imgName);
-
-    //console.log( process.env.REACT_APP_BASE_API_URL +'static/' +folderName);
-
     let response = await fetch(folderName, {
       headers: {
         'Access-Control-Allow-Origin': '*',

@@ -112,6 +112,7 @@ export default function TabNaming() {
             break;
           }
         }
+
         let tempString = objectPerFile.filename.slice(
           namePattern[currentIndex].start,
           namePattern[currentIndex].end,
@@ -119,11 +120,16 @@ export default function TabNaming() {
         if (key === 'id') {
           resultContent[key] = objectPerFile.id;
         } else if (key === 'series') {
+          //console.log(tempString);
+          // console.log(namePattern);
           const matches = tempString.match(/\d+/);
-          //console.log(matches);
+          // console.log("Matches");
           if (matches) {
-            result[key] = Number(matches[0]);
-            resultContent[key] = Number(matches[0]);
+            result[key] = objectPerFile.id;
+            resultContent[key] = objectPerFile.id;
+          } else {
+            result[key] = objectPerFile.id;
+            resultContent[key] = objectPerFile.id;
           }
         } else if (key === 'filename') {
           result[key] = objectPerFile.filename;
@@ -180,7 +186,7 @@ export default function TabNaming() {
     }));
 
     //console.log(newContents);
-    //await updateTilesMetaInfo(newContents);
+    await updateTilesMetaInfo(newContents);
 
     await loadTiles();
     setSearchRows(newContents);

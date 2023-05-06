@@ -32,8 +32,10 @@ import Timeline from '../../../../../tabsRight/contents/viewcontrol/Timeline';
 import store from '../../../../../../reducers';
 import UTIF from 'utif';
 import useTilingStore from '@/stores/useTilingStore';
+import AlignmentPart from './TabTiling';
 import { TileSeriesDescription } from 'igniteui-react-core';
-//import {TIFFViewer} from 'react-tiff';
+import { ImageList, ImageListItem, Paper } from '@mui/material';
+import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
 
 const tilingMenus = [
   'Edit',
@@ -60,7 +62,6 @@ let stylingTiling = {
 };
 
 const TabTiling = (props) => {
-  //const [fileNames, setFileNames] = useState(useTilingStore());
   const { fileNames } = useTilingStore();
   const { tiles } = useTilingStore();
 
@@ -81,45 +82,62 @@ const TabTiling = (props) => {
     useState(false);
 
   //Parameters in Alignment UI
-  const [alignRow, setAlignRow] = useState(0);
-  const [alignCol, setAlignCol] = useState(0);
+  const [alignRow, setAlignRow] = useState(1);
+  const [alignCol, setAlignCol] = useState(1);
   const [alignBorder, setAlignBorder] = useState(0);
   const [alignGapX, setAlignGapX] = useState(0);
   const [alignGapY, setAlignGapY] = useState(0);
 
+  const [alignOption, setAlignOption] = useState();
+
+  //Parameters in Shading UI
+  const [brightness, setBrightness] = useState(1);
+  const [luminance, setLuminance] = useState(0);
+
   const canvasElement = useRef(null);
+
+  const [displayOneJpegImage, setDisplayOneJpegImage] = useState(false);
+  const [displayTilingJpegImages, setDisplayTilingJpegImages] = useState(false);
 
   // Change text fields
   const inputTilingRows = (event) => {
     setAlignRow(event.target.value === '' ? '' : Number(event.target.value));
+    let r = Number(event.target.value);
+    if (tiles) {
+      setAlignCol(Math.ceil(tiles.length / r));
+    }
   };
   const inputTilingCols = (event) => {
     setAlignCol(event.target.value === '' ? '' : Number(event.target.value));
+    let c = Number(event.target.value);
+    if (tiles) {
+      setAlignRow(Math.ceil(tiles.length / c));
+    }
   };
   const inputTilingBorder = (event) => {
     setAlignBorder(event.target.value === '' ? '' : Number(event.target.value));
   };
   const inputTilingGapX = (event) => {
+    if (Number(event.target.value) < 0) return;
     setAlignGapX(event.target.value === '' ? '' : Number(event.target.value));
+    setAlignGapY(event.target.value === '' ? '' : Number(event.target.value));
   };
   const inputTilingGapY = (event) => {
+    if (Number(event.target.value) < 0) return;
     setAlignGapY(event.target.value === '' ? '' : Number(event.target.value));
+    setAlignGapX(event.target.value === '' ? '' : Number(event.target.value));
   };
 
   const handleListItemClick = (event, index) => {
     setSelectedIndex(index);
+    if (index == 1) {
+      setDisplayTilingJpegImages(true);
+    } else setDisplayTilingJpegImages(false);
   };
 
-  const handleAlignment = (event) => {
-    //console.log(" handleAlignment", tiles.length, event.target.value);
-    if (tiles.length > 0) {
-      let method = event.target.value;
-      if (tilingAlignButtons.includes(method)) {
-        //console.log("Go to Api");
-        api_tiles.alignTilesApi(tiles.length, method, handleApi);
-      }
-    }
-  };
+  const handleAlignViewClicked = () => {};
+
+  const handleAlignment = (event) => {};
 
   const handleApi = (response, status) => {
     //console.log("Handle API ");
@@ -134,6 +152,8 @@ const TabTiling = (props) => {
   //when the radio button in alignment was changed
   const handleAlignOptionChange = (e) => {
     //console.log("Handle alignment options");
+    //console.log(e.target.value);
+    setAlignOption(e.target.value);
   };
 
   //When the radio button in bonding was changed
@@ -142,55 +162,205 @@ const TabTiling = (props) => {
       if (event.target.checked == true) setTilingBondingPatterMatch(true);
       else setTilingBondingPatterMatch(false);
     } else setTilingBondingPatterMatch(false);
-
-    // setChecked(event.target.checked);
-    // if (fileObjs.length > 0) {
-    //     api_tiles.listTiles(handleApi);
-    // }
   };
 
-  const autoPatternMathing = () => {
-    //console.log("clicked!!!!!");
-  };
+  const autoPatternMathing = () => {};
 
-  const normalizeImgLuminance = () => {
-    //console.log("clicked!!!!!");
-  };
-  const correctLighting = () => {
-    //console.log("clicked!!!!!");
-  };
-  const decreaseImgLuminance = () => {
-    //console.log("clicked!!!!!");
-  };
-  const increaseImgLuminance = () => {
-    //console.log("clicked!!!!!");
-  };
-  const resetImgLuminance = () => {
-    //console.log("clicked!!!!!");
-  };
-  const bestFit = () => {
-    // console.log("clicked!!!!!");
-  };
-  const exportTiledImage = () => {
-    // console.log("clicked!!!!!");
-  };
-
-  const handleScaleChange = (event) => {
-    //console.log("handleScaleChange", event.target.value);
-    setScale(event.target.value);
-  };
-
-  useEffect(() => {
-    //console.log(scale);
-    if (selectedIndex == 0) refreshImageView();
-  }, [scale]);
-
-  const refreshImageView = async () => {
-    //console.log(scale);
+  const normalizeImgLuminance = async () => {
     let fileImg = await getImageByUrl(tiles[selectedImageFileIndex].url);
 
     if (fileImg !== null) {
-      //store.dispatch({type: "tiling_selectedFile", content: file});
+      fileImg.arrayBuffer().then((fileBuffer) => {
+        let ifds = UTIF.decode(fileBuffer);
+        UTIF.decodeImage(fileBuffer, ifds[0]);
+
+        var rgba = UTIF.toRGBA8(ifds[0]); // Uint8Array with RGBA pixels
+
+        const firstPageOfTif = ifds[0];
+
+        let imageWidth = firstPageOfTif.width;
+        let imageHeight = firstPageOfTif.height;
+
+        setWidthImage(imageWidth);
+        setHeightImage(imageHeight);
+
+        const cnv = document.getElementById('canvas');
+        cnv.width = imageWidth;
+        cnv.height = imageHeight;
+
+        const ctx = cnv.getContext('2d');
+
+        let imageData = ctx.createImageData(
+          Math.round((imageWidth * scale) / 100.0),
+          (imageHeight * scale) / 100.0,
+        );
+
+        for (let i = 0; i < rgba.length; i++) {
+          const red = rgba[i];
+          const green = rgba[i + 1];
+          const blue = rgba[i + 2];
+
+          const luminance =
+            (0.2126 * red + 0.7152 * green + 0.0722 * blue) / 255;
+          const normalizedRed = Math.round(luminance * 255);
+          const normalizedGreen = Math.round(luminance * 255);
+          const normalizedBlue = Math.round(luminance * 255);
+
+          rgba[i] = normalizedRed;
+          rgba[i + 1] = normalizedGreen;
+          rgba[i + 2] = normalizedBlue;
+        }
+
+        const data = resizeImage(rgba, imageWidth, imageHeight, scale / 100.0);
+        for (let i = 0; i < data.length; i++) {
+          imageData.data[i] = data[i];
+        }
+        ctx.putImageData(imageData, 0, 0);
+      });
+    }
+  };
+  const correctLighting = () => {
+    setLuminance(2);
+  };
+  const decreaseImgLuminance = () => {
+    setLuminance(luminance - 2);
+  };
+  const increaseImgLuminance = () => {
+    setLuminance(luminance + 2);
+  };
+
+  const handleChangeLuminance = async () => {
+    let fileImg = await getImageByUrl(tiles[selectedImageFileIndex].url);
+
+    if (fileImg !== null) {
+      fileImg.arrayBuffer().then((fileBuffer) => {
+        let ifds = UTIF.decode(fileBuffer);
+        UTIF.decodeImage(fileBuffer, ifds[0]);
+
+        var rgba = UTIF.toRGBA8(ifds[0]); // Uint8Array with RGBA pixels
+
+        const firstPageOfTif = ifds[0];
+
+        let imageWidth = firstPageOfTif.width;
+        let imageHeight = firstPageOfTif.height;
+
+        setWidthImage(imageWidth);
+        setHeightImage(imageHeight);
+
+        const cnv = document.getElementById('canvas');
+        cnv.width = imageWidth;
+        cnv.height = imageHeight;
+
+        const ctx = cnv.getContext('2d');
+
+        let imageData = ctx.createImageData(
+          Math.round((imageWidth * scale) / 100.0),
+          (imageHeight * scale) / 100.0,
+        );
+
+        for (let i = 0; i < rgba.length; i++) {
+          const red = rgba[i];
+          const green = rgba[i + 1];
+          const blue = rgba[i + 2];
+          rgba[i] = red + luminance;
+          rgba[i + 1] = green + luminance;
+          rgba[i + 2] = blue + luminance;
+        }
+        const data = resizeImage(rgba, imageWidth, imageHeight, scale / 100.0);
+        for (let i = 0; i < data.length; i++) {
+          imageData.data[i] = data[i];
+        }
+        ctx.putImageData(imageData, 0, 0);
+      });
+    }
+  };
+
+  useEffect(() => {
+    handleChangeLuminance();
+  }, [luminance, scale]);
+
+  const resetImgLuminance = () => {
+    setLuminance(0);
+  };
+  const bestFit = async () => {
+    let fileImg = await getImageByUrl(tiles[selectedImageFileIndex].url);
+
+    if (fileImg !== null) {
+      fileImg.arrayBuffer().then((fileBuffer) => {
+        let ifds = UTIF.decode(fileBuffer);
+        UTIF.decodeImage(fileBuffer, ifds[0]);
+
+        var data = UTIF.toRGBA8(ifds[0]); // Uint8Array with RGBA pixels
+        let minLuminance = Infinity;
+        let maxLuminance = -Infinity;
+
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+
+          const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+          if (luminance < minLuminance) {
+            minLuminance = luminance;
+          }
+
+          if (luminance > maxLuminance) {
+            maxLuminance = luminance;
+          }
+        }
+
+        const range = maxLuminance - minLuminance;
+
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+
+          const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+          const scaledLuminance = ((luminance - minLuminance) / range) * 255;
+
+          data[i] = scaledLuminance;
+          data[i + 1] = scaledLuminance;
+          data[i + 2] = scaledLuminance;
+        }
+
+        const firstPageOfTif = ifds[0];
+
+        let imageWidth = firstPageOfTif.width;
+        let imageHeight = firstPageOfTif.height;
+
+        setWidthImage(imageWidth);
+        setHeightImage(imageHeight);
+
+        const cnv = document.getElementById('canvas');
+        cnv.width = imageWidth;
+        cnv.height = imageHeight;
+
+        const ctx = cnv.getContext('2d');
+
+        let imageData = ctx.createImageData(
+          Math.round((imageWidth * scale) / 100.0),
+          (imageHeight * scale) / 100.0,
+        );
+
+        const image = resizeImage(data, imageWidth, imageHeight, scale / 100.0);
+        for (let i = 0; i < image.length; i++) {
+          imageData.data[i] = image[i];
+        }
+        ctx.putImageData(imageData, 0, 0);
+      });
+    }
+  };
+
+  const exportTiledImage = () => {};
+  const handleScaleChange = (event) => {
+    setScale(event.target.value);
+  };
+
+  const refreshImageView = async () => {
+    let fileImg = await getImageByUrl(tiles[selectedImageFileIndex].url);
+    if (fileImg !== null) {
       displayImage(fileImg);
     }
   };
@@ -198,55 +368,35 @@ const TabTiling = (props) => {
     if (tiles.length > 0) {
       setSelectedImageFileIndex(index);
       setDisplayImg(tiles[index].url);
-      // console.log(tiles[index].url);
 
       let fileImg = await getImageByUrl(tiles[index].url);
 
       if (fileImg !== null) {
-        //store.dispatch({type: "tiling_selectedFile", content: file});
         displayImage(fileImg);
       }
     }
-    // if (tiles.length > 0) {
-    //   setSelectedImageFileIndex(index);
-    //   displayImage(tiles[index]);
-    // }
-
-    // console.log(" Selected Image : ", index);
-    // if (TileSeriesDescription.length > 0) {
-
-    //     let fileUrl = tiles[index].filename;
-    //     if (fileUrl !== null) {
-    //          store.dispatch({type: "tiling_selectedFile", content: file});
-    //          displayImage(file);
-    //     }
-    // }
   };
 
   const displayImage = async (file) => {
-    let type = file.type.toString();
     try {
-      if (type === 'tiff') {
+      let type = file.type.toString();
+      if (type === 'tiff' || type === 'image/tiff') {
+        setDisplayOneJpegImage(false);
         displayTiff(file);
-      }
-      if (type === 'image/tiff') {
-        displayTiff(file);
-      }
-      displayOriginalImage(file);
-    } catch (err) {
-      //console.log(" error : Tiling.js useEffect : ", err);
-    }
+      } else setDisplayOneJpegImage(true);
+    } catch (err) {}
   };
 
   const displayOriginalImage = async (file) => {
-    //console.log("imgae/jpeg");
-    //console.log(file);
+    //console.log("Display Jpeg");
+    let imageWidth = 640;
+    let imageHeight = 480;
     const cnv = document.getElementById('canvas');
     const ctx = cnv.getContext('2d');
     const img = new Image();
     img.src = file.name;
     img.onload = () => {
-      ctx.drawImage(img, 0, 0);
+      ctx.drawImage(img, 0, 0, imageWidth, imageHeight);
     };
   };
 
@@ -276,6 +426,34 @@ const TabTiling = (props) => {
     }
     ctx.putImageData(imageData, 0, 0);
   }
+
+  const resizeImage = (arr, width, height, scale) => {
+    var res = [];
+    const w = width * scale;
+    const h = height * scale;
+    const dim = 4;
+
+    for (let d = 0; d < dim; d++) {
+      for (let i = 0; i < w; i++) {
+        for (let j = 0; j < h; j++) {
+          let x = (i * width) / w;
+          let y = (j * height) / h;
+          let value = 0;
+          let vcnt = 0;
+          for (let k = x - 1; k <= x + 1; k++) {
+            for (let p = y - 1; p <= y + 1; p++) {
+              if (k < 0 || k >= width || p < 0 || p >= height) continue;
+              value += arr[(p * width + k) * dim + d];
+              vcnt++;
+            }
+          }
+          value /= vcnt;
+          res[(j * w + i) * dim + d] = value;
+        }
+      }
+    }
+    return res;
+  };
 
   function displayTiff(fileDisplay) {
     fileDisplay.arrayBuffer().then((fileBuffer) => {
@@ -311,10 +489,13 @@ const TabTiling = (props) => {
       );
       // let imageData = ctx.drawImage(image, 0, 0, 380, 380);
 
-      for (let i = 0; i < rgba.length; i++) {
-        imageData.data[i] = rgba[i];
+      //   for (let i = 0; i < rgba.length; i++) {
+      //    imageData.data[i] = rgba[i];
+      //   }
+      const data = resizeImage(rgba, imageWidth, imageHeight, scale / 100.0);
+      for (let i = 0; i < data.length; i++) {
+        imageData.data[i] = data[i];
       }
-
       ctx.putImageData(imageData, 0, 0);
       //ctx.restore();
     });
@@ -323,6 +504,17 @@ const TabTiling = (props) => {
   useEffect(() => {
     refreshImageView();
   }, []);
+
+  //When the output file received
+  const handleAshlarBuild = (output) => {
+    //  console.log(output);
+    let fileImg = getImageByUrl(output);
+
+    if (fileImg !== null) {
+      //store.dispatch({type: "tiling_selectedFile", content: file});
+      displayImage(fileImg);
+    }
+  };
 
   return (
     <>
@@ -413,28 +605,29 @@ const TabTiling = (props) => {
                 </CardContent>
                 <div className="inside p-3">
                   <ToggleButtonGroup
+                    type="radio"
+                    name="tiling-align"
                     value={alignment}
                     exclusive
-                    onChange={(e) => {
-                      handleAlignment(e);
-                    }}
+                    // onChange={(e) => {handleAlignment(e)}}
                     aria-label="text alignment"
                   >
                     {[...Array(6)].map((_, i) => {
-                      let url = require(`../../../../../../assets/images/pos_align_${i}.png`);
+                      let url_link = require(`../../../../../../assets/images/pos_align_${i}.png`);
                       return (
                         <Tooltip title={tilingAlignButtons[i]} key={i}>
                           <ToggleButton
                             key={`ToggleButton_${i}`}
-                            value={tilingAlignButtons[i]}
+                            name={tilingAlignButtons[i]}
+                            onChange={(e) => handleAlignment(e)}
                           >
                             <img
-                              value={tilingAlignButtons[i]}
+                              name={tilingAlignButtons[i]}
                               style={{
                                 ...stylingTiling.ToggleButtonGroup,
                                 filter: i === 3 ? 'grayscale(1)' : '',
                               }}
-                              src={url}
+                              src={url_link}
                               alt="no image"
                             />
                           </ToggleButton>
@@ -444,15 +637,33 @@ const TabTiling = (props) => {
                   </ToggleButtonGroup>
                   <FormGroup>
                     <FormControlLabel
-                      control={<Checkbox onChange={handleAlignOptionChange} />}
+                      control={
+                        <Checkbox
+                          onChange={handleAlignOptionChange}
+                          value="Left-Right"
+                          checked={alignOption === 'Left-Right'}
+                        />
+                      }
                       label="Left-Right"
                     />
                     <FormControlLabel
-                      control={<Checkbox onChange={handleAlignOptionChange} />}
+                      control={
+                        <Checkbox
+                          onChange={handleAlignOptionChange}
+                          value="Up-Down"
+                          checked={alignOption === 'Up-Down'}
+                        />
+                      }
                       label="Up-Down"
                     />
                     <FormControlLabel
-                      control={<Checkbox onChange={handleAlignOptionChange} />}
+                      control={
+                        <Checkbox
+                          onChange={handleAlignOptionChange}
+                          value="DecendingOrder"
+                          checked={alignOption === 'DecendingOrder'}
+                        />
+                      }
                       label="Descending Order"
                     />
                   </FormGroup>
@@ -742,29 +953,85 @@ const TabTiling = (props) => {
             )}
           </div>
         </Col>
-        <Col xs={5} className="p-0 h-100">
+        <Col
+          xs={5}
+          className="p-0 h-100"
+          sx={{ height: '100%', width: '100%' }}
+        >
           {/*  Tiling Preview  */}
           <div style={{ flexDirection: 'column' }}>
-            <div
-              className="row m-0"
-              style={{
-                backgroundColor: '#ddd',
-                height: '380px',
-                width: '380px',
-                overflowY: 'auto',
-              }}
-            >
-              <RoutedAvivator type={'tiling'} />
-              {/* <img id="displayCanvas" className="canvas m-auto w-100" style={{ cursor: "grab" }} src={displayImg} /> */}
-              <canvas
-                id="canvas"
-                className="canvas m-auto"
-                ref={canvasElement}
-                style={{ cursor: 'grab' }}
-              />
+            {displayTilingJpegImages == false ? (
+              displayOneJpegImage == false ? (
+                <div
+                  className="row m-0"
+                  style={{
+                    backgroundColor: '#ddd',
+                    height: '380px',
+                    width: '380px',
+                    overflowY: 'auto',
+                  }}
+                >
+                  <canvas
+                    id="canvas"
+                    className="canvas m-auto"
+                    ref={canvasElement}
+                    style={{ cursor: 'grab' }}
+                  />
+                </div>
+              ) : (
+                <Paper
+                  variant="outlined"
+                  sx={{ height: '800px', width: '600px' }}
+                >
+                  <TransformWrapper minScale={0.2}>
+                    <TransformComponent
+                      wrapperStyle={{ height: '800px', width: '600px' }}
+                    >
+                      <img
+                        src={tiles[selectedImageFileIndex].thumbnail}
+                        alt={tiles[selectedImageFileIndex].filename}
+                        style={{ width: 100, height: 'auto' }}
+                      />
+                    </TransformComponent>
+                  </TransformWrapper>
+                </Paper>
+              )
+            ) : (
+              <Paper
+                variant="outlined"
+                sx={{ height: '800px', width: '600px' }}
+              >
+                <TransformWrapper minScale={0.2}>
+                  <TransformComponent
+                    wrapperStyle={{ height: '800px', width: '600px' }}
+                  >
+                    <ImageList
+                      cols={alignCol}
+                      gap={alignGapX}
+                      padding={alignBorder}
+                      sx={{
+                        mb: 0,
+                        pointerEvents: 'none',
+                        userSelect: 'none',
+                        height: '100%',
+                        width: '100%',
+                      }}
+                    >
+                      {tiles.map(({ _id, thumbnail, filename }) => (
+                        <ImageListItem key={_id}>
+                          <img
+                            src={thumbnail}
+                            alt={filename}
+                            style={{ width: 100, height: 'auto' }}
+                          />
+                        </ImageListItem>
+                      ))}
+                    </ImageList>
+                  </TransformComponent>
+                </TransformWrapper>
+              </Paper>
+            )}
 
-              {/* { displayImg ? <DisplayTiff tiffUrl={displayImg} /> : <></> } */}
-            </div>
             <div className="row m-0">
               <div className="col p-0">
                 <ScrollArea />

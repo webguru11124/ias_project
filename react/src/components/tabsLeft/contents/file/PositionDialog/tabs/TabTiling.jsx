@@ -24,7 +24,7 @@ import {
 import { getAvailableDimensions } from './helpers';
 import store from '@/reducers';
 
-export default function TabTiling() {
+export default function AlignmentPart({ handle }) {
   const { tiles } = useTilingStore();
   const [align, setAlign] = useState(Alignments.raster);
   const [dir, setDir] = useState(Directions.horizontal);
@@ -101,9 +101,10 @@ export default function TabTiling() {
     setBuilding(true);
     const output = await buildPyramid(ashlarParams);
 
+    handle(output);
     //console.log(output);
 
-    store.dispatch({ type: 'set_image_path_for_avivator', content: output });
+    //store.dispatch({ type: 'set_image_path_for_avivator', content: output });
 
     setBuilding(false);
   };
@@ -117,9 +118,9 @@ export default function TabTiling() {
             container
             xl={2}
             lg={3}
-            xs={4}
-            sx={{ p: 2, height: 'fit-content' }}
-            spacing={2}
+            xs={5}
+            sx={{ p: 1, height: 'fit-content' }}
+            spacing={1}
           >
             <Grid item xs={12}>
               <FormControl fullWidth>
@@ -175,10 +176,17 @@ export default function TabTiling() {
                     </MenuItem>
                   ))}
                 </Select>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleBuild}
+                >
+                  Build
+                </Button>
               </FormControl>
             </Grid>
           </Grid>
-          <Grid item xl={10} lg={9} xs={8} sx={{ height: '100%' }}>
+          <Grid item xl={10} lg={9} xs={7} sx={{ height: '100%' }}>
             <Paper variant="outlined" sx={{ height: '100%' }}>
               <TransformWrapper minScale={0.1}>
                 <TransformComponent
@@ -205,14 +213,14 @@ export default function TabTiling() {
           </Grid>
         </Grid>
       </DialogContent>
-      <DialogActions sx={{ px: 3, py: 2 }}>
+      {/* <DialogActions sx={{ px: 3, py: 2 }}>
         <Button variant="contained" color="primary" onClick={handleBuild}>
           Build
         </Button>
         <Button variant="outlined" color="warning">
           Cancel
         </Button>
-      </DialogActions>
+      </DialogActions> */}
     </>
   );
 }

@@ -1,14 +1,14 @@
 
 import os
-wd=os.chdir('/yourfilepathhere') #change the file path to your working directory
-wd=os.getcwd() #request what is the current working directory
-print(wd) #show what is the current working directory
+# wd=os.chdir('/yourfilepathhere') #change the file path to your working directory
+# wd=os.getcwd() #request what is the current working directory
+# print(wd) #show what is the current working directory
 
 if __name__ == '__main__':
     # import required libraries
     import h5py as h5
     import numpy as np
-    import matplotlib.pyplot as plt
+    # import matplotlib.pyplot as plt
 
     # Read H5 file
     f = h5.File("NEONDSImagingSpectrometerData.h5", "r")
@@ -43,12 +43,12 @@ for n in reflectance.attrs:
 	# close the h5 file
 	f.close()
         		# Plot
-plt.plot(wavelengthData, reflectanceData)
-plt.title("Vegetation Spectra")
-plt.ylabel('Reflectance')
-plt.ylim((0,1))
-plt.xlabel('Wavelength [$\mu m$]')
-plt.show()
+# plt.plot(wavelengthData, reflectanceData)
+# plt.title("Vegetation Spectra")
+# plt.ylabel('Reflectance')
+# plt.ylim((0,1))
+# plt.xlabel('Wavelength [$\mu m$]')
+# plt.show()
 	    
 # Write a new HDF file containing this spectrum
 f = h5.File("VegetationSpectra.h5", "w")

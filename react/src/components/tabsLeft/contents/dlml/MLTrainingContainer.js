@@ -66,6 +66,8 @@ export default function MLBoxSelect() {
   // })
 
   const start = async () => {
+    ClearRegion();
+
     const state = store.getState();
     if (state.files.imagePathForAvivator == null) {
       toast.error('Please select the image file!', {
@@ -124,6 +126,7 @@ export default function MLBoxSelect() {
     useFlagsStore.setState({ MLCanvasFlag: false });
     let res = await api_experiment.MLGetProcessedImage(_payload);
     let source = getIlastikImageUrl(res.image_path);
+    store.dispatch({ type: 'set_image_path_for_result', content: source });
     store.dispatch({ type: 'set_image_path_for_avivator', content: source });
     // console.log(res)
     // <description> based on the result image, we have to set that image into Avivator ** QmQ

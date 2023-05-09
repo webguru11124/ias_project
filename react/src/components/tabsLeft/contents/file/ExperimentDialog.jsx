@@ -62,6 +62,8 @@ const ExperimentDialog = ({
       }
 
       store.dispatch({ type: 'set_image_path_for_avivator', content: source });
+      store.dispatch({ type: 'set_image_path_for_origin', content: source });
+      store.dispatch({ type: 'set_image_path_for_result', content: null });
       setLoading(false);
     }
 

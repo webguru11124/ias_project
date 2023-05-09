@@ -520,3 +520,31 @@ h6 {
 p {
     margin-bottom: 0 !important;
 }
+
+.card {
+    &.has-title {
+        min-height: 30px;
+        margin-top: 10px;
+        position: relative;
+
+        .card-title {
+            position: absolute;
+            top: -13px;
+            left: 10px;
+
+            label {
+                background: white;
+                padding: 0 10px;
+            }
+        }
+    }
+}
+
+.flex-input-container {
+    display: flex;
+
+    .MuiInputBase-root {
+        margin-left: 10px;
+        border: 1px solid;
+    }
+}

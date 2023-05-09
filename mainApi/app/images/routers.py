@@ -14,6 +14,7 @@ from mainApi.config import STATIC_PATH
 from mainApi.app.auth.auth import get_current_user
 from mainApi.app.auth.models.user import UserModelDB, PyObjectId
 import subprocess
+import tempfile
 from datetime import date
 from typing import List
 import json
@@ -79,6 +80,63 @@ async def processImage(request: Request, current_user: UserModelDB = Depends(get
     subprocess.call(cmd_str, shell=True)
 
     return JSONResponse({"success": "success", "image_path": newImagePath})
+
+@router.post(
+    "/ml_ips_process",
+    response_description="ML IPS Process",
+)
+async def mlIPSProcess(request: Request, current_user: UserModelDB = Depends(get_current_user)):
+    data = await request.form()
+    imagePath = '/app/mainApi/app/static/' + str(PyObjectId(current_user.id)) + '/' + data.get("original_image_url")
+    sensitivity = data.get("sensitivity")
+    type = data.get("type")
+
+    fileName = imagePath.split("/")[len(imagePath.split("/")) - 1]
+    tempPath = tempfile.mkdtemp()
+    OUT_PUT_FOLDER = tempPath.split("/")[len(tempPath.split("/")) - 1]
+    OUT_PUT_PATH = 'mainApi/app/static/ml_out/' + OUT_PUT_FOLDER
+
+    if not os.path.exists(OUT_PUT_PATH):
+        os.makedirs(OUT_PUT_PATH)
+
+    cmd_str = "/app/mainApi/ml_lib/segB {inputPath} {outputPath}"
+    if type == 'a':
+        cmd_str += " /app/mainApi/ml_lib/typeB/src_paramA.txt"
+    if type == 'b':
+        cmd_str += " /app/mainApi/ml_lib/typeB/src_paramB.txt"
+    if type == 'c':
+        cmd_str += " /app/mainApi/ml_lib/typeB/src_paramC.txt"
+    if type == 'd':
+        cmd_str += " /app/mainApi/ml_lib/typeB/src_paramD.txt"
+
+    cmd_str += " " + sensitivity
+    cmd_str = cmd_str.format(inputPath=imagePath, outputPath=OUT_PUT_PATH + "/" + fileName)
+    subprocess.call(cmd_str, shell=True)
+    return JSONResponse({"success": "success", "image_path": OUT_PUT_PATH + "/" + fileName})
+
+@router.post(
+    "/ml_convert_result",
+    response_description="ML Convert Processed images to Ome.Tiff file",
+)
+async def mlConvertResult(request: Request):
+    data = await request.form()
+    imagePath = data.get("image_path")
+    fileName = imagePath.split("/")[len(imagePath.split("/")) - 1]
+    realName = os.path.splitext(fileName)[0]
+    print("ml-convert-result-filename:", realName)
+    realPath = os.path.splitext(imagePath)[0] + '_250.jpg'
+    tempPath = tempfile.mkdtemp()
+    outputFolder = '/app/mainApi/app/static' + tempPath
+    outputPath = outputFolder + '/' + realName + '_250.ome.tiff'
+
+    if not os.path.exists(outputFolder):
+        os.makedirs(outputFolder)
+
+    cmd_str = "sh /app/mainApi/bftools/bfconvert -separate -overwrite '" + realPath + "' '" + outputPath + "'"
+    print('=====>', cmd_str)
+    subprocess.run(cmd_str, shell=True)
+
+    return JSONResponse({"success": "success", "image_path": tempPath + '/' + realName + '_250.ome.tiff'})
 
 @router.get("/test")
 def read_root():

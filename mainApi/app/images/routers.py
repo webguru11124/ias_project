@@ -96,15 +96,15 @@ async def mlIPSProcess(request: Request, current_user: UserModelDB = Depends(get
     if not os.path.exists(OUT_PUT_PATH):
         os.makedirs(OUT_PUT_PATH)
 
-    cmd_str = "/app/mainApi/ml_lib/segA {inputPath} {outputPath}"
+    cmd_str = "/app/mainApi/ml_lib/segB {inputPath} {outputPath}"
     if type == 'a':
-        cmd_str += " /app/mainApi/ml_lib/typeA/src_paramA.txt"
+        cmd_str += " /app/mainApi/ml_lib/typeB/src_paramA.txt"
     if type == 'b':
-        cmd_str += " /app/mainApi/ml_lib/src_paramB.txt"
+        cmd_str += " /app/mainApi/ml_lib/typeB/src_paramB.txt"
     if type == 'c':
-        cmd_str += " /app/mainApi/ml_lib/src_paramC.txt"
+        cmd_str += " /app/mainApi/ml_lib/typeB/src_paramC.txt"
     if type == 'd':
-        cmd_str += " /app/mainApi/ml_lib/src_paramD.txt"
+        cmd_str += " /app/mainApi/ml_lib/typeB/src_paramD.txt"
 
     cmd_str += " " + sensitivity
     cmd_str = cmd_str.format(inputPath=imagePath, outputPath=OUT_PUT_PATH + "/" + fileName)

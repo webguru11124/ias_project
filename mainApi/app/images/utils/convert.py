@@ -10,6 +10,8 @@ import bioformats.formatwriter as W
 from bioformats.formatreader import load_using_bioformats, get_omexml_metadata
 import bioformats.omexml as OME
 import subprocess
+import tifffile as tif
+
 
 
 class TestFormatWriter(unittest.TestCase):
@@ -236,3 +238,41 @@ def convert_pixels_to_buffer(pixels, pixel_type):
     buf = np.frombuffer(np.ascontiguousarray(pixels, as_dtype).data, np.uint8)
     env = jutil.get_env()
     return env.make_byte_array(buf)
+
+
+
+
+def convert_bmp_to_ome_format(imgFullPath,output):
+    logback.basic_config()
+    image_path = os.path.join(imgFullPath)
+    javabridge.start_vm(class_path=bioformats.JARS)
+    
+    img = bioformats.load_image(image_path)
+    # Use Bio-Formats to convert the BMP file to an OME-TIFF file with metadata
+
+    try:
+        metadata =  bioformats.omexml.OMEXML()
+        metadata.image().Name = "My Image"
+        metadata.image().Pixels.set_SizeX(img.shape[1])
+        metadata.image().Pixels.set_SizeY(img.shape[2])
+        metadata.image().Pixels.set_SizeZ(img.shape[0])
+        metadata.image().Pixels.set_SizeC(1)
+        metadata.image().Pixels.set_SizeT(1)
+        metadata.image().Pixels.set_PixelType(bioformats.omexml.PT_UINT8)
+        metadata.image().Pixels.set_channel_count(1)
+        metadata.image().Pixels.set_plane_count(1 * img.shape[0] * 1)
+        metadata.image().Pixels.set_DimensionOrder("XYZCT")
+        # Create an OME-TIFF metadata dictionary
+        ome_metadata = {"axes": "ZYXC", "shape": img.shape, "imagej": metadata.to_xml().encode()}
+        # Write the OME-TIFF file with metadata
+        tif.imsave(output, np.transpose(img, (0,1,2)), metadata=ome_metadata)
+        # Stop the Java Virtual Machine
+        javabridge.kill_vm()
+    except :
+
+        print("Error Occured")
+        return
+
+    
+
+   

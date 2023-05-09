@@ -168,7 +168,7 @@ async def update_tiles_meta_info(
             {
                 "$set": {
                     "series": int(meta_info["series"]),
-                    "ashlar_path": new_path
+                    "ashlar_path": new_abs_path
                 }
             },
         )

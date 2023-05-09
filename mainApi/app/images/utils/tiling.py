@@ -12,7 +12,7 @@ from mainApi.app.auth.models.user import PyObjectId, UserModelDB, ShowUserModel
 from mainApi.app.images.sub_routers.tile.models import FileModelDB
 from mainApi.config import CURRENT_STATIC
 from .asyncio import shell
-from .constant import SUPPORT_EXTIONS
+
 
 async def get_all_tiles(user: UserModelDB, db: AsyncIOMotorDatabase):
     tiles = []
@@ -43,7 +43,7 @@ async def add_image_tiles(
             content = await each_file.read()
             await f.write(content)
 
-        if file_name.endswith(SUPPORT_EXTIONS):
+        if file_name.endswith("jpg|png|jpeg|JPG|PNG"):
             input = os.path.abspath(file_path)
             output = os.path.abspath(f"{pre}.png")
 
@@ -63,7 +63,10 @@ async def add_image_tiles(
 
             #convert all supported image files to .ome.tiff file
 
-           
+            output = os.path.abspath(f"{pre}.ome.tiff")
+
+            bf_cmd = f"sh /app/mainApi/bftools/bfconvert -separate -overwrite '{input}' '{output}'"
+            await shell(bf_cmd)
 
         else:
             img = Image.open(file_path)
@@ -72,7 +75,8 @@ async def add_image_tiles(
 
         tile = {
             "user_id": current_user.id,
-            "filename": new_file_name,
+            "filename": file_name,
+            "con"
             "path": f"{CURRENT_STATIC}/{current_user.id}/images/{file_name}",
         }
         new_tiles.append(tile)

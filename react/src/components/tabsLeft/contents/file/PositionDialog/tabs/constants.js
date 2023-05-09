@@ -36,6 +36,11 @@ export const Directions = {
   vertical: 'vertical',
 };
 
+export const SortOrder = {
+  ascending: 'Ascending Order',
+  descending: 'Descending Order',
+};
+
 export const DirectionLabels = {
   [Directions.horizontal]: 'Horizontal',
   [Directions.vertical]: 'Vertical',

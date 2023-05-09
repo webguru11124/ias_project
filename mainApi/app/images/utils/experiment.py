@@ -16,7 +16,7 @@ import subprocess
 from mainApi.app.images.utils.convert import get_metadata
 from cellpose import plot, utils
 from .asyncio import shell
-
+from .convert import convert_bmp_to_ome_format
 
 async def add_experiment(
     experiment_name: str,
@@ -134,11 +134,12 @@ async def add_experiment_with_folders(
 
                 input_pre = os.path.splitext(input)[0]
 
-                if input.lower().endswith((".tiff", ".tif")):
+                if input.lower().endswith((".tiff", ".tif",'ome.tiff','ome.tif')):
                     output = os.path.abspath(f'{folder}/{pre}.png')
                     bfconv_cmd = f"sh /app/mainApi/bftools/bfconvert -overwrite '{input}' '{output}'"
                     await shell(bfconv_cmd)
                     input = output
+
 
                 # save thumbnail image for tiling layout and previewing images
                 try:
@@ -148,9 +149,24 @@ async def add_experiment_with_folders(
                 except:
                     pass
 
-                output = os.path.abspath(f'{folder}/{pre}.ome.tiff')
-                bfconv_cmd = f"sh /app/mainApi/bftools/bfconvert -separate -overwrite '{input}' '{output}'"
-                await shell(bfconv_cmd)
+
+                #Convert bmp file to ome.tiff
+                if input.lower().endswith((".bmp")):
+                    
+                    output = os.path.abspath(f'{folder}/{pre}.ome.tiff')
+                    convert_bmp_to_ome_format(input,output)
+                    tt = os.path.abspath(f'{folder}/{pre}.png')
+                    bfconv_cmd = f"sh /app/mainApi/bftools/bfconvert -overwrite '{input}' '{tt}'"
+                    await shell(bfconv_cmd)
+
+                else :
+                    output = os.path.abspath(f'{folder}/{pre}.ome.tiff')
+                    bfconv_cmd = f"sh /app/mainApi/bftools/bfconvert -separate -overwrite '{input}' '{output}'"
+                    await shell(bfconv_cmd)
+
+
+
+               
 
     experimentData = {
         "user_id": str(PyObjectId(current_user.id)),

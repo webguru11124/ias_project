@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import Stack from '@mui/material/Stack';
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -22,6 +23,7 @@ import { ChannelColors } from '@/constants/enums';
 import { MAX_CHANNELS } from '@hms-dbmi/viv';
 import { getSingleSelectionStats, randomId } from '@/helpers/avivator';
 import { COLOR_PALETTE } from '@/constants';
+import store from '@/reducers';
 
 const Channel = () => {
   const loader = useLoader();
@@ -46,23 +48,26 @@ const Channel = () => {
     setIsChannelLoading,
     addIsChannelLoading,
   } = useViewerStore((store) => store, shallow);
-
-  const channels = useMemo(
-    () =>
-      Object.values(ChannelColors).map(({ rgb, symbol }) => {
-        const chId = colors.findIndex((c) => c.toString() === rgb.toString());
-        return {
-          disabled: chId < 0,
-          id: chId,
-          symbol,
-          color: rgb,
-          visible: chId >= 0 && channelsVisible[chId],
-          cssColor:
-            symbol === ChannelColors.white.symbol ? 'gray' : `rgb(${rgb})`,
-        };
-      }),
-    [colors, channelsVisible],
-  );
+  const measureChannelData = useSelector((state) => state.measure.channel_data);
+  const channels = useMemo(() => {
+    const _channels = Object.values(ChannelColors).map(({ rgb, symbol }) => {
+      const chId = colors.findIndex((c) => c.toString() === rgb.toString());
+      return {
+        disabled: chId < 0,
+        id: chId,
+        symbol,
+        color: rgb,
+        visible: chId >= 0 && channelsVisible[chId],
+        cssColor:
+          symbol === ChannelColors.white.symbol ? 'gray' : `rgb(${rgb})`,
+      };
+    });
+    store.dispatch({
+      type: 'UPDATE_MEASURE_CHANNEL_DATA',
+      payload: _channels,
+    });
+    return _channels;
+  }, [colors, channelsVisible]);
 
   const handleAddChannel = useCallback(() => {
     let selection = Object.fromEntries(labels.map((l) => [l, 0]));

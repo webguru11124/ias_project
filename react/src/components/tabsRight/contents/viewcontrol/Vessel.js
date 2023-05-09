@@ -28,7 +28,6 @@ const Vessel = (props) => {
   const vesselData = useSelector((state) => state.vessel);
   const measureData = useSelector((state) => state.measure);
   // console.log("measure Dtata, vessel Data", measureData, measureData.vessel_data)
-  // console.log("vesselData", vesselData);
 
   const [shape, setShape] = useState('rect'); // ['rect', 'circle']
   const [currentVesselId, setCurrentVesselId] = useState(
@@ -51,11 +50,11 @@ const Vessel = (props) => {
   // ** measurement view part update  ** QmQ
   const setCurrentVesselStatus = (id) => {
     let _currentVesselContent = getVesselById(id);
-    // setCurrentVesselId(id);
-    // setCurrentVessel(_currentVesselContent);
+    setCurrentVesselId(id);
+    setCurrentVessel(_currentVesselContent);
 
     store.dispatch({
-      type: 'update_measure_vessel_data',
+      type: 'UPDATE_MEASURE_VESSEL_DATA',
       payload: _currentVesselContent,
     });
   };
@@ -108,7 +107,6 @@ const Vessel = (props) => {
   };
 
   const changeVesselSeries = (direction) => {
-    // console.log('current _contents ====>'. current_contents)
     let current_VesselGroupIndex = 0;
     for (let i = 0; VESSELS.length; i++) {
       if (VESSELS[i][0].type === currentVessel.type) {
@@ -140,7 +138,13 @@ const Vessel = (props) => {
     let vesselID = getCorrectVesselID(seriesStr, maxRow + 1, maxCol);
     setCurrentVesselStatus(vesselID);
   };
-
+  const handleExpansionDialogClose = (percentVal) => {
+    store.dispatch({
+      type: 'UPDATE_MEASURE_VESSEL_DATA',
+      payload: { area_percentage: percentVal },
+    });
+    setShowExpansionDialog(false);
+  };
   useEffect(() => {
     if (props.content && props.content !== []) {
       let current_contents = JSON.parse(JSON.stringify(props.content));
@@ -252,8 +256,9 @@ const Vessel = (props) => {
         <ExpansionDialog
           currentVessel={currentVesselId}
           open={showExpansionDialog}
-          closeDialog={() => {
-            setShowExpansionDialog(false);
+          areaPercentage={measureData.vessel_data.area_percentage}
+          closeDialog={(percentVal) => {
+            handleExpansionDialogClose(percentVal);
           }}
         />
       )}

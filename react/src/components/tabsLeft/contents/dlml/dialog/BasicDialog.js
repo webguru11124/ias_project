@@ -62,6 +62,7 @@ const BasicDialog = (props) => {
 
   const imgArray = {
     tissuenet: Icon.imgTissueNet,
+    ipscAdvance: Icon.imgIPSCAdvance,
     nuclei: Icon.imgNuchel,
     cyto: Icon.imgCyto,
     layer: Icon.imgLayer,
@@ -141,9 +142,11 @@ const BasicDialog = (props) => {
                   <TabContainer>
                     <div className="p-3">
                       <div style={{ width: '65px' }}>
-                        <ImageBox methodName="tissuenet" />
+                        <ImageBox
+                          methodName={isMLAdvance ? 'ipscAdvance' : 'tissuenet'}
+                        />
                         <div className="label-text text-center">
-                          {isMLAdvance ? 'TissueHP' : 'TissueNet'}
+                          {isMLAdvance ? 'iPS-TR' : 'TissueNet'}
                         </div>
                       </div>
                     </div>

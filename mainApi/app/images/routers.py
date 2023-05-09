@@ -5,7 +5,8 @@ from fastapi import (
     HTTPException,
     Request,
     Response,
-    Depends
+    Depends,
+    Form
 )
 from fastapi.responses import JSONResponse, FileResponse
 from mainApi.app.images.sub_routers.tile.routers import router as tile_router
@@ -14,8 +15,10 @@ from mainApi.app.auth.auth import get_current_user
 from mainApi.app.auth.models.user import UserModelDB, PyObjectId
 import subprocess
 from datetime import date
-
+from typing import List
+import json
 import h5py as h5
+from mainApi.app.images.h5.measure import update_h5py_file
 
 router = APIRouter(prefix="/image", tags=[])
 
@@ -96,3 +99,20 @@ def read_root():
         # print the dataset
         print(dataset[:])
     return {"Ping": "Pang"}
+
+@router.post('/measure/update_measure_data')
+async def update_measure_data(
+    request: Request,
+    keyList: List[str] = Form(...)
+):
+    print(request)
+    data = await request.form()
+    print('======> keyList', keyList)
+    res = update_h5py_file(data, keyList)
+    print(res)
+
+    # for key in keyList:
+    #     value = data.get(key)
+    #     print(json.loads(value))
+    #     print('=======>', key)
+    return res

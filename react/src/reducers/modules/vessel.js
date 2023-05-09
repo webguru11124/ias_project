@@ -47,6 +47,7 @@ const vessel = (state = initState, action) => {
     default:
       break;
   }
+  // console.log('vessel type=====>', state);
   return { ...state };
 };
 

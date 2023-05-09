@@ -9,8 +9,9 @@ import {
   classSettingRows,
 } from '@/constants/class-setting';
 import SortAreaDialog from '../itemSetting/SortAreaDialog';
+import AccessibleTable from './ClassSettingTable';
 
-export default function FourthPage() {
+export default function ClassSettingPage() {
   const [showMeasureItemDialog, setShowMeasureItemDialog] = useState(false);
   const [showSortAreaDialog, setShowSortAreaDialog] = useState(false);
 
@@ -22,15 +23,16 @@ export default function FourthPage() {
   return (
     <>
       <SmallCard title="Class Setting">
-        <Box sx={{ height: 320, width: '100%' }}>
-          <DataGrid
+        <Box sx={{ height: 360, width: '100%' }}>
+          <AccessibleTable />
+          {/* <DataGrid
             rows={classSettingRows}
             columns={classSettingColumns}
             pageSize={10}
             rowsPerPageOptions={[10]}
             // checkboxSelection
             disableSelectionOnClick
-          />
+          /> */}
         </Box>
       </SmallCard>
       <SmallCard title="Measure Contents">

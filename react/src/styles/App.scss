@@ -548,3 +548,26 @@ p {
         border: 1px solid;
     }
 }
+
+.aaa {
+    position: static !important;
+    height: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+}
+
+.ant-modal-body {
+    border-top: 1px solid #e0e0e0;
+    margin-top: 15px;
+    padding-top: 10px;
+}
+
+.ant-modal-footer {
+    border-top: 1px solid #e2e2e2;
+    padding-top: 10px;
+}
+
+.ml-popup-body {
+    max-height: calc(100vh - 300px);
+    overflow-y: scroll;
+}

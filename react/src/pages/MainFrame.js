@@ -54,6 +54,7 @@ import MLLabelCanvas from '@/components/custom/MLLabelCanvas';
 import LockScreen from '@/components/custom/LockScreen';
 import TrainingDialog from '@/components/tabsLeft/contents/dlml/dialog/TrainingDialog'; // added by Wang
 import TargetDrawingDialog from '@/components/tabsLeft/contents/dlml/dialog/TargetDrawingDialog';
+import MLPopupDialog from '@/components/tabsLeft/contents/dlml/dialog/MLPopupDialog';
 import { useFlagsStore } from '@/state';
 function TabContainer(props) {
   return (
@@ -631,6 +632,7 @@ const MainFrame = (props) => {
       {DialogTrainingFlag && <TrainingDialog />}
       {DialogTargetDrawingFlag && <TargetDrawingDialog />}
       {/* <FooterContent /> */}
+      <MLPopupDialog />
     </>
   );
 };

@@ -104,7 +104,7 @@ const DEFAULT_PARAMS = {
   learning_method: '',
   object_method: '',
   method_info: '',
-
+  showMLPopup: false,
   // view Data
   vessel_data: {
     id: 1,
@@ -193,6 +193,11 @@ const measure = (state = initState, action) => {
       return {
         ...state,
         class_setting_data: _deleted_class_setting_data,
+      };
+    case 'UPDATE_ML_POPUP_STATUS':
+      return {
+        ...state,
+        showMLPopup: action.payload,
       };
     default:
       return state;

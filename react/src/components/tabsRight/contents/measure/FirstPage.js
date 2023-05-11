@@ -62,6 +62,10 @@ export default function FirstPage() {
     setInformation(
       'We use the Machine learning to analyse the image\n It highlihgts the cells',
     );
+    store.dispatch({
+      type: 'UPDATE_ML_POPUP_STATUS',
+      payload: true,
+    });
   };
   const onClick5 = () => {
     liveUpdate();

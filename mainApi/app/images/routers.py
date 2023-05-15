@@ -94,7 +94,7 @@ async def mlIPSProcess(request: Request, current_user: UserModelDB = Depends(get
     fileName = imagePath.split("/")[len(imagePath.split("/")) - 1]
     tempPath = tempfile.mkdtemp()
     OUT_PUT_FOLDER = tempPath.split("/")[len(tempPath.split("/")) - 1]
-    OUT_PUT_PATH = 'mainApi/app/static/ml_out/' + OUT_PUT_FOLDER
+    OUT_PUT_PATH = '/app/mainApi/app/static/ml_out/' + OUT_PUT_FOLDER
 
     if not os.path.exists(OUT_PUT_PATH):
         os.makedirs(OUT_PUT_PATH)

@@ -194,7 +194,7 @@ const MLPopupDialog = (props) => {
             </ToggleButtonGroup>
           </div>
           <Channel />
-          <MLContainer />
+          <MLContainer isPopup={true} />
         </div>
       </Modal>
     </>

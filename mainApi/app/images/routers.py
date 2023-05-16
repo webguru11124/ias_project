@@ -82,10 +82,10 @@ async def processImage(request: Request, current_user: UserModelDB = Depends(get
     return JSONResponse({"success": "success", "image_path": newImagePath})
 
 @router.post(
-    "/ml_ips_process",
+    "/ml_ict_process",
     response_description="ML IPS Process",
 )
-async def mlIPSProcess(request: Request, current_user: UserModelDB = Depends(get_current_user)):
+async def mlICTProcess(request: Request, current_user: UserModelDB = Depends(get_current_user)):
     data = await request.form()
     imagePath = '/app/mainApi/app/static/' + str(PyObjectId(current_user.id)) + '/' + data.get("original_image_url")
     sensitivity = data.get("sensitivity")
@@ -116,6 +116,28 @@ async def mlIPSProcess(request: Request, current_user: UserModelDB = Depends(get
     return JSONResponse({"success": "success", "image_path": OUT_PUT_PATH + "/" + fileName})
 
 @router.post(
+    "/ml_ips_process",
+    response_description="ML IPS Process",
+)
+async def mlIPSProcess(request: Request, current_user: UserModelDB = Depends(get_current_user)):
+    data = await request.form()
+    imagePath = '/app/mainApi/app/static/' + str(PyObjectId(current_user.id)) + '/' + data.get("original_image_url")
+
+    fileName = imagePath.split("/")[len(imagePath.split("/")) - 1]
+    tempPath = tempfile.mkdtemp()
+    OUT_PUT_FOLDER = tempPath.split("/")[len(tempPath.split("/")) - 1]
+    OUT_PUT_PATH = 'mainApi/app/static/ml_out/' + OUT_PUT_FOLDER
+
+    if not os.path.exists(OUT_PUT_PATH):
+        os.makedirs(OUT_PUT_PATH)
+
+    cmd_str = "/app/mainApi/ml_lib/segA {inputPath} {outputPath} /app/mainApi/ml_lib/typeA/src_paramA.txt"
+    cmd_str = cmd_str.format(inputPath=imagePath, outputPath=OUT_PUT_PATH + "/" + fileName)
+    print('----->', cmd_str)
+    subprocess.call(cmd_str, shell=True)
+    return JSONResponse({"success": "success", "image_path": OUT_PUT_PATH + "/" + fileName})
+
+@router.post(
     "/ml_convert_result",
     response_description="ML Convert Processed images to Ome.Tiff file",
 )
@@ -124,11 +146,11 @@ async def mlConvertResult(request: Request):
     imagePath = data.get("image_path")
     fileName = imagePath.split("/")[len(imagePath.split("/")) - 1]
     realName = os.path.splitext(fileName)[0]
-    print("ml-convert-result-filename:", realName)
-    realPath = os.path.splitext(imagePath)[0] + '_250.jpg'
     tempPath = tempfile.mkdtemp()
+    print("ml-convert-result-filename:", realName)
+    realPath = os.path.splitext(imagePath)[0] + 'a_3.jpg'
     outputFolder = '/app/mainApi/app/static' + tempPath
-    outputPath = outputFolder + '/' + realName + '_250.ome.tiff'
+    outputPath = outputFolder + '/' + realName + 'a_3.ome.tiff'
 
     if not os.path.exists(outputFolder):
         os.makedirs(outputFolder)
@@ -137,7 +159,15 @@ async def mlConvertResult(request: Request):
     print('=====>', cmd_str)
     subprocess.run(cmd_str, shell=True)
 
-    return JSONResponse({"success": "success", "image_path": tempPath + '/' + realName + '_250.ome.tiff'})
+    realPath = os.path.splitext(imagePath)[0] + '_250.jpg'
+    outputFolder = '/app/mainApi/app/static' + tempPath
+    outputPath = outputFolder + '/' + realName + '_250.ome.tiff'
+
+    cmd_str = "sh /app/mainApi/bftools/bfconvert -separate -overwrite '" + realPath + "' '" + outputPath + "'"
+    print('=====>', cmd_str)
+    subprocess.run(cmd_str, shell=True)
+
+    return JSONResponse({"success": "success", "image_path": tempPath + '/' + realName + '_250.ome.tiff', "image_count_path": tempPath + '/' + realName + 'a_3.ome.tiff'})
 
 @router.get("/test")
 def read_root():

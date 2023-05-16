@@ -33,11 +33,13 @@ const ICTMethodDialog = () => {
   };
 
   const handleSelectedMethod = async () => {
+    useFlagsStore.setState({ MLDialogICTSelectFlag: false });
     const state = store.getState();
     let fullPath = state.files.imagePathForAvivator;
     let subPath = /path=(.*)/.exec(fullPath)[1];
     let imgPath = subPath.split('/').slice(1).join('/');
 
+    useFlagsStore.setState({ DialogLoadingFlag: true });
     let _payload = {
       original_image_url: imgPath,
       type,
@@ -49,11 +51,16 @@ const ICTMethodDialog = () => {
       image_path: res.image_path,
     };
     res = await api_experiment.MLConvertResult(_payload);
+    useFlagsStore.setState({ DialogLoadingFlag: false });
     // console.log('ICT-convert-result:', res);
     let source = getImageUrl(res.image_path, false, true);
+    let source1 = getImageUrl(res.image_count_path, false, true);
     store.dispatch({ type: 'set_image_path_for_result', content: source });
+    store.dispatch({
+      type: 'set_image_path_for_count_result',
+      content: source1,
+    });
     store.dispatch({ type: 'set_image_path_for_avivator', content: source });
-    useFlagsStore.setState({ MLDialogICTSelectFlag: false });
   };
 
   const handleDaysChange = (event) => {

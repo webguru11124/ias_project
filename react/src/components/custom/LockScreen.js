@@ -49,6 +49,12 @@ const LockScreen = () => {
         let _payload = {
           original_image_url: imgPath,
         };
+        store.dispatch({
+          type: 'UPDATE_ML_MEASURE_PARAMS',
+          payload: {
+            method: 'iPS-TR',
+          },
+        });
         let res = await api_experiment.MLIPSProcessImage(_payload);
         // console.log('ICT-result:', res);
         _payload = {
@@ -63,6 +69,10 @@ const LockScreen = () => {
         store.dispatch({
           type: 'set_image_path_for_count_result',
           content: source1,
+        });
+        store.dispatch({
+          type: 'set_csv_path_for_result',
+          content: res.csv_path,
         });
         store.dispatch({
           type: 'set_image_path_for_avivator',

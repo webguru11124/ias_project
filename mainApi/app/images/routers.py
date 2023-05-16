@@ -149,6 +149,7 @@ async def mlConvertResult(request: Request):
     tempPath = tempfile.mkdtemp()
     print("ml-convert-result-filename:", realName)
     realPath = os.path.splitext(imagePath)[0] + 'a_3.jpg'
+    csvPath = os.path.splitext(imagePath)[0] + '_300.csv'
     outputFolder = '/app/mainApi/app/static' + tempPath
     outputPath = outputFolder + '/' + realName + 'a_3.ome.tiff'
 
@@ -167,7 +168,12 @@ async def mlConvertResult(request: Request):
     print('=====>', cmd_str)
     subprocess.run(cmd_str, shell=True)
 
-    return JSONResponse({"success": "success", "image_path": tempPath + '/' + realName + '_250.ome.tiff', "image_count_path": tempPath + '/' + realName + 'a_3.ome.tiff'})
+    return JSONResponse({
+        "success": "success",
+        "image_path": tempPath + '/' + realName + '_250.ome.tiff',
+        "image_count_path": tempPath + '/' + realName + 'a_3.ome.tiff',
+        "csv_path": csvPath
+    })
 
 @router.get("/test")
 def read_root():

@@ -45,6 +45,14 @@ const ICTMethodDialog = () => {
       type,
       sensitivity,
     };
+    store.dispatch({
+      type: 'UPDATE_ML_MEASURE_PARAMS',
+      payload: {
+        method: 'iCT',
+        type,
+        sensitivity,
+      },
+    });
     let res = await api_experiment.MLICTProcessImage(_payload);
     // console.log('ICT-result:', res);
     _payload = {
@@ -59,6 +67,10 @@ const ICTMethodDialog = () => {
     store.dispatch({
       type: 'set_image_path_for_count_result',
       content: source1,
+    });
+    store.dispatch({
+      type: 'set_csv_path_for_result',
+      content: res.csv_path,
     });
     store.dispatch({ type: 'set_image_path_for_avivator', content: source });
   };

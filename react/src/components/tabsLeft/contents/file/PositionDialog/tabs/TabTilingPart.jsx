@@ -184,6 +184,9 @@ const TabTiling = (props) => {
   //when the tiles loaded, return the sort tiles by field
   const sorted = useMemo(() => {
     if (sortOrder === SortOrder.ascending) {
+      if (tiles.length > 0) {
+        if (!tiles[0].field) return tiles;
+      }
       return tiles.sort((a, b) => a.field.localeCompare(b.field));
     } else return tiles.sort((a, b) => b.field.localeCompare(a.field));
   }, [tiles]);
@@ -191,9 +194,12 @@ const TabTiling = (props) => {
   // return tiles aligned in alignment function
   const tilesAligned = useMemo(() => {
     let sortedTiles;
-    if (sortOrder === SortOrder.ascending) {
-      sortedTiles = sorted.sort((a, b) => a.field.localeCompare(b.field));
-    } else sortedTiles = sorted.sort((a, b) => b.field.localeCompare(a.field));
+    if (tiles.length > 1 && tiles[0].field) {
+      if (sortOrder === SortOrder.ascending) {
+        sortedTiles = sorted.sort((a, b) => a.field.localeCompare(b.field));
+      } else
+        sortedTiles = sorted.sort((a, b) => b.field.localeCompare(a.field));
+    } else sortedTiles = sorted;
 
     if (!dim) {
       return sortedTiles;

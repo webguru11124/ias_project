@@ -32,12 +32,23 @@ import Timeline from '../../../../../tabsRight/contents/viewcontrol/Timeline';
 import store from '../../../../../../reducers';
 import UTIF from 'utif';
 import useTilingStore from '@/stores/useTilingStore';
-import AlignmentPart from './TabTiling';
 import { TileSeriesDescription } from 'igniteui-react-core';
-import { ImageList, ImageListItem, Paper } from '@mui/material';
+import { DialogActions, ImageList, ImageListItem, Paper } from '@mui/material';
 import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
 import Avivator from '../../../../../avivator/Avivator';
 import { Alignments, Directions, SortOrder } from './constants';
+import useMetadata from '@/hooks/useMetadata';
+import { useChannelsStore } from '@/state';
+import {
+  buildPyramid,
+  correctionTiledImage,
+  gammaTiledImage,
+  normalizeTiledImage,
+  snapToEdge,
+} from '@/api/tiling';
+import { Typography } from 'react-md';
+import { loadOmeTiff } from '@hms-dbmi/viv';
+import { createLoader } from './../../../../../../helpers/avivator';
 
 const tilingMenus = [
   'Edit',
@@ -46,7 +57,7 @@ const tilingMenus = [
   'Shading',
   'Display',
   'Result',
-  'Option',
+  //'Option',
 ];
 
 const tilingAlignButtons = [
@@ -64,66 +75,125 @@ let stylingTiling = {
 };
 
 const TabTiling = (props) => {
-  const { fileNames } = useTilingStore();
   const { tiles } = useTilingStore();
 
-  const [fileObjs, setFileObjs] = useState([]);
   const [selectedImageFileIndex, setSelectedImageFileIndex] = useState(0);
 
-  const [widthImage, setWidthImage] = useState(window.innerWidth);
-  const [heightImage, setHeightImage] = useState(window.innerHeight);
-
+  //tab left index
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const [checked, setChecked] = useState(true);
-  const [scale, setScale] = useState(100);
-  const [loadImageSource, setLoadImageSource] = useState(null);
-  const [displayImg, setDisplayImg] = useState('');
 
-  const [tiling_bonding_patternMatch, setTilingBondingPatterMatch] =
+  const [tilingBondingPatternMatch, setTilingBondingPatterMatch] =
     useState(false);
 
   //Parameters in Alignment UI
   const [alignRow, setAlignRow] = useState(1);
-  const [alignCol, setAlignCol] = useState(1);
+  const [alignCol, setAlignCol] = useState(tiles ? tiles.length : 1);
   const [alignBorder, setAlignBorder] = useState(0);
   const [alignGapX, setAlignGapX] = useState(0);
   const [alignGapY, setAlignGapY] = useState(0);
   const [align, setAlign] = useState(Alignments.raster);
   const [dir, setDir] = useState(Directions.horizontal);
   const [dim, setDim] = useState();
-  const [sortOrder, setSortOrder] = useState();
+  const [sortOrder, setSortOrder] = useState(SortOrder.ascending);
 
   const [alignment, setAlignment] = useState('align');
 
-  const [alignOption, setAlignOption] = useState();
+  //parameters in bonding
+  const [selectBondRadioIdx, setSelectBondRadioIdx] = useState('0');
 
   //Parameters in Shading UI
-  const [brightness, setBrightness] = useState(1);
-  const [luminance, setLuminance] = useState(0);
+  const [gamma, setGamma] = useState(1);
 
   const canvasElement = useRef(null);
 
-  const [displayOneJpegImage, setDisplayOneJpegImage] = useState(false);
   const [displayTilingJpegImages, setDisplayTilingJpegImages] = useState(false);
+  const [displayResultImage, setDisplayResultImage] = useState(false);
 
+  const [resultImagePath, setResultImagePath] = useState('');
+
+  const channelState = useChannelsStore((state) => state);
+
+  //Logs
+  const [infoMessage, setInfoMessage] = useState();
+
+  //Get the image of ome tiff file extension from the original url
+  const getOmeTiffUrl = (url) => {
+    //console.log(tiles);
+    const ext = url.split('.').pop();
+    if (ext === 'tiff' || ext === 'tif') return url;
+    const newExtension = 'ome.tiff';
+    const newUrl = url.replace(/\.[^/.]+$/, `.${newExtension}`);
+    return newUrl;
+  };
+
+  // urls list
+  const urls = useMemo(
+    () =>
+      tiles
+        .filter((tile) => /tif?f|jpg|jpeg|png|JPG|PNG/.test(tile.path))
+        .map((img) => getOmeTiffUrl(img.url)),
+    [tiles],
+  );
+
+  //Metadata
+  const [metadata, loading] = useMetadata(urls);
+
+  // When the tiles reload, set dim by default 1 * tiles.length()
   useEffect(() => {
-    if (tiles) setDim([1, tiles.length]);
+    if (tiles) {
+      setDim([1, tiles.length]);
+      setResultImagePath(getOmeTiffUrl(tiles[0].url));
+      setInfoMessage(`${tiles.length} images are loaded.`);
+
+      let tile = tiles[0];
+      if (tile.z || tile.row || tile.col || tile.series) {
+        let newContent = [];
+        let tempContent = {};
+        const tempVal = tile.z;
+        tempContent.z = tile.time;
+        tempContent.time = tempVal;
+        tempContent.dimensionChanged = tile.dimensionChanged;
+        tempContent.row = tile.row;
+        tempContent.col = tile.col;
+        tempContent.series = tile.strSeries;
+        newContent.push(tempContent);
+        store.dispatch({ type: 'content_addContent', content: newContent });
+      }
+    }
   }, [tiles]);
 
+  //Get the Temp Path from the server
+  const getTempPath = () => {
+    //Load an OME_TIFF file
+    const filename = tiles[0].url.split('/').pop();
+    const resultpath =
+      tiles[0].url.replace(filename, '') + 'temp_output.ome.tiff';
+    return resultpath;
+  };
+
+  //Get the result image path from the server
+  const getResultPath = () => {
+    //Load an OME_TIFF file
+    const filename = tiles[0].url.split('/').pop();
+    const resultpath = tiles[0].url.replace(filename, '') + 'result.ome.tiff';
+    return resultpath;
+  };
+
+  //when the tiles loaded, return the sort tiles by field
   const sorted = useMemo(() => {
-    if (sortOrder == SortOrder.ascending) {
-      return tiles.sort((a, b) => a.series - b.series);
-    } else return tiles.sort((a, b) => b.series - a.series);
+    if (sortOrder === SortOrder.ascending) {
+      return tiles.sort((a, b) => a.field.localeCompare(b.field));
+    } else return tiles.sort((a, b) => b.field.localeCompare(a.field));
   }, [tiles]);
 
+  // return tiles aligned in alignment function
   const tilesAligned = useMemo(() => {
     let sortedTiles;
-    if (sortOrder == SortOrder.ascending) {
-      sortedTiles = sorted.sort((a, b) => a.series - b.series);
-    } else sortedTiles = sorted.sort((a, b) => b.series - a.series);
-
-    // console.log(sortedTiles);
+    if (sortOrder === SortOrder.ascending) {
+      sortedTiles = sorted.sort((a, b) => a.field.localeCompare(b.field));
+    } else sortedTiles = sorted.sort((a, b) => b.field.localeCompare(a.field));
 
     if (!dim) {
       return sortedTiles;
@@ -131,7 +201,6 @@ const TabTiling = (props) => {
 
     const cols = dim[1];
     const rows = dim[0];
-    // Split the array into sub-arrays of cols
     let chunks = [];
 
     // if the direction is horizontal
@@ -162,8 +231,7 @@ const TabTiling = (props) => {
         for (let i = 0; i < rows; i++) chunks.push([]);
         for (let i = 0; i < rows; i++) {
           for (let j = 0; j < cols; j++) {
-            //Reverse every second cols for snake layout
-            if (j % 2 == 1) {
+            if (j % 2 === 1) {
               chunks[i][j] = temp[rows - i - 1][j];
             } else chunks[i][j] = temp[i][j];
           }
@@ -172,21 +240,17 @@ const TabTiling = (props) => {
     }
 
     // Join the sub-arrays back together
-
     const temp = [].concat(...chunks);
-
     const result = [];
-
     temp.forEach((v) => {
-      if (v != undefined) {
+      if (v !== undefined) {
         result.push(v);
       }
     });
-
     return result;
   }, [sorted, align, dir, dim, sortOrder]);
 
-  // Change text fields
+  // When the row is changed in alignment part
   const inputTilingRows = (event) => {
     let r = Number(event.target.value);
     if (r <= 0) r = 1;
@@ -203,6 +267,8 @@ const TabTiling = (props) => {
       }
     }
   };
+
+  // When the col is changed in alignment part
   const inputTilingCols = (event) => {
     let c = Number(event.target.value);
     if (c <= 0) c = 1;
@@ -219,9 +285,13 @@ const TabTiling = (props) => {
       setDim([r, c]);
     }
   };
+
+  // when the border is changed in alignment
   const inputTilingBorder = (event) => {
     setAlignBorder(event.target.value === '' ? '' : Number(event.target.value));
   };
+
+  //When the gap is changed in alignment
   const inputTilingGapX = (event) => {
     if (Number(event.target.value) < 0) return;
     setAlignGapX(event.target.value === '' ? '' : Number(event.target.value));
@@ -233,25 +303,36 @@ const TabTiling = (props) => {
     setAlignGapX(event.target.value === '' ? '' : Number(event.target.value));
   };
 
+  //When the list item clicked in left tab in the Tiling Part
   const handleListItemClick = (event, index) => {
     setSelectedIndex(index);
-    if (index == 1) {
+    setInfoMessage('');
+    if (index === 1 || index === 2) {
       setDisplayTilingJpegImages(true);
-    } else setDisplayTilingJpegImages(false);
+      setDisplayResultImage(false);
+    } else if (index === 0) {
+      setDisplayTilingJpegImages(false);
+      setDisplayResultImage(false);
+    } else if (index === 3 || index === 4 || index === 5) {
+      setDisplayTilingJpegImages(false);
+      setDisplayResultImage(true);
+    }
+
+    if (index === 3 || index === 4) {
+    }
+    if (index === 5) {
+      const resultpath = getResultPath();
+      setResultImagePath(resultpath);
+      setInfoMessage('Result Image will be displayed');
+    }
   };
 
   const handleAlignViewClicked = () => {};
 
-  const handleAlignment = (event) => {};
-
-  const handleApi = (response, status) => {
-    //console.log("Handle API ");
-    if (status) {
-      //console.log("handleAlignTilesApi : response :", response);
-      displayResponse(response);
-    } else {
-      //console.log("handleAlignTilesApi : error :", response);
-    }
+  //When the alignment Image buttons are clicked
+  const handleAlignment = (event) => {
+    const v = event.target.name;
+    setInfoMessage(`${v} options was clicked.`);
   };
 
   //when the radio button in alignment was changed
@@ -270,180 +351,289 @@ const TabTiling = (props) => {
     }
   };
 
+  const SnapToEdge = async () => {
+    setInfoMessage('Activate Snap To Edge Function');
+    const hostAddr = tiles[0].url.split('/static')[0];
+    const output = await snapToEdge();
+    const outputUrl = hostAddr + output + '?' + new Date().getTime();
+    setResultImagePath(outputUrl);
+    setInfoMessage('You can see the result image in result Tab.');
+  };
+
+  const PatternMatching = async () => {
+    setInfoMessage('Pattern Matching Function started');
+    const hostAddr = tiles[0].url.split('/static')[0];
+    const output = await snapToEdge();
+    const outputUrl = hostAddr + output + '?' + new Date().getTime();
+    setResultImagePath(outputUrl);
+    setInfoMessage('You can see the result image in result Tab.');
+  };
+  const autoPatternMatching = () => {};
+
   //When the radio button in bonding was changed
   const handleChange = (event) => {
-    if (event.target.id == '3') {
-      if (event.target.checked == true) setTilingBondingPatterMatch(true);
-      else setTilingBondingPatterMatch(false);
+    if (event.target.id === '3') {
+      if (tilingBondingPatternMatch == false) {
+        setTilingBondingPatterMatch(true);
+        event.target.checked = true;
+      } else {
+        setTilingBondingPatterMatch(false);
+        event.target.checked = false;
+        setSelectBondRadioIdx('1');
+        return;
+      }
     } else setTilingBondingPatterMatch(false);
-  };
+    setSelectBondRadioIdx(event.target.id);
 
-  const autoPatternMathing = () => {};
-
-  const normalizeImgLuminance = async () => {};
-  const correctLighting = () => {
-    setLuminance(2);
-  };
-  const decreaseImgLuminance = () => {
-    setLuminance(luminance - 2);
-  };
-  const increaseImgLuminance = () => {
-    setLuminance(luminance + 2);
-  };
-
-  const handleChangeLuminance = async () => {};
-
-  useEffect(() => {
-    handleChangeLuminance();
-  }, [luminance, scale]);
-
-  const resetImgLuminance = () => {
-    setLuminance(0);
-  };
-  const bestFit = async () => {};
-
-  const exportTiledImage = () => {};
-  const handleScaleChange = (event) => {
-    setScale(event.target.value);
-  };
-
-  const refreshImageView = async () => {
-    let fileImg = await getImageByUrl(tiles[selectedImageFileIndex].url);
-    if (fileImg !== null) {
-      displayImage(fileImg);
+    if (event.target.id === '2') {
+      SnapToEdge();
     }
   };
+
+  const normalizeImgLuminance = async () => {
+    setInfoMessage('Normalize started.');
+    const hostAddr = tiles[0].url.split('/static')[0];
+    const output = await normalizeTiledImage();
+    const outputUrl = hostAddr + output;
+    //console.log(outputUrl);
+    setResultImagePath(outputUrl);
+
+    setInfoMessage(
+      'Normalize Image finished.\n It will be displayed in a few seconds.',
+    );
+  };
+  const correctLighting = async () => {
+    setInfoMessage('Correction started.');
+    const hostAddr = tiles[0].url.split('/static')[0];
+    const output = await correctionTiledImage();
+    const outputUrl = hostAddr + output;
+    setResultImagePath(outputUrl);
+
+    setInfoMessage(
+      'Correction Image finished.\n It will be displayed in a few seconds.',
+    );
+  };
+  const decreaseImgLuminance = () => {
+    setGamma(gamma - 0.1);
+    handleChangeLuminance(gamma - 0.1);
+    setInfoMessage('Darken Image decreasing Gamma.');
+  };
+  const increaseImgLuminance = () => {
+    setGamma(gamma + 0.1);
+    handleChangeLuminance(gamma + 0.1);
+    setInfoMessage('Brighten Image increasing Gamma.');
+  };
+
+  const handleChangeLuminance = async (gamma) => {
+    const param = {
+      gamma: gamma,
+    };
+    const hostAddr = tiles[0].url.split('/static')[0];
+    const output = await gammaTiledImage(param);
+    const outputUrl = hostAddr + output;
+    setResultImagePath(outputUrl);
+  };
+
+  const resetImgLuminance = () => {
+    setGamma(1);
+    handleChangeLuminance(1);
+  };
+  const bestFit = async () => {
+    // const hostAddr = tiles[0].url.split('/static')[0];
+    // const output = await gammaTiledImage();
+    // const outputUrl = hostAddr + output + "?" + new Date().getTime();
+    // setResultImagePath(outputUrl);
+    handleChangeLuminance(1.4);
+    setInfoMessage('Brighten Image increasing Gamma.');
+  };
+
+  const exportTiledImage = () => {};
+
+  // When the list item of Edting is changed
   const handleListContentItemClick = async (event, index) => {
     if (tiles.length > 0) {
       setSelectedImageFileIndex(index);
-      // setDisplayImg(tiles[index].url);
 
-      // let fileImg = await getImageByUrl(tiles[index].url);
+      setResultImagePath(getOmeTiffUrl(tiles[index].url));
+      let tile = tiles[index];
 
-      // if (fileImg !== null) {
-      //   displayImage(fileImg);
-      // }
+      if (tile.z || tile.row || tile.col || tile.series) {
+        let newContent = [];
+
+        let tempContent = {};
+        const tempVal = tile.z;
+        tempContent.z = tile.time;
+        tempContent.time = tempVal;
+        tempContent.dimensionChanged = tile.dimensionChanged;
+        tempContent.row = tile.row;
+        tempContent.col = tile.col;
+        tempContent.series = tile.strSeries;
+        newContent.push(tempContent);
+
+        store.dispatch({ type: 'content_addContent', content: newContent });
+      }
     }
   };
 
-  const displayImage = async (file) => {
-    try {
-      let type = file.type.toString();
-      if (type === 'tiff' || type === 'image/tiff') {
-        setDisplayOneJpegImage(false);
-        displayTiff(file);
-      } else setDisplayOneJpegImage(true);
-    } catch (err) {}
+  // const handleScaleChange = (event) => {
+  //   setScale(event.target.value);
+  // };
+
+  // const refreshImageView = async () => {
+  //   let fileImg = await getImageByUrl(tiles[selectedImageFileIndex].url);
+  //   if (fileImg !== null) {
+  //     displayImage(fileImg);
+  //   }
+  // };
+
+  // const displayImage = async (file) => {
+  //   try {
+  //     let type = file.type.toString();
+  //     if (type === 'tiff' || type === 'image/tiff') {
+  //       setDisplayOneJpegImage(false);
+  //       displayTiff(file);
+  //     } else setDisplayOneJpegImage(true);
+  //   } catch (err) {}
+  // };
+
+  // const displayOriginalImage = async (file) => {
+  //   //console.log("Display Jpeg");
+  //   let imageWidth = 640;
+  //   let imageHeight = 480;
+  //   const cnv = document.getElementById('canvas');
+  //   const ctx = cnv.getContext('2d');
+  //   const img = new Image();
+  //   img.src = file.name;
+  //   img.onload = () => {
+  //     ctx.drawImage(img, 0, 0, imageWidth, imageHeight);
+  //   };
+  // };
+
+  // const displayResponse = async (response) => {
+  //   try {
+  //     // console.log("DisplayAlignment");
+  //     //displayAlignment(response);
+  //   } catch (err) {
+  //     // console.log(" error : Tiling.js useEffect : ", err);
+  //   }
+  // };
+
+  // function displayAlignment(response) {}
+
+  // function displayTiff(fileDisplay) {
+  //   fileDisplay.arrayBuffer().then((fileBuffer) => {
+  //     let ifds = UTIF.decode(fileBuffer);
+  //     UTIF.decodeImage(fileBuffer, ifds[0]);
+
+  //     //console.log(ifds[0]);
+
+  //     var rgba = UTIF.toRGBA8(ifds[0]); // Uint8Array with RGBA pixels
+  //     //console.log("RGBA");
+  //     //console.log(rgba);
+
+  //     const firstPageOfTif = ifds[0];
+
+  //     let imageWidth = firstPageOfTif.width;
+  //     let imageHeight = firstPageOfTif.height;
+
+  //     setWidthImage(imageWidth);
+  //     setHeightImage(imageHeight);
+
+  //     const cnv = document.getElementById('canvas');
+  //     cnv.width = imageWidth;
+  //     cnv.height = imageHeight;
+
+  //     const ctx = cnv.getContext('2d');
+
+  //     //ctx.clearRect(0, 0,imageWidth, imageHeight);
+  //     //ctx.save();
+  //     //ctx.scale(scale/100, scale/100);
+  //     let imageData = ctx.createImageData(
+  //       Math.round((imageWidth * scale) / 100.0),
+  //       (imageHeight * scale) / 100.0,
+  //     );
+  //     // let imageData = ctx.drawImage(image, 0, 0, 380, 380);
+
+  //     //   for (let i = 0; i < rgba.length; i++) {
+  //     //    imageData.data[i] = rgba[i];
+  //     //   }
+  //     const data = resizeImage(rgba, imageWidth, imageHeight, scale / 100.0);
+  //     for (let i = 0; i < data.length; i++) {
+  //       imageData.data[i] = data[i];
+  //     }
+  //     ctx.putImageData(imageData, 0, 0);
+  //     //ctx.restore();
+  //   });
+  // }
+
+  const AddContentToProps = () => {
+    const { content, selectedVesselHole } = props;
+
+    //console.log(tiles);
+
+    let newContent = [];
+
+    let tempContent = {};
+    const tempVal = tempContent.z;
+    tempContent.z = tempContent.time;
+    tempContent.time = tempVal;
+    tempContent.dimensionChanged = !tempContent.dimensionChanged;
+    tempContent.row = alignRow;
+    tempContent.col = alignCol;
+    tempContent.series = tiles[0].strSeries;
+    newContent.push(tempContent);
+
+    store.dispatch({ type: 'content_addContent', content: newContent });
   };
 
-  const displayOriginalImage = async (file) => {
-    //console.log("Display Jpeg");
-    let imageWidth = 640;
-    let imageHeight = 480;
-    const cnv = document.getElementById('canvas');
-    const ctx = cnv.getContext('2d');
-    const img = new Image();
-    img.src = file.name;
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, imageWidth, imageHeight);
+  const onClickedBuildButton = async () => {
+    const ashlarParams = {
+      width: dim[1],
+      height: dim[0],
+      layout: align,
+      direction: dir,
     };
+
+    setInfoMessage('Build Started');
+    const hostAddr = tiles[0].url.split('/static')[0];
+    const output = await buildPyramid(ashlarParams);
+    const outputUrl = getResultPath();
+
+    setResultImagePath(outputUrl);
+    setInfoMessage(
+      'Build Finished. You can see the result Image in result page.',
+    );
+    AddContentToProps();
   };
 
-  const displayResponse = async (response) => {
-    try {
-      // console.log("DisplayAlignment");
-      //displayAlignment(response);
-    } catch (err) {
-      // console.log(" error : Tiling.js useEffect : ", err);
-    }
+  const displayResult = async () => {
+    const canvas = document.getElementById('canvas');
+
+    //Load an OME_TIFF file
+    const filename = tiles[0].url.split('/').pop();
+    const resultpath = tiles[0].url.replace(filename, '') + 'result.ome.tiff';
+
+    const options = { defaultTimePoint: 0 };
+    setInfoMessage('Loading result file, please wait.');
+    const source = await loadOmeTiff(resultpath, options);
+    setInfoMessage('Loading Finished.');
+    const loader = createLoader(resultpath);
+
+    const layer = loader.addOmeTiff(source);
+
+    loader.render();
   };
 
-  function displayAlignment(response) {}
+  // //When the output file received
+  // const handleAshlarBuild = (output) => {
+  //   //  console.log(output);
+  //   let fileImg = getImageByUrl(output);
 
-  const resizeImage = (arr, width, height, scale) => {
-    var res = [];
-    const w = width * scale;
-    const h = height * scale;
-    const dim = 4;
-
-    for (let d = 0; d < dim; d++) {
-      for (let i = 0; i < w; i++) {
-        for (let j = 0; j < h; j++) {
-          let x = (i * width) / w;
-          let y = (j * height) / h;
-          let value = 0;
-          let vcnt = 0;
-          for (let k = x - 1; k <= x + 1; k++) {
-            for (let p = y - 1; p <= y + 1; p++) {
-              if (k < 0 || k >= width || p < 0 || p >= height) continue;
-              value += arr[(p * width + k) * dim + d];
-              vcnt++;
-            }
-          }
-          value /= vcnt;
-          res[(j * w + i) * dim + d] = value;
-        }
-      }
-    }
-    return res;
-  };
-
-  function displayTiff(fileDisplay) {
-    fileDisplay.arrayBuffer().then((fileBuffer) => {
-      let ifds = UTIF.decode(fileBuffer);
-      UTIF.decodeImage(fileBuffer, ifds[0]);
-
-      //console.log(ifds[0]);
-
-      var rgba = UTIF.toRGBA8(ifds[0]); // Uint8Array with RGBA pixels
-      //console.log("RGBA");
-      //console.log(rgba);
-
-      const firstPageOfTif = ifds[0];
-
-      let imageWidth = firstPageOfTif.width;
-      let imageHeight = firstPageOfTif.height;
-
-      setWidthImage(imageWidth);
-      setHeightImage(imageHeight);
-
-      const cnv = document.getElementById('canvas');
-      cnv.width = imageWidth;
-      cnv.height = imageHeight;
-
-      const ctx = cnv.getContext('2d');
-
-      //ctx.clearRect(0, 0,imageWidth, imageHeight);
-      //ctx.save();
-      //ctx.scale(scale/100, scale/100);
-      let imageData = ctx.createImageData(
-        Math.round((imageWidth * scale) / 100.0),
-        (imageHeight * scale) / 100.0,
-      );
-      // let imageData = ctx.drawImage(image, 0, 0, 380, 380);
-
-      //   for (let i = 0; i < rgba.length; i++) {
-      //    imageData.data[i] = rgba[i];
-      //   }
-      const data = resizeImage(rgba, imageWidth, imageHeight, scale / 100.0);
-      for (let i = 0; i < data.length; i++) {
-        imageData.data[i] = data[i];
-      }
-      ctx.putImageData(imageData, 0, 0);
-      //ctx.restore();
-    });
-  }
-
-  //When the output file received
-  const handleAshlarBuild = (output) => {
-    //  console.log(output);
-    let fileImg = getImageByUrl(output);
-
-    if (fileImg !== null) {
-      //store.dispatch({type: "tiling_selectedFile", content: file});
-      displayImage(fileImg);
-    }
-  };
+  //   if (fileImg !== null) {
+  //     //store.dispatch({type: "tiling_selectedFile", content: file});
+  //     displayImage(fileImg);
+  //   }
+  // };
 
   return (
     <>
@@ -657,6 +847,7 @@ const TabTiling = (props) => {
                       />
                     </Col>
                   </Row>
+                  <Button onClick={onClickedBuildButton}> Merge Image</Button>
                 </div>
               </Card>
             )}
@@ -670,64 +861,90 @@ const TabTiling = (props) => {
                   <FormGroup>
                     <FormControlLabel
                       control={
-                        <Checkbox onChange={handleChange} id="1" title="1" />
+                        <Checkbox
+                          onChange={handleChange}
+                          id="1"
+                          title="1"
+                          checked={selectBondRadioIdx === '1'}
+                        />
                       }
                       label="None"
                     />
                     <FormControlLabel
                       control={
-                        <Checkbox onChange={handleChange} id="2" title="2" />
+                        <Checkbox
+                          onChange={handleChange}
+                          id="2"
+                          title="2"
+                          checked={selectBondRadioIdx === '2'}
+                        />
                       }
                       label="Snap To Edge"
                     />
                     <FormControlLabel
                       control={
-                        <Checkbox onChange={handleChange} id="3" title="3" />
+                        <Checkbox
+                          onChange={handleChange}
+                          id="3"
+                          title="3"
+                          checked={selectBondRadioIdx === '3'}
+                        />
                       }
                       label="Pattern Match"
                     />
                   </FormGroup>
                   <DialogPM />
-                  {tiling_bonding_patternMatch && (
-                    <Row className="mr-4">
-                      <Col xs={8} style={{ paddingTop: '20px' }}>
-                        <TextField
-                          className="range-field"
-                          label="Border"
-                          defaultValue={25}
-                          inputProps={{
-                            type: 'number',
-                          }}
-                        />
-                      </Col>
-                      <Col xs={8} style={{ paddingTop: '20px' }}>
-                        <TextField
-                          className="range-field"
-                          label="Overlap X"
-                          defaultValue={0}
-                          inputProps={{
-                            type: 'number',
-                          }}
-                        />
-                      </Col>
-                      <Col xs={8} style={{ paddingTop: '20px' }}>
-                        <TextField
-                          className="range-field"
-                          label="Overlap Y"
-                          defaultValue={0}
-                          inputProps={{
-                            type: 'number',
-                          }}
-                        />
-                      </Col>
-                      <Button
-                        elevation="2"
-                        className="mt-5"
-                        onClick={autoPatternMathing}
-                      >
-                        Auto
-                      </Button>
-                    </Row>
+                  {tilingBondingPatternMatch && (
+                    <>
+                      <Row className="mr-4">
+                        <Col xs={8} style={{ paddingTop: '20px' }}>
+                          <TextField
+                            className="range-field"
+                            label="Border"
+                            defaultValue={25}
+                            inputProps={{
+                              type: 'number',
+                            }}
+                          />
+                        </Col>
+                        <Col xs={8} style={{ paddingTop: '20px' }}>
+                          <TextField
+                            className="range-field"
+                            label="Overlap X"
+                            defaultValue={0}
+                            inputProps={{
+                              type: 'number',
+                            }}
+                          />
+                        </Col>
+                        <Col xs={8} style={{ paddingTop: '20px' }}>
+                          <TextField
+                            className="range-field"
+                            label="Overlap Y"
+                            defaultValue={0}
+                            inputProps={{
+                              type: 'number',
+                            }}
+                          />
+                        </Col>
+                        <Button
+                          elevation="2"
+                          className="mt-5"
+                          onClick={PatternMatching}
+                        >
+                          Match
+                        </Button>
+                      </Row>
+                      <Row>
+                        <Button
+                          elevation="2"
+                          className="mt-5"
+                          onClick={autoPatternMatching}
+                        >
+                          Auto Matching
+                        </Button>
+                      </Row>
+                    </>
                   )}
                 </div>
               </Card>
@@ -847,7 +1064,7 @@ const TabTiling = (props) => {
                   <h5>Result</h5>
                 </CardContent>
                 <div className="inside p-3">
-                  <Row className="mt-4 mr-4">
+                  {/* <Row className="mt-4 mr-4">
                     <Col xs={6}>
                       <ToggleButtonGroup color="primary">
                         <ToggleButton value="true">
@@ -865,7 +1082,7 @@ const TabTiling = (props) => {
                         Tiled Image
                       </Button>
                     </Col>
-                  </Row>
+                  </Row> */}
                 </div>
               </Card>
             )}
@@ -886,17 +1103,8 @@ const TabTiling = (props) => {
         >
           {/*  Tiling Preview  */}
           <div style={{ flexDirection: 'column' }}>
-            {displayTilingJpegImages == false ? (
-              tiles ? (
-                <Avivator
-                  type={'tiling'}
-                  source={tiles[selectedImageFileIndex].url}
-                >
-                  {' '}
-                </Avivator>
-              ) : (
-                <></>
-              )
+            {displayTilingJpegImages === false ? (
+              <Avivator type={'tiling'} source={resultImagePath} />
             ) : (
               <Paper
                 variant="outlined"
@@ -937,7 +1145,7 @@ const TabTiling = (props) => {
               <div className="col p-0">
                 <ScrollArea />
               </div>
-              <div className="col-sm-2 p-0" style={{ position: 'relative' }}>
+              {/* <div className="col-sm-2 p-0" style={{ position: 'relative' }}>
                 <Button
                   className="position-absolute"
                   style={{ height: '40px' }}
@@ -959,7 +1167,7 @@ const TabTiling = (props) => {
                   <MenuItem value={50}>50</MenuItem>
                   <MenuItem value={100}>100</MenuItem>
                 </Select>
-              </div>
+              </div> */}
             </div>
           </div>
         </Col>
@@ -976,12 +1184,18 @@ const TabTiling = (props) => {
           <Timeline />
         </Col>
       </Row>
+      <Row>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Typography sx={{ flexGrow: 1 }}>{infoMessage}</Typography>
+        </DialogActions>
+      </Row>
     </>
   );
 };
 
 const mapStateToProps = (state) => ({
   content: state.files.content,
+  selectedVesselHole: state.vessel.selectedVesselHole,
 });
 
 export default connect(mapStateToProps)(TabTiling);

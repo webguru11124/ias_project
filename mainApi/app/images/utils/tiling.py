@@ -59,8 +59,6 @@ async def add_image_tiles(
             # remove temp png image
             os.remove(output)
 
-
-
             #convert all supported image files to .ome.tiff file
 
             output = os.path.abspath(f"{pre}.ome.tiff")

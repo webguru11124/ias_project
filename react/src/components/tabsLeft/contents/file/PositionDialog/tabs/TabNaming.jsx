@@ -122,6 +122,8 @@ export default function TabNaming() {
         } else if (key === 'series') {
           //console.log(tempString);
           // console.log(namePattern);
+          result['strSeries'] = tempString;
+          resultContent['strSeries'] = tempString;
           const matches = tempString.match(/\d+/);
           // console.log("Matches");
           if (matches) {

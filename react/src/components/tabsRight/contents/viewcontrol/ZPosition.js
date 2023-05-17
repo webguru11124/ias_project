@@ -81,6 +81,7 @@ function ZPosition(props) {
       <Grid item xs={12} sx={{ px: 1, pt: 1 }}>
         <Slider
           value={globalSelection.z}
+          defaultValue={1}
           onChange={(event, newValue) => {
             useViewerStore.setState({
               globalSelection: {

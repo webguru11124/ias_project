@@ -64,13 +64,18 @@ import tifftools
 from mainApi.app.images.utils.convert import get_metadata
 import shutil
 
-# import bioformats
+import bioformats as bf
 # from bioformats import logback
 from mainApi.app.images.utils.contrastlimits import calculateImageStats
 from mainApi.app.images.utils.focus_stack import focus_stack
 
 import cv2
+import numpy as np
 import base64
+import glob
+
+
+TILING_RESULT_IMAGE_FILE_NAME = 'result.ome.tiff'
 
 router = APIRouter(
     prefix="/tile",
@@ -168,6 +173,13 @@ async def update_tiles_meta_info(
             {
                 "$set": {
                     "series": int(meta_info["series"]),
+                    "field" : meta_info["field"],
+                    "strSeries" : meta_info["strSeries"],
+                    "row" : meta_info["row"],
+                    "col" : meta_info["col"],
+                    "time" : meta_info["time"],
+                    "z" : meta_info["z"],
+                    "channel" : meta_info["channel"],
                     "ashlar_path": new_abs_path
                 }
             },
@@ -227,10 +239,392 @@ async def build_pyramid(
     output_path = os.path.join(STATIC_PATH, rel_dir, output_filename)
     output_rel_path = os.path.join(CURRENT_STATIC, rel_dir, output_filename)
 
-    ashlar_cmd = f'ashlar --output {output_path} "fileseries|{tiles_dir}|pattern=tile_image_series{{series}}.{ext}|overlap=0.2|width={ashlar_params["width"]}|height={ashlar_params["height"]}|layout={ashlar_params["layout"]}"'
+
+    ashlar_cmd = f'ashlar --output {output_path} "fileseries|{tiles_dir}|pattern=tile_image_series{{series}}.{ext}|overlap=0.1|width={ashlar_params["width"]}|height={ashlar_params["height"]}|layout={ashlar_params["layout"]}"'
     await shell(ashlar_cmd)
 
+
+    result_path = os.path.join(STATIC_PATH, rel_dir, TILING_RESULT_IMAGE_FILE_NAME)
+    
+    if os.path.exists(result_path):
+         os.remove(result_path)
+    shutil.copy(output_path, result_path)
+
+
     return JSONResponse(output_rel_path)
+
+########################################
+# Result Tiled Image normalize
+########################################
+
+
+@router.post(
+    "/result_tile_normalize",
+    response_description="Result Tile Normalize",
+    status_code=status.HTTP_200_OK,
+)
+async def result_tile_normalize(
+    request: Request,
+    user: UserModelDB = Depends(get_current_user),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+) -> List[FileModelDB]:
+   
+    tile = await db["tile-image-cache"].find_one(
+        {"user_id": user.id}
+    )
+    rel_path = tile["path"].rsplit('/static/', 1)[1]
+    rel_dir = rel_path.rsplit("/", 1)[0]
+    tiles_dir = os.path.join(STATIC_PATH, rel_dir)
+ 
+    input_filename = "ashlar_output.ome.tiff"
+    input_path = os.path.join(STATIC_PATH, rel_dir, input_filename)
+
+    output_filename = "normalize_output.ome.tiff"
+    output_path = os.path.join(STATIC_PATH, rel_dir, output_filename)
+    output_rel_path = os.path.join('/static/', rel_dir, output_filename)
+
+    jpg_output_filename = "normalize_output.jpg"
+    jpg_output_path = os.path.join(STATIC_PATH, rel_dir, jpg_output_filename)
+
+    #Read the image
+    img = bf.load_image(input_path)
+    metadata = bf.get_omexml_metadata(input_path)
+    
+    #img = np.array(img)
+    #print(img.shape)
+    #Calculate the shading correction factor by dividing the image by its Gaussian Blurred version
+    #blurred = cv2.GaussianBlur(img, (0, 0), sigmaX=50, sigmaY=50)
+    #shading = img.astype(np.float32) / blurred.astype(np.float32)
+    
+    cv2.normalize(img, img, 0, 255, cv2.NORM_MINMAX)
+    cv2.imwrite(jpg_output_path, img)
+    pixel_type = bf.omexml.PT_UINT8
+
+
+    # if os.path.exists(output_path):
+    #      os.remove(output_path)
+    # bf.write_image( output_path, img, pixel_type)
+    #tifftools.write_tiff(tff, os.path.join(current_user_path + "/", newImageName))
+
+    bf_cmd = f"sh /app/mainApi/bftools/bfconvert -separate -overwrite '{jpg_output_path}' '{output_path}'"
+    await shell(bf_cmd)
+   
+    result_path = os.path.join(STATIC_PATH, rel_dir, TILING_RESULT_IMAGE_FILE_NAME)
+    
+    if os.path.exists(result_path):
+         os.remove(result_path)
+    shutil.copy(output_path, result_path)
+
+    return JSONResponse(output_rel_path)
+
+
+
+
+########################################
+# Result Tiled Image correction
+########################################
+
+
+@router.post(
+    "/result_tile_correction",
+    response_description="Result Tile Correction",
+    status_code=status.HTTP_200_OK,
+)
+async def result_tile_correct(
+    request: Request,
+    user: UserModelDB = Depends(get_current_user),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+) -> List[FileModelDB]:
+
+  
+    tile = await db["tile-image-cache"].find_one(
+        {"user_id": user.id}
+    )
+    rel_path = tile["path"].rsplit('/static/', 1)[1]
+    rel_dir = rel_path.rsplit("/", 1)[0]
+    tiles_dir = os.path.join(STATIC_PATH, rel_dir)
+ 
+    input_filename = "ashlar_output.ome.tiff"
+    input_path = os.path.join(STATIC_PATH, rel_dir, input_filename)
+
+    output_filename = "correction_output.ome.tiff"
+    output_path = os.path.join(STATIC_PATH, rel_dir, output_filename)
+
+    output_rel_path = os.path.join('/static/', rel_dir, output_filename)
+
+    #Read the image
+
+    
+    img = bf.load_image(input_path)
+    img = np.array(img)
+
+    # Split the image into color channels
+    channels = cv2.split(img)
+
+    # Calculate the shading correction factor for each channel
+    shading = []
+    for channel in channels:
+        blurred = cv2.GaussianBlur(channel, (0, 0), sigmaX=50, sigmaY=50)
+        shading_channel = channel.astype(np.float32) / blurred.astype(np.float32)
+        cv2.normalize(shading_channel, shading_channel, 0, 65535, cv2.NORM_MINMAX)
+        shading.append(shading_channel)
+
+    # Apply the shading correction factor to each channel
+    corrected = []
+    for i, channel in enumerate(channels):
+        corrected_channel = np.multiply(channel.astype(np.float32), shading[i])
+        corrected.append(corrected_channel)
+
+    # Merge the corrected channels into a single image
+    corrected = cv2.merge(corrected)
+
+    pixel_type = bf.omexml.PT_UINT16
+    if os.path.exists(output_path):
+         os.remove(output_path)
+    bf.write_image(output_path, corrected, pixel_type)
+
+    result_path = os.path.join(STATIC_PATH, rel_dir, TILING_RESULT_IMAGE_FILE_NAME)
+    
+    if os.path.exists(result_path):
+         os.remove(result_path)
+    shutil.copy(output_path, result_path)
+
+    # bfconv_cmd = f"sh /app/mainApi/bftools/bfconvert -separate -overwrite '{output_path}' '{output_path}'"
+    # await shell(bfconv_cmd)
+
+
+    return JSONResponse(output_rel_path)
+
+
+
+
+
+#################################################
+#  Result Tiled Image Gamma Operation
+##################################################
+
+
+@router.post(
+    "/result_tile_gamma",
+    response_description="Result Tile Gamma Operation",
+    status_code=status.HTTP_200_OK,
+)
+async def result_tile_normalize(
+    request: Request,
+    user: UserModelDB = Depends(get_current_user),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+) -> List[FileModelDB]:
+
+    body_bytes = await request.body()
+    params = json.loads(body_bytes)
+    
+    
+    gamma = params['gamma']
+
+    
+    tile = await db["tile-image-cache"].find_one(
+        {"user_id": user.id}
+    )
+    rel_path = tile["path"].rsplit('/static/', 1)[1]
+    rel_dir = rel_path.rsplit("/", 1)[0]
+    tiles_dir = os.path.join(STATIC_PATH, rel_dir)
+ 
+    input_filename = "ashlar_output.ome.tiff"
+    input_path = os.path.join(STATIC_PATH, rel_dir, input_filename)
+
+    output_filename = "gamma" + str(gamma) +  "_output.ome.tiff"
+    output_path = os.path.join(STATIC_PATH, rel_dir, output_filename)
+
+    output_rel_path = os.path.join('/static/', rel_dir, output_filename)
+
+    #Read the image
+    image = bf.load_image(input_path)
+    image = np.array(image) * 255
+   
+    image = image.astype('uint8')
+
+    table = np.array([((i / 255.0) ** gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
+	# apply gamma correction using the lookup table
+    final_image =  cv2.LUT(image, table)
+
+
+    # Write the image
+
+    if os.path.exists(output_path):
+         os.remove(output_path)
+
+    pixel_type = bf.omexml.PT_UINT8
+    bf.write_image(output_path,final_image, pixel_type)
+
+    result_path = os.path.join(STATIC_PATH, rel_dir, TILING_RESULT_IMAGE_FILE_NAME)
+    
+    if os.path.exists(result_path):
+         os.remove(result_path)
+    shutil.copy(output_path, result_path)
+
+    
+    return JSONResponse(output_rel_path)
+
+
+
+
+
+#################################################
+#  Result Tiled Image BestFit Operation
+##################################################
+
+
+@router.post(
+    "/result_tile_bestfit",
+    response_description="Result Tile BestFit Operation",
+    status_code=status.HTTP_200_OK,
+)
+async def result_tile_bestfit(
+    request: Request,
+    user: UserModelDB = Depends(get_current_user),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+) -> List[FileModelDB]:
+
+    
+    tile = await db["tile-image-cache"].find_one(
+        {"user_id": user.id}
+    )
+
+    rel_path = tile["path"].rsplit('/static/', 1)[1]
+    rel_dir = rel_path.rsplit("/", 1)[0]
+    tiles_dir = os.path.join(STATIC_PATH, rel_dir)
+ 
+    input_filename = "ashlar_output.ome.tiff"
+    input_path = os.path.join(STATIC_PATH, rel_dir, input_filename)
+
+    output_filename = "temp_output.ome.tiff"
+    output_path = os.path.join(STATIC_PATH, rel_dir, output_filename)
+
+    output_rel_path = os.path.join('/static/', rel_dir, output_filename)
+
+    #Read the image
+    image = bf.load_image(input_path)
+    image = np.array(image)
+
+    # Increase gamma 
+    #image_data = image.get_image_data()
+    
+
+    # Write the image
+
+    if os.path.exists(output_path):
+         os.remove(output_path)
+
+    bf.write_image(output_path, pixels=image, pixel_type='uint16')
+
+    result_path = os.path.join(STATIC_PATH, rel_dir, TILING_RESULT_IMAGE_FILE_NAME)
+    
+    if os.path.exists(result_path):
+         os.remove(result_path)
+    shutil.copy(output_path, result_path)
+
+    
+    return JSONResponse(output_rel_path)
+
+
+
+#################################################
+#  Result Tiled Image Snap To Edge Functions
+##################################################
+
+
+@router.post(
+    "/result_tile_snap_to_edge",
+    response_description="Result Tile Snap To Edge Operation",
+    status_code=status.HTTP_200_OK,
+)
+async def result_tile_snap_to_edge(
+    request: Request,
+    user: UserModelDB = Depends(get_current_user),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+) -> List[FileModelDB]:
+
+    
+    tile = await db["tile-image-cache"].find_one(
+        {"user_id": user.id}
+    )
+    rel_path = tile["path"].rsplit('/static/', 1)[1]
+    rel_dir = rel_path.rsplit("/", 1)[0]
+    tiles_dir = os.path.join(STATIC_PATH, rel_dir)
+
+
+    
+
+    # Load the images
+    file_list = glob.glob(tiles_dir + "/*.timg")
+
+
+
+    images = []
+    
+    for file in file_list:
+        image = cv2.imread(file)
+        images.append(image)
+
+    
+    # Define the number of images and the size of the output image
+    num_images = len(images)
+    output_size = (num_images * images[0].shape[1], images[0].shape[0])
+
+    # Create an empty output image
+    output = np.zeros((output_size[1], output_size[0], 3), dtype=np.uint8)
+
+    # Loop through the images and align them
+    for i in range(num_images):
+        # Detect the edges of the current image
+        edges1 = cv2.Canny(images[i], 100, 200)
+        
+        if i == 0:
+            # For the first image, just copy it to the output
+            output[0:images[i].shape[0], 0:images[i].shape[1], :] = images[i]
+        else:
+            # Detect the edges of the previous image
+            edges2 = cv2.Canny(images[i-1], 100, 200)
+            
+            # Find the matching edges and align the images
+            result = cv2.matchTemplate(edges1, edges2, cv2.TM_CCOEFF_NORMED)
+            _, _, _, max_loc = cv2.minMaxLoc(result)
+            h, w = images[i].shape[:2]
+            aligned_img = images[i][:, max_loc[0]:max_loc[0]+w, :]
+            
+            # Copy the aligned image to the output
+            output[0:images[i].shape[0], i*w:(i+1)*w, :] = aligned_img
+    
+    output = cv2.GaussianBlur(output, (3, 3), 0)
+
+
+
+    temp_name = "temp_output.jpg"
+    temp_output = os.path.join(STATIC_PATH, rel_dir, temp_name)
+
+    temp_output_path = os.path.join('/static/', rel_dir, temp_name)
+
+    # Save the output image
+    cv2.imwrite(temp_output, output)
+
+
+
+    output_filename = "result.ome.tiff"
+    output_path = os.path.join(STATIC_PATH, rel_dir, output_filename)
+
+    output_rel_path = os.path.join('/static/', rel_dir, output_filename)
+
+
+    bfconv_cmd = f"sh /app/mainApi/bftools/bfconvert -separate -overwrite '{temp_output}' '{output_path}'"
+    await shell(bfconv_cmd)
+
+
+    return JSONResponse(output_path)
+
+
+
+
+
 
 #############################################################################
 # Register Experiment
@@ -1407,3 +1801,8 @@ async def upload_mask(request: Request,
         binary_file.write(img_data)
     result = 'OK'
     return JSONResponse({"success": result})
+
+
+
+
+

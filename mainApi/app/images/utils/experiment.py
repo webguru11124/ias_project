@@ -134,7 +134,7 @@ async def add_experiment_with_folders(
 
                 input_pre = os.path.splitext(input)[0]
 
-                if input.lower().endswith((".tiff", ".tif",'ome.tiff','ome.tif')):
+                if input.lower().endswith((".tiff", ".tif")):
                     output = os.path.abspath(f'{folder}/{pre}.png')
                     bfconv_cmd = f"sh /app/mainApi/bftools/bfconvert -overwrite '{input}' '{output}'"
                     await shell(bfconv_cmd)

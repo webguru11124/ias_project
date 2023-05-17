@@ -43,6 +43,7 @@ const Vessel = (props) => {
   const getCorrectVesselID = (seriesStr, maxRow, maxCol) => {
     let vesselID = -1;
     let currentVesselTypeGroup = [];
+
     for (let i = 0; i < VESSELS.length; i++) {
       if (seriesStr.includes(VESSELS[i][0].type)) {
         currentVesselTypeGroup = VESSELS[i];
@@ -71,7 +72,7 @@ const Vessel = (props) => {
             vesselID = currentVesselTypeGroup[i].id;
             break;
           }
-        } else if (currentVesselTypeGroup[0] === 'Slide') {
+        } else if (currentVesselTypeGroup[0].type === 'Slide') {
           if (currentVesselTypeGroup[i].count >= (maxRow + 1) * (maxCol + 1)) {
             vesselID = currentVesselTypeGroup[i].id;
             break;
@@ -80,7 +81,7 @@ const Vessel = (props) => {
       }
     }
     if (vesselID === -1) {
-      alert('There is no suitable size in VESSEL!');
+      // console.log('There is no suitable size in VESSEL!');
       vesselID = 12;
     }
     return vesselID;
@@ -115,6 +116,7 @@ const Vessel = (props) => {
         seriesStr = VESSELS[current_VesselGroupIndex - 1][0].type;
       }
     }
+
     let vesselID = getCorrectVesselID(seriesStr, maxRow + 1, maxCol);
     setCurrentVessel(getVesselById(vesselID));
     setCurrentVesselId(vesselID);
@@ -123,6 +125,9 @@ const Vessel = (props) => {
   useEffect(() => {
     if (props.content && props.content !== []) {
       let current_contents = JSON.parse(JSON.stringify(props.content));
+
+      //console.log(current_contents);
+
       setContents(JSON.parse(JSON.stringify(current_contents)));
 
       //console.log("Current Content is ");

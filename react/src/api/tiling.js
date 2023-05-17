@@ -42,3 +42,23 @@ export const updateTilesMetaInfo = async (tilesMetaInfo) => {
 export const buildPyramid = async (params) => {
   return await mainApiService.post('/image/tile/build_pyramid', params);
 };
+
+export const normalizeTiledImage = async () => {
+  return await mainApiService.post('/image/tile/result_tile_normalize');
+};
+
+export const correctionTiledImage = async () => {
+  return await mainApiService.post('/image/tile/result_tile_correction');
+};
+
+export const gammaTiledImage = async (params) => {
+  return await mainApiService.post('/image/tile/result_tile_gamma', params);
+};
+
+export const bestFitTiledImage = async () => {
+  return await mainApiService.post('/image/tile/result_tile_bestfit');
+};
+
+export const snapToEdge = async () => {
+  return await mainApiService.post('/image/tile/result_tile_snap_to_edge');
+};

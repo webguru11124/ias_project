@@ -13,22 +13,36 @@ export default function TabMetadata() {
   const { tiles } = useTilingStore();
   const [infoMessage, setInfoMessage] = useState();
 
+  const getOmeTiffUrl = (url) => {
+    //console.log(tiles);
+
+    const ext = url.split('.').pop();
+    if (ext === 'tiff' || ext === 'tif') return url;
+
+    const newExtension = 'ome.tiff';
+    const newUrl = url.replace(/\.[^/.]+$/, `.${newExtension}`);
+
+    return newUrl;
+  };
   //console.log(tiles);
 
   const urls = useMemo(
     () =>
       tiles
         .filter((tile) => /tif?f|jpg|jpeg|png|JPG|PNG/.test(tile.path))
-        .map((img) => img.url),
+        .map((img) => getOmeTiffUrl(img.url)),
     [tiles],
   );
 
   //console.log(urls);
+  //co//nsole.log(urls);
 
   const [metadata, loading] = useMetadata(urls);
 
+  //console.log(metadata);
+
   useEffect(() => {
-    if (metadata == undefined || metadata == null || metadata.length == 0) {
+    if (metadata === undefined || metadata == null || metadata.length === 0) {
       setInfoMessage('There is no metadata to display');
     } else {
       setInfoMessage(`${metadata.length} metadata was displayed`);

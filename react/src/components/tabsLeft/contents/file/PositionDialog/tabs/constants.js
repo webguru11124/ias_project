@@ -10,7 +10,7 @@ export const PositionTabLabels = {
   [PositionTabs.images]: 'Images',
   [PositionTabs.tiling]: 'Tiling',
   [PositionTabs.metadata]: 'Metadata',
-  [PositionTabs.naming]: 'Naming & Files',
+  [PositionTabs.naming]: 'Name & Files',
 };
 
 export const TilingTabs = {

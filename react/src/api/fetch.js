@@ -15,6 +15,8 @@ export const getImageByUrl = async function (folderName, imgName) {
   try {
     const state = store.getState();
 
+    // console.log(folderName);
+
     let response = await fetch(folderName, {
       headers: {
         'Access-Control-Allow-Origin': '*',
@@ -26,13 +28,14 @@ export const getImageByUrl = async function (folderName, imgName) {
     });
     let blob = await response.blob();
 
-    //console.log(blob);
+    // console.log(blob);
 
     let file = new File([blob], folderName, { type: blob.type });
 
     file.path = folderName;
     return file;
   } catch (err) {
+    //console.log(err);
     return null;
   }
 };

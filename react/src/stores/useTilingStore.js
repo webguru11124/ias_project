@@ -14,6 +14,7 @@ const toTiles = (images) =>
     ...tile,
     url: toUrl(tile.path),
     thumbnail: toUrl(toThumbnailPath(tile.path)),
+    field: tile.field,
   }));
 
 export const useTilingStore = create((set) => ({

@@ -143,6 +143,11 @@ utif@^3.1.0:
   dependencies:
     pako "^1.0.5"
 
+viv@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/viv/-/viv-0.0.1.tgz#587010fd39b0b7ac8d88570c6e24dd137052cb57"
+  integrity sha512-wQ2ef34mYR6A6m7SQtxTDwtpXmmknME8RLHsjijSvLfSWWR2oGvCCLf/MzMWZq2nVE/uxlE8tjHc/vkiPPYY0g==
+
 void-elements@3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/void-elements/-/void-elements-3.1.0.tgz#614f7fbf8d801f0bb5f0661f5b2f5785750e4f09"

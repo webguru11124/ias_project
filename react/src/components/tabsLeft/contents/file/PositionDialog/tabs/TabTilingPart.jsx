@@ -148,7 +148,8 @@ const TabTiling = (props) => {
       setInfoMessage(`${tiles.length} images are loaded.`);
 
       let tile = tiles[0];
-      if (tile.z || tile.row || tile.col || tile.series) {
+      //console.log(tiles);
+      if (tile.row || tile.col || tile.series) {
         let newContent = [];
         let tempContent = {};
         const tempVal = tile.z;
@@ -158,6 +159,18 @@ const TabTiling = (props) => {
         tempContent.row = tile.row;
         tempContent.col = tile.col;
         tempContent.series = tile.strSeries;
+        newContent.push(tempContent);
+        store.dispatch({ type: 'content_addContent', content: newContent });
+      } else {
+        let newContent = [];
+        let tempContent = {};
+        const tempVal = 0;
+        tempContent.z = 0;
+        tempContent.time = 1;
+        tempContent.dimensionChanged = false;
+        tempContent.row = 1;
+        tempContent.col = tiles.length;
+        tempContent.series = 'Slide_Single';
         newContent.push(tempContent);
         store.dispatch({ type: 'content_addContent', content: newContent });
       }
@@ -307,30 +320,6 @@ const TabTiling = (props) => {
     if (Number(event.target.value) < 0) return;
     setAlignGapY(event.target.value === '' ? '' : Number(event.target.value));
     setAlignGapX(event.target.value === '' ? '' : Number(event.target.value));
-  };
-
-  //When the list item clicked in left tab in the Tiling Part
-  const handleListItemClick = (event, index) => {
-    setSelectedIndex(index);
-    setInfoMessage('');
-    if (index === 1 || index === 2) {
-      setDisplayTilingJpegImages(true);
-      setDisplayResultImage(false);
-    } else if (index === 0) {
-      setDisplayTilingJpegImages(false);
-      setDisplayResultImage(false);
-    } else if (index === 3 || index === 4 || index === 5) {
-      setDisplayTilingJpegImages(false);
-      setDisplayResultImage(true);
-    }
-
-    if (index === 3 || index === 4) {
-    }
-    if (index === 5) {
-      const resultpath = getResultPath();
-      setResultImagePath(resultpath);
-      setInfoMessage('Result Image will be displayed');
-    }
   };
 
   const handleAlignViewClicked = () => {};
@@ -584,9 +573,9 @@ const TabTiling = (props) => {
     tempContent.z = tempContent.time;
     tempContent.time = tempVal;
     tempContent.dimensionChanged = !tempContent.dimensionChanged;
-    tempContent.row = alignRow;
-    tempContent.col = alignCol;
-    tempContent.series = tiles[0].strSeries;
+    tempContent.row = alignRow - 1;
+    tempContent.col = alignCol - 1;
+    tempContent.series = 'WellPlate';
     newContent.push(tempContent);
 
     store.dispatch({ type: 'content_addContent', content: newContent });
@@ -630,16 +619,31 @@ const TabTiling = (props) => {
     loader.render();
   };
 
-  // //When the output file received
-  // const handleAshlarBuild = (output) => {
-  //   //  console.log(output);
-  //   let fileImg = getImageByUrl(output);
+  //When the list item clicked in left tab in the Tiling Part
+  const handleListItemClick = (event, index) => {
+    setSelectedIndex(index);
+    setInfoMessage('');
+    if (index === 1 || index === 2) {
+      setDisplayTilingJpegImages(true);
+      setDisplayResultImage(false);
+    } else if (index === 0) {
+      setDisplayTilingJpegImages(false);
+      setDisplayResultImage(false);
+    } else if (index === 3 || index === 4 || index === 5) {
+      setDisplayTilingJpegImages(false);
+      setDisplayResultImage(true);
+    }
 
-  //   if (fileImg !== null) {
-  //     //store.dispatch({type: "tiling_selectedFile", content: file});
-  //     displayImage(fileImg);
-  //   }
-  // };
+    if (index === 3 || index === 4) {
+      AddContentToProps();
+    }
+    if (index === 5) {
+      const resultpath = getResultPath();
+      setResultImagePath(resultpath);
+      setInfoMessage('Result Image will be displayed');
+      AddContentToProps();
+    }
+  };
 
   return (
     <>
@@ -1087,6 +1091,7 @@ const TabTiling = (props) => {
                       <Button depressed="true" onClick={exportTiledImage}>
                         Tiled Image
                       </Button>
+
                     </Col>
                   </Row> */}
                 </div>

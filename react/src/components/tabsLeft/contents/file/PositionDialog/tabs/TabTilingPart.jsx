@@ -144,35 +144,39 @@ const TabTiling = (props) => {
   useEffect(() => {
     if (tiles) {
       setDim([1, tiles.length]);
-      setResultImagePath(getOmeTiffUrl(tiles[0].url));
+      if (tiles[0]) {
+        setResultImagePath(getOmeTiffUrl(tiles[0].url));
+      }
       setInfoMessage(`${tiles.length} images are loaded.`);
 
       let tile = tiles[0];
       //console.log(tiles);
-      if (tile.row || tile.col || tile.series) {
-        let newContent = [];
-        let tempContent = {};
-        const tempVal = tile.z;
-        tempContent.z = tile.time;
-        tempContent.time = tempVal;
-        tempContent.dimensionChanged = tile.dimensionChanged;
-        tempContent.row = tile.row;
-        tempContent.col = tile.col;
-        tempContent.series = tile.strSeries;
-        newContent.push(tempContent);
-        store.dispatch({ type: 'content_addContent', content: newContent });
-      } else {
-        let newContent = [];
-        let tempContent = {};
-        const tempVal = 0;
-        tempContent.z = 0;
-        tempContent.time = 1;
-        tempContent.dimensionChanged = false;
-        tempContent.row = 1;
-        tempContent.col = tiles.length;
-        tempContent.series = 'Slide_Single';
-        newContent.push(tempContent);
-        store.dispatch({ type: 'content_addContent', content: newContent });
+      if (tile) {
+        if (tile.row || tile.col || tile.series) {
+          let newContent = [];
+          let tempContent = {};
+          const tempVal = tile.z;
+          tempContent.z = tile.time;
+          tempContent.time = tempVal;
+          tempContent.dimensionChanged = tile.dimensionChanged;
+          tempContent.row = tile.row;
+          tempContent.col = tile.col;
+          tempContent.series = tile.strSeries;
+          newContent.push(tempContent);
+          store.dispatch({ type: 'content_addContent', content: newContent });
+        } else {
+          let newContent = [];
+          let tempContent = {};
+          const tempVal = 0;
+          tempContent.z = 0;
+          tempContent.time = 1;
+          tempContent.dimensionChanged = false;
+          tempContent.row = 1;
+          tempContent.col = tiles.length;
+          tempContent.series = 'Slide_Single';
+          newContent.push(tempContent);
+          store.dispatch({ type: 'content_addContent', content: newContent });
+        }
       }
     }
   }, [tiles]);

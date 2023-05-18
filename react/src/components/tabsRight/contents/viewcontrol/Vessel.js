@@ -81,10 +81,16 @@ const Vessel = (props) => {
         }
       }
     }
+
     if (vesselID === -1) {
       // console.log('There is no suitable size in VESSEL!');
       vesselID = 12;
-      if (currentVesselTypeGroup[0].type === 'Slide') vesselID = 1;
+      if (currentVesselTypeGroup[0]) {
+        if (currentVesselTypeGroup[0].type === 'Slide') vesselID = 1;
+      }
+    }
+    if (currentVesselTypeGroup.length == 0) {
+      vesselID = 1;
     }
     return vesselID;
   };

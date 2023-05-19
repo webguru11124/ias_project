@@ -11,10 +11,11 @@ import FormControl from '@mui/material/FormControl';
 import Slider from '@mui/material/Slider';
 import { range } from '@/helpers/avivator';
 import InputBase from '@mui/material/InputBase';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import * as api_experiment from '@/api/experiment';
 import store from '@/reducers';
 import { getImageUrl } from '@/helpers/file';
+import { useSelector } from 'react-redux';
 
 const ICTMethodDialog = () => {
   const DialogICTSelectFlag = useFlagsStore(
@@ -27,10 +28,32 @@ const ICTMethodDialog = () => {
     useFlagsStore.setState({ MLDialogICTSelectFlag: false });
   };
 
+  const imagePathForAvivator = useSelector(
+    (state) => state.files.imagePathForAvivator,
+  );
+
   const handleBackdropClick = (e) => {
     e.stopPropagation();
     return false;
   };
+
+  useEffect(() => {
+    if (imagePathForAvivator) {
+      let path = imagePathForAvivator.toLowerCase();
+      if (path.indexOf('pointa') >= 0) {
+        setType('a');
+      }
+      if (path.indexOf('pointb') >= 0) {
+        setType('b');
+      }
+      if (path.indexOf('pointc') >= 0) {
+        setType('c');
+      }
+      if (path.indexOf('pointd') >= 0) {
+        setType('d');
+      }
+    }
+  }, [imagePathForAvivator]);
 
   const handleSelectedMethod = async () => {
     useFlagsStore.setState({ MLDialogICTSelectFlag: false });

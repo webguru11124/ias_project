@@ -76,14 +76,10 @@ let stylingTiling = {
 
 const TabTiling = (props) => {
   const { tiles } = useTilingStore();
-
   const [selectedImageFileIndex, setSelectedImageFileIndex] = useState(0);
 
   //tab left index
   const [selectedIndex, setSelectedIndex] = useState(0);
-
-  const [checked, setChecked] = useState(true);
-
   const [tilingBondingPatternMatch, setTilingBondingPatterMatch] =
     useState(false);
 
@@ -97,21 +93,18 @@ const TabTiling = (props) => {
   const [dir, setDir] = useState(Directions.horizontal);
   const [dim, setDim] = useState();
   const [sortOrder, setSortOrder] = useState(SortOrder.ascending);
-
   const [alignment, setAlignment] = useState('align');
 
   //parameters in bonding
   const [selectBondRadioIdx, setSelectBondRadioIdx] = useState('0');
 
   //Parameters in Shading UI
-  const [gamma, setGamma] = useState(1);
-
+  const [gamma, setGamma] = useState(10);
   const canvasElement = useRef(null);
 
-  const [displayTilingJpegImages, setDisplayTilingJpegImages] = useState(false);
-  const [displayResultImage, setDisplayResultImage] = useState(false);
-
+  //Path used in displaying Images
   const [resultImagePath, setResultImagePath] = useState('');
+  const [finalResultImagePath, setFinalResultImagePath] = useState('');
 
   const channelState = useChannelsStore((state) => state);
 
@@ -181,12 +174,42 @@ const TabTiling = (props) => {
     }
   }, [tiles]);
 
-  //Get the Temp Path from the server
-  const getTempPath = () => {
+  //Get the Correction Image Path from the server
+  const getCorrectionImagePath = () => {
     //Load an OME_TIFF file
     const filename = tiles[0].url.split('/').pop();
     const resultpath =
-      tiles[0].url.replace(filename, '') + 'temp_output.ome.tiff';
+      tiles[0].url.replace(filename, '') + 'correction_output.ome.tiff';
+    return resultpath;
+  };
+
+  //Get the Normalize Image Path from the server
+  const getNormalizeImagePath = () => {
+    //Load an OME_TIFF file
+    const filename = tiles[0].url.split('/').pop();
+    const resultpath =
+      tiles[0].url.replace(filename, '') + 'normalize_output.ome.tiff';
+    return resultpath;
+  };
+
+  //Get the gamma Image Path from the server
+  const getGammaImagePath = (gamma) => {
+    //Load an OME_TIFF file
+    const filename = tiles[0].url.split('/').pop();
+    const resultpath =
+      tiles[0].url.replace(filename, '') +
+      'gamma' +
+      gamma.toString() +
+      '_output.ome.tiff';
+    return resultpath;
+  };
+
+  //Get the Snap To Edge Image Path from the server
+  const getSnapToEdgeImagePath = () => {
+    //Load an OME_TIFF file
+    const filename = tiles[0].url.split('/').pop();
+    const resultpath =
+      tiles[0].url.replace(filename, '') + 'snap_to_edge.ome.tiff';
     return resultpath;
   };
 
@@ -350,22 +373,18 @@ const TabTiling = (props) => {
     }
   };
 
-  const SnapToEdge = async () => {
+  const SnapToEdge = () => {
     setInfoMessage('Activate Snap To Edge Function');
-    const hostAddr = tiles[0].url.split('/static')[0];
-    const output = await snapToEdge();
-    const outputUrl = hostAddr + output + '?' + new Date().getTime();
-    setResultImagePath(outputUrl);
-    setInfoMessage('You can see the result image in result Tab.');
+    setResultImagePath(getSnapToEdgeImagePath());
+    setFinalResultImagePath(getSnapToEdgeImagePath());
+    setInfoMessage('Snap To Edge function finished.');
   };
 
-  const PatternMatching = async () => {
+  const PatternMatching = () => {
     setInfoMessage('Pattern Matching Function started');
-    const hostAddr = tiles[0].url.split('/static')[0];
-    const output = await snapToEdge();
-    const outputUrl = hostAddr + output + '?' + new Date().getTime();
-    setResultImagePath(outputUrl);
-    setInfoMessage('You can see the result image in result Tab.');
+    setResultImagePath(getSnapToEdgeImagePath());
+    setFinalResultImagePath(getSnapToEdgeImagePath());
+    setInfoMessage('Pattern matching finished.');
   };
   const autoPatternMatching = () => {};
 
@@ -387,63 +406,48 @@ const TabTiling = (props) => {
     if (event.target.id === '2') {
       SnapToEdge();
     }
+
+    if (event.target.id == '1') {
+      normalizeImgLuminance();
+    }
   };
 
-  const normalizeImgLuminance = async () => {
+  const normalizeImgLuminance = () => {
     setInfoMessage('Normalize started.');
-    const hostAddr = tiles[0].url.split('/static')[0];
-    const output = await normalizeTiledImage();
-    const outputUrl = hostAddr + output;
-    //console.log(outputUrl);
-    setResultImagePath(outputUrl);
-
-    setInfoMessage(
-      'Normalize Image finished.\n It will be displayed in a few seconds.',
-    );
+    setResultImagePath(getNormalizeImagePath());
+    setFinalResultImagePath(getNormalizeImagePath());
+    setInfoMessage('Normalizing Image finished.');
   };
-  const correctLighting = async () => {
+  const correctLighting = () => {
     setInfoMessage('Correction started.');
-    const hostAddr = tiles[0].url.split('/static')[0];
-    const output = await correctionTiledImage();
-    const outputUrl = hostAddr + output;
-    setResultImagePath(outputUrl);
-
-    setInfoMessage(
-      'Correction Image finished.\n It will be displayed in a few seconds.',
-    );
+    setResultImagePath(getCorrectionImagePath());
+    setFinalResultImagePath(getCorrectionImagePath());
+    setInfoMessage('Correction Image finished.');
   };
   const decreaseImgLuminance = () => {
-    setGamma(gamma - 0.1);
-    handleChangeLuminance(gamma - 0.1);
-    setInfoMessage('Darken Image decreasing Gamma.');
+    setGamma(gamma - 1);
+    handleChangeLuminance(gamma - 1);
   };
   const increaseImgLuminance = () => {
-    setGamma(gamma + 0.1);
-    handleChangeLuminance(gamma + 0.1);
-    setInfoMessage('Brighten Image increasing Gamma.');
+    setGamma(gamma + 1);
+    handleChangeLuminance(gamma + 1);
   };
 
-  const handleChangeLuminance = async (gamma) => {
-    const param = {
-      gamma: gamma,
-    };
-    const hostAddr = tiles[0].url.split('/static')[0];
-    const output = await gammaTiledImage(param);
-    const outputUrl = hostAddr + output;
-    setResultImagePath(outputUrl);
+  const handleChangeLuminance = (gamma) => {
+    setResultImagePath(getGammaImagePath(gamma));
+    setFinalResultImagePath(getGammaImagePath(gamma));
+    setInfoMessage(
+      'Brighten Image by Gamma.Gamma Value : ' + (gamma / 10).toString(),
+    );
   };
 
   const resetImgLuminance = () => {
-    setGamma(1);
-    handleChangeLuminance(1);
+    setGamma(10);
+    handleChangeLuminance(10);
   };
   const bestFit = async () => {
-    // const hostAddr = tiles[0].url.split('/static')[0];
-    // const output = await gammaTiledImage();
-    // const outputUrl = hostAddr + output + "?" + new Date().getTime();
-    // setResultImagePath(outputUrl);
-    handleChangeLuminance(1.4);
-    setInfoMessage('Brighten Image increasing Gamma.');
+    handleChangeLuminance(11);
+    setInfoMessage('Best Fit Image has been Display.');
   };
 
   const exportTiledImage = () => {};
@@ -474,102 +478,8 @@ const TabTiling = (props) => {
     }
   };
 
-  // const handleScaleChange = (event) => {
-  //   setScale(event.target.value);
-  // };
-
-  // const refreshImageView = async () => {
-  //   let fileImg = await getImageByUrl(tiles[selectedImageFileIndex].url);
-  //   if (fileImg !== null) {
-  //     displayImage(fileImg);
-  //   }
-  // };
-
-  // const displayImage = async (file) => {
-  //   try {
-  //     let type = file.type.toString();
-  //     if (type === 'tiff' || type === 'image/tiff') {
-  //       setDisplayOneJpegImage(false);
-  //       displayTiff(file);
-  //     } else setDisplayOneJpegImage(true);
-  //   } catch (err) {}
-  // };
-
-  // const displayOriginalImage = async (file) => {
-  //   //console.log("Display Jpeg");
-  //   let imageWidth = 640;
-  //   let imageHeight = 480;
-  //   const cnv = document.getElementById('canvas');
-  //   const ctx = cnv.getContext('2d');
-  //   const img = new Image();
-  //   img.src = file.name;
-  //   img.onload = () => {
-  //     ctx.drawImage(img, 0, 0, imageWidth, imageHeight);
-  //   };
-  // };
-
-  // const displayResponse = async (response) => {
-  //   try {
-  //     // console.log("DisplayAlignment");
-  //     //displayAlignment(response);
-  //   } catch (err) {
-  //     // console.log(" error : Tiling.js useEffect : ", err);
-  //   }
-  // };
-
-  // function displayAlignment(response) {}
-
-  // function displayTiff(fileDisplay) {
-  //   fileDisplay.arrayBuffer().then((fileBuffer) => {
-  //     let ifds = UTIF.decode(fileBuffer);
-  //     UTIF.decodeImage(fileBuffer, ifds[0]);
-
-  //     //console.log(ifds[0]);
-
-  //     var rgba = UTIF.toRGBA8(ifds[0]); // Uint8Array with RGBA pixels
-  //     //console.log("RGBA");
-  //     //console.log(rgba);
-
-  //     const firstPageOfTif = ifds[0];
-
-  //     let imageWidth = firstPageOfTif.width;
-  //     let imageHeight = firstPageOfTif.height;
-
-  //     setWidthImage(imageWidth);
-  //     setHeightImage(imageHeight);
-
-  //     const cnv = document.getElementById('canvas');
-  //     cnv.width = imageWidth;
-  //     cnv.height = imageHeight;
-
-  //     const ctx = cnv.getContext('2d');
-
-  //     //ctx.clearRect(0, 0,imageWidth, imageHeight);
-  //     //ctx.save();
-  //     //ctx.scale(scale/100, scale/100);
-  //     let imageData = ctx.createImageData(
-  //       Math.round((imageWidth * scale) / 100.0),
-  //       (imageHeight * scale) / 100.0,
-  //     );
-  //     // let imageData = ctx.drawImage(image, 0, 0, 380, 380);
-
-  //     //   for (let i = 0; i < rgba.length; i++) {
-  //     //    imageData.data[i] = rgba[i];
-  //     //   }
-  //     const data = resizeImage(rgba, imageWidth, imageHeight, scale / 100.0);
-  //     for (let i = 0; i < data.length; i++) {
-  //       imageData.data[i] = data[i];
-  //     }
-  //     ctx.putImageData(imageData, 0, 0);
-  //     //ctx.restore();
-  //   });
-  // }
-
   const AddContentToProps = () => {
     const { content, selectedVesselHole } = props;
-
-    //console.log(tiles);
-
     let newContent = [];
 
     let tempContent = {};
@@ -597,8 +507,8 @@ const TabTiling = (props) => {
     const hostAddr = tiles[0].url.split('/static')[0];
     const output = await buildPyramid(ashlarParams);
     const outputUrl = getResultPath();
-
-    setResultImagePath(outputUrl);
+    setFinalResultImagePath(outputUrl);
+    //setResultImagePath(outputUrl);
     setInfoMessage(
       'Build Finished. You can see the result Image in result page.',
     );
@@ -627,24 +537,12 @@ const TabTiling = (props) => {
   const handleListItemClick = (event, index) => {
     setSelectedIndex(index);
     setInfoMessage('');
-    if (index === 1 || index === 2) {
-      setDisplayTilingJpegImages(true);
-      setDisplayResultImage(false);
-    } else if (index === 0) {
-      setDisplayTilingJpegImages(false);
-      setDisplayResultImage(false);
-    } else if (index === 3 || index === 4 || index === 5) {
-      setDisplayTilingJpegImages(false);
-      setDisplayResultImage(true);
-    }
 
     if (index === 3 || index === 4) {
       AddContentToProps();
     }
     if (index === 5) {
-      const resultpath = getResultPath();
-      setResultImagePath(resultpath);
-      setInfoMessage('Result Image will be displayed');
+      setInfoMessage('Result Image is displayed here.');
       AddContentToProps();
     }
   };
@@ -1118,9 +1016,7 @@ const TabTiling = (props) => {
         >
           {/*  Tiling Preview  */}
           <div style={{ flexDirection: 'column' }}>
-            {displayTilingJpegImages === false ? (
-              <Avivator type={'tiling'} source={resultImagePath} />
-            ) : (
+            {selectedIndex == 1 && (
               <Paper
                 variant="outlined"
                 sx={{ height: '800px', width: '600px' }}
@@ -1156,34 +1052,15 @@ const TabTiling = (props) => {
               </Paper>
             )}
 
-            <div className="row m-0">
-              <div className="col p-0">
-                <ScrollArea />
-              </div>
-              {/* <div className="col-sm-2 p-0" style={{ position: 'relative' }}>
-                <Button
-                  className="position-absolute"
-                  style={{ height: '40px' }}
-                >
-                  {scale.toString() + '%'}
-                  <Icon size={1} path={mdiPencil} />
-                </Button>
-                <Select
-                  value={scale}
-                  onChange={(e) => handleScaleChange(e)}
-                  style={{ opacity: '0' }}
-                  className="position-absolute"
-                >
-                  <MenuItem value={1}>1</MenuItem>
-                  <MenuItem value={2}>2</MenuItem>
-                  <MenuItem value={5}>5</MenuItem>
-                  <MenuItem value={10}>10</MenuItem>
-                  <MenuItem value={20}>20</MenuItem>
-                  <MenuItem value={50}>50</MenuItem>
-                  <MenuItem value={100}>100</MenuItem>
-                </Select>
-              </div> */}
-            </div>
+            {(selectedIndex == 0 ||
+              selectedIndex == 2 ||
+              selectedIndex == 3 ||
+              selectedIndex == 4) && (
+              <Avivator type={'tiling'} source={resultImagePath} />
+            )}
+            {selectedIndex == 5 && (
+              <Avivator type={'tiling'} source={finalResultImagePath} />
+            )}
           </div>
         </Col>
         <Col

@@ -215,6 +215,161 @@ async def create_tiles(
 
     return JSONResponse(inserted_ids)
 
+
+
+async def normalizeImage(rel_dir):
+    input_filename = "ashlar_output.ome.tiff"
+    input_path = os.path.join(STATIC_PATH, rel_dir, input_filename)
+
+    output_filename = "normalize_output.ome.tiff"
+    output_path = os.path.join(STATIC_PATH, rel_dir, output_filename)
+    output_rel_path = os.path.join('/static/', rel_dir, output_filename)
+
+    jpg_output_filename = "normalize_output.jpg"
+    jpg_output_path = os.path.join(STATIC_PATH, rel_dir, jpg_output_filename)
+
+    #Read the image
+    img = bf.load_image(input_path)
+    metadata = bf.get_omexml_metadata(input_path)
+    
+    
+    cv2.normalize(img, img, 0, 255, cv2.NORM_MINMAX)
+    cv2.imwrite(jpg_output_path, img)
+    pixel_type = bf.omexml.PT_UINT8
+
+    bf_cmd = f"sh /app/mainApi/bftools/bfconvert -separate -overwrite '{jpg_output_path}' '{output_path}'"
+    await shell(bf_cmd)     
+
+
+def correctionImage(rel_dir):
+    input_filename = "ashlar_output.ome.tiff"
+    input_path = os.path.join(STATIC_PATH, rel_dir, input_filename)
+
+    output_filename = "correction_output.ome.tiff"
+    output_path = os.path.join(STATIC_PATH, rel_dir, output_filename)
+
+    output_rel_path = os.path.join('/static/', rel_dir, output_filename)
+
+    #Read the image
+
+    
+    img = bf.load_image(input_path)
+    img = np.array(img)
+
+    # Split the image into color channels
+    channels = cv2.split(img)
+
+    # Calculate the shading correction factor for each channel
+    shading = []
+    for channel in channels:
+        blurred = cv2.GaussianBlur(channel, (0, 0), sigmaX=50, sigmaY=50)
+        shading_channel = channel.astype(np.float32) / blurred.astype(np.float32)
+        cv2.normalize(shading_channel, shading_channel, 0, 65535, cv2.NORM_MINMAX)
+        shading.append(shading_channel)
+
+    # Apply the shading correction factor to each channel
+    corrected = []
+    for i, channel in enumerate(channels):
+        corrected_channel = np.multiply(channel.astype(np.float32), shading[i])
+        corrected.append(corrected_channel)
+
+    # Merge the corrected channels into a single image
+    corrected = cv2.merge(corrected)
+
+    pixel_type = bf.omexml.PT_UINT16
+    if os.path.exists(output_path):
+         os.remove(output_path)
+    bf.write_image(output_path, corrected, pixel_type)
+
+
+def gammaImage(rel_dir):
+
+    for i in range(8,13):
+        gamma = i / 10.0
+        input_filename = "ashlar_output.ome.tiff"
+        input_path = os.path.join(STATIC_PATH, rel_dir, input_filename)
+
+        output_filename = "gamma" + str(i) +  "_output.ome.tiff"
+        output_path = os.path.join(STATIC_PATH, rel_dir, output_filename)
+
+        output_rel_path = os.path.join('/static/', rel_dir, output_filename)
+
+        #Read the image
+        image = bf.load_image(input_path)
+        image = np.array(image) * 255
+    
+        image = image.astype('uint8')
+
+        table = np.array([((i / 255.0) ** gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
+        # apply gamma correction using the lookup table
+        final_image =  cv2.LUT(image, table)
+
+        # Write the image
+
+        if os.path.exists(output_path):
+            os.remove(output_path)
+
+        pixel_type = bf.omexml.PT_UINT8
+        bf.write_image(output_path,final_image, pixel_type)
+
+async def snapToEdge(rel_dir):
+    tiles_dir = os.path.join(STATIC_PATH, rel_dir)
+
+    # Load the images
+    file_list = glob.glob(tiles_dir + "/*.timg")
+
+    images = []
+    
+    for file in file_list:
+        image = cv2.imread(file)
+        images.append(image)
+
+    
+    # Define the number of images and the size of the output image
+    num_images = len(images)
+    output_size = (num_images * images[0].shape[1], images[0].shape[0])
+
+    # Create an empty output image
+    output = np.zeros((output_size[1], output_size[0], 3), dtype=np.uint8)
+
+    # Loop through the images and align them
+    for i in range(num_images):
+        # Detect the edges of the current image
+        edges1 = cv2.Canny(images[i], 100, 200)
+        
+        if i == 0:
+            # For the first image, just copy it to the output
+            output[0:images[i].shape[0], 0:images[i].shape[1], :] = images[i]
+        else:
+            # Detect the edges of the previous image
+            edges2 = cv2.Canny(images[i-1], 100, 200)
+            
+            # Find the matching edges and align the images
+            result = cv2.matchTemplate(edges1, edges2, cv2.TM_CCOEFF_NORMED)
+            _, _, _, max_loc = cv2.minMaxLoc(result)
+            h, w = images[i].shape[:2]
+            aligned_img = images[i][:, max_loc[0]:max_loc[0]+w, :]
+            
+            # Copy the aligned image to the output
+            output[0:images[i].shape[0], i*w:(i+1)*w, :] = aligned_img
+    
+    output = cv2.GaussianBlur(output, (3, 3), 0)
+
+    temp_name = "temp_output.jpg"
+    temp_output = os.path.join(STATIC_PATH, rel_dir, temp_name)
+
+    temp_output_path = os.path.join('/static/', rel_dir, temp_name)
+
+    # Save the output image
+    cv2.imwrite(temp_output, output)
+
+    output_filename = "snap_to_edge.ome.tiff"
+    output_path = os.path.join(STATIC_PATH, rel_dir, output_filename)
+
+    bfconv_cmd = f"sh /app/mainApi/bftools/bfconvert -separate -overwrite '{temp_output}' '{output_path}'"
+    await shell(bfconv_cmd)
+
+
 @router.post(
     "/build_pyramid",
     response_description="Build Pyramid",
@@ -250,6 +405,10 @@ async def build_pyramid(
          os.remove(result_path)
     shutil.copy(output_path, result_path)
 
+    correctionImage(rel_dir)
+    gammaImage(rel_dir)
+    await normalizeImage(rel_dir)
+    await snapToEdge(rel_dir)
 
     return JSONResponse(output_rel_path)
 
@@ -394,6 +553,8 @@ async def result_tile_correct(
 
 
     return JSONResponse(output_rel_path)
+
+
 
 
 
@@ -553,8 +714,6 @@ async def result_tile_snap_to_edge(
     tiles_dir = os.path.join(STATIC_PATH, rel_dir)
 
 
-    
-
     # Load the images
     file_list = glob.glob(tiles_dir + "/*.timg")
 
@@ -609,7 +768,7 @@ async def result_tile_snap_to_edge(
 
 
 
-    output_filename = "result.ome.tiff"
+    output_filename = "snap_to_edge.ome.tiff"
     output_path = os.path.join(STATIC_PATH, rel_dir, output_filename)
 
     output_rel_path = os.path.join('/static/', rel_dir, output_filename)
@@ -618,8 +777,7 @@ async def result_tile_snap_to_edge(
     bfconv_cmd = f"sh /app/mainApi/bftools/bfconvert -separate -overwrite '{temp_output}' '{output_path}'"
     await shell(bfconv_cmd)
 
-
-    return JSONResponse(output_path)
+    return JSONResponse(output_rel_path)
 
 
 

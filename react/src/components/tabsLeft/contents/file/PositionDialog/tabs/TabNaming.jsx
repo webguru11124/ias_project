@@ -36,6 +36,10 @@ export default function TabNaming() {
     }));
     setContents(contents);
 
+    contents.map((content) => {
+      content.series = content.strSeries;
+    });
+
     setSearchRows(contents);
 
     if (tiles.length > 0) {
@@ -191,6 +195,12 @@ export default function TabNaming() {
     await updateTilesMetaInfo(newContents);
 
     await loadTiles();
+    //console.log(newContents);
+
+    newContents.map((content) => {
+      content.series = content.strSeries;
+    });
+
     setSearchRows(newContents);
 
     //setUpdating(true);

@@ -10,6 +10,7 @@ import store from '@/reducers';
 
 const mapStateToProps = (state) => ({
   isFilesAvailable: state.files.isFilesAvailable,
+  content: state.files.content,
 });
 
 const WellPlates = (props) => {
@@ -47,6 +48,21 @@ const WellPlates = (props) => {
   const [holeClicked, setHoleClicked] = useState(0);
   const [_content, setContent] = useState(props.content);
   const [activeHoles, setActiveHoles] = useState([]);
+
+  // useEffect(() => {
+  //   const {content} = props;
+  //   if(content) {
+  //     if(content[0]) {
+  //        const row = content[0].row;
+  //        const col = content[0].col;
+
+  //        const num = holeNumber(row,col);
+  //        console.log(num);
+  //        setHoleClicked(num);
+  //     }
+  //   }
+
+  // },[props.content]);
 
   useEffect(() => {
     if (
@@ -117,6 +133,7 @@ const WellPlates = (props) => {
   };
 
   const setHoleNumberInArray = (content) => {
+    //console.log(content);
     let old_content = [...content];
     let holes = [];
     for (let i = 0; i < old_content.length; i++) {
@@ -128,7 +145,10 @@ const WellPlates = (props) => {
     }
     activeHolesNumbers = getUniqueSortedNumber(holes);
     setActiveHoles(activeHolesNumbers);
-    setHoleClicked(activeHolesNumbers[0]);
+    //setHoleClicked(activeHolesNumbers[0]);
+
+    setHoleClicked(holeNumber(content[0].row, content[0].col));
+
     return old_content;
   };
 

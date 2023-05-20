@@ -49,6 +49,7 @@ import {
 import { Typography } from 'react-md';
 import { loadOmeTiff } from '@hms-dbmi/viv';
 import { createLoader } from './../../../../../../helpers/avivator';
+import { forEach } from 'lodash';
 
 const tilingMenus = [
   'Edit',
@@ -111,6 +112,11 @@ const TabTiling = (props) => {
   //Logs
   const [infoMessage, setInfoMessage] = useState();
 
+  // get Row, Col, vessel type
+  const [vesselMaxRow, setVesselMaxRow] = useState(1);
+  const [vesselMaxCol, setVesselMaxCol] = useState(1);
+  const [vesselType, setVesselType] = useState(1);
+
   //Get the image of ome tiff file extension from the original url
   const getOmeTiffUrl = (url) => {
     //console.log(tiles);
@@ -133,6 +139,64 @@ const TabTiling = (props) => {
   //Metadata
   const [metadata, loading] = useMetadata(urls);
 
+  //Get the MaxRow, MaxCol, and VesselType
+  const getVesselType = () => {
+    let maxRow = 0;
+    let maxCol = 0;
+
+    tiles.forEach((tile) => {
+      let row = tile.row.charCodeAt() - 'A'.charCodeAt();
+      if (maxRow < row) maxRow = row;
+      if (maxCol < Number(tile.col)) maxCol = Number(tile.col);
+    });
+
+    setVesselMaxCol(maxCol);
+    setVesselMaxRow(maxRow);
+
+    let series = tiles[0].strSeries;
+
+    if (series.includes('Slide')) {
+      if (maxRow + 1 == 1 && maxCol == 1) {
+        setVesselType(1);
+      }
+      if (maxRow + 1 == 1 && maxCol == 2) {
+        setVesselType(2);
+      }
+      if (maxRow + 1 == 1 && maxCol == 4) {
+        setVesselType(4);
+      }
+
+      return;
+    } else if (series.includes('Plate')) {
+      if (maxRow + 1 == 2 && maxCol == 2) {
+        setVesselType(7);
+      }
+      if (maxRow + 1 == 2 && maxCol == 3) {
+        setVesselType(8);
+      }
+      if (maxRow + 1 == 3 && maxCol == 4) {
+        setVesselType(9);
+      }
+      if (maxRow + 1 == 4 && maxCol == 6) {
+        setVesselType(10);
+      }
+      if (maxRow + 1 == 6 && maxCol == 8) {
+        setVesselType(11);
+      }
+      if (maxRow + 1 == 8 && maxCol == 12) {
+        setVesselType(12);
+      }
+      if (maxRow + 1 == 16 && maxCol == 24) {
+        setVesselType(13);
+      }
+      return;
+    } else {
+      setVesselType(14);
+    }
+
+    return;
+  };
+
   // When the tiles reload, set dim by default 1 * tiles.length()
   useEffect(() => {
     if (tiles) {
@@ -143,34 +207,58 @@ const TabTiling = (props) => {
       setInfoMessage(`${tiles.length} images are loaded.`);
 
       let tile = tiles[0];
-      //console.log(tiles);
+
       if (tile) {
         if (tile.row || tile.col || tile.series) {
+          getVesselType();
           let newContent = [];
-          let tempContent = {};
-          const tempVal = tile.z;
-          tempContent.z = tile.time;
-          tempContent.time = tempVal;
-          tempContent.dimensionChanged = tile.dimensionChanged;
-          tempContent.row = tile.row;
-          tempContent.col = tile.col;
-          tempContent.series = tile.strSeries;
-          newContent.push(tempContent);
-          store.dispatch({ type: 'content_addContent', content: newContent });
-        } else {
-          let newContent = [];
-          let tempContent = {};
-          const tempVal = 0;
-          tempContent.z = 0;
-          tempContent.time = 1;
-          tempContent.dimensionChanged = false;
-          tempContent.row = 1;
-          tempContent.col = tiles.length;
-          tempContent.series = 'Slide_Single';
-          newContent.push(tempContent);
+
+          tiles.map((tile) => {
+            let tempContent = {};
+            tempContent.z = tile.z;
+            tempContent.time = tile.time;
+            tempContent.dimensionChanged = tile.dimensionChanged;
+            tempContent.row = tile.row.charCodeAt() - 'A'.charCodeAt();
+            tempContent.col = tile.col;
+            tempContent.series = tile.strSeries;
+            tempContent.channel = tile.channel;
+            newContent.push(tempContent);
+          });
+
           store.dispatch({ type: 'content_addContent', content: newContent });
         }
       }
+
+      // console.log(tiles);
+      // if (tile) {
+
+      //   if (tile.row || tile.col || tile.series) {
+
+      //     let newContent = [];
+      //     let tempContent = {};
+      //     const tempVal = tile.z;
+      //     tempContent.z = tile.time;
+      //     tempContent.time = tempVal;
+      //     tempContent.dimensionChanged = tile.dimensionChanged;
+      //     tempContent.row = tile.row;
+      //     tempContent.col = tile.col;
+      //     tempContent.series = tile.strSeries;
+      //     newContent.push(tempContent);
+      //     //store.dispatch({ type: 'content_addContent', content: newContent });
+      //   } else {
+      //     let newContent = [];
+      //     let tempContent = {};
+      //     const tempVal = 0;
+      //     tempContent.z = 0;
+      //     tempContent.time = 1;
+      //     tempContent.dimensionChanged = false;
+      //     tempContent.row = 0;
+      //     tempContent.col = 0;
+      //     tempContent.series = 'Slide_Single';
+      //     newContent.push(tempContent);
+      //     //store.dispatch({ type: 'content_addContent', content: newContent });
+      //   }
+      // }
     }
   }, [tiles]);
 
@@ -462,37 +550,51 @@ const TabTiling = (props) => {
 
       if (tile.z || tile.row || tile.col || tile.series) {
         let newContent = [];
-
         let tempContent = {};
         const tempVal = tile.z;
         tempContent.z = tile.time;
         tempContent.time = tempVal;
         tempContent.dimensionChanged = tile.dimensionChanged;
-        tempContent.row = tile.row;
+        tempContent.row = tile.row.charCodeAt() - 'A'.charCodeAt();
         tempContent.col = tile.col;
         tempContent.series = tile.strSeries;
+        tempContent.vesselID = vesselType;
+        tempContent.channel = tile.channel;
         newContent.push(tempContent);
+
+        tiles.map((tile) => {
+          tempContent = {};
+          tempContent.z = tile.z;
+          tempContent.time = tile.time;
+          tempContent.dimensionChanged = tile.dimensionChanged;
+          tempContent.row = tile.row.charCodeAt() - 'A'.charCodeAt();
+          tempContent.col = tile.col;
+          tempContent.series = tile.strSeries;
+          tempContent.channel = tile.channel;
+          newContent.push(tempContent);
+        });
+
+        //console.log(newContent);
 
         store.dispatch({ type: 'content_addContent', content: newContent });
       }
+
+      // if (tile.z || tile.row || tile.col || tile.series) {
+      //   let newContent = [];
+      //   let tempContent = {};
+      //   const tempVal = tile.z;
+      //   tempContent.z = tile.time;
+      //   tempContent.time = tempVal;
+      //   tempContent.dimensionChanged = tile.dimensionChanged;
+      //   tempContent.row = tile.row.charCodeAt() - 'A'.charCodeAt();
+      //   tempContent.col = tile.col - 1;
+      //   tempContent.series = tile.strSeries;
+
+      //   newContent.push(tempContent);
+
+      //   store.dispatch({ type: 'content_addContent', content: newContent });
+      // }
     }
-  };
-
-  const AddContentToProps = () => {
-    const { content, selectedVesselHole } = props;
-    let newContent = [];
-
-    let tempContent = {};
-    const tempVal = tempContent.z;
-    tempContent.z = tempContent.time;
-    tempContent.time = tempVal;
-    tempContent.dimensionChanged = !tempContent.dimensionChanged;
-    tempContent.row = alignRow - 1;
-    tempContent.col = alignCol - 1;
-    tempContent.series = 'WellPlate';
-    newContent.push(tempContent);
-
-    store.dispatch({ type: 'content_addContent', content: newContent });
   };
 
   const onClickedBuildButton = async () => {
@@ -512,7 +614,6 @@ const TabTiling = (props) => {
     setInfoMessage(
       'Build Finished. You can see the result Image in result page.',
     );
-    AddContentToProps();
   };
 
   const displayResult = async () => {
@@ -539,11 +640,9 @@ const TabTiling = (props) => {
     setInfoMessage('');
 
     if (index === 3 || index === 4) {
-      AddContentToProps();
     }
     if (index === 5) {
       setInfoMessage('Result Image is displayed here.');
-      AddContentToProps();
     }
   };
 

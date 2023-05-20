@@ -85,13 +85,11 @@ const Vessel = (props) => {
     if (vesselID === -1) {
       // console.log('There is no suitable size in VESSEL!');
       vesselID = 12;
-      if (currentVesselTypeGroup[0]) {
-        if (currentVesselTypeGroup[0].type === 'Slide') vesselID = 1;
-      }
     }
     if (currentVesselTypeGroup.length == 0) {
       vesselID = 1;
     }
+
     return vesselID;
   };
 
@@ -126,7 +124,9 @@ const Vessel = (props) => {
     }
 
     let vesselID = getCorrectVesselID(seriesStr, maxRow + 1, maxCol);
+
     setCurrentVessel(getVesselById(vesselID));
+
     setCurrentVesselId(vesselID);
   };
 
@@ -157,8 +157,17 @@ const Vessel = (props) => {
       current_vessel = getVesselById(
         getCorrectVesselID(current_contents[0].series, maxRow + 1, maxCol),
       );
+
       setCurrentVessel(current_vessel);
       setCurrentVesselId(current_vessel.id);
+
+      // console.log(current_contents);
+      if (current_contents[0].vesselID) {
+        current_vessel = getVesselById(current_contents[0].vesselID);
+
+        setCurrentVessel(current_vessel);
+        setCurrentVesselId(current_vessel.id);
+      }
     }
   }, [props.content]);
 

@@ -226,6 +226,23 @@ const TabTiling = (props) => {
           });
 
           store.dispatch({ type: 'content_addContent', content: newContent });
+        } else {
+          let newContent = [];
+
+          tiles.map((tile) => {
+            let tempContent = {};
+            tempContent.z = 0;
+            tempContent.time = 0;
+            tempContent.dimensionChanged = false;
+            tempContent.row = 0;
+            tempContent.col = 0;
+            tempContent.series = 'Slide';
+            tempContent.channel = 0;
+            tempContent.vesselID = 1;
+            newContent.push(tempContent);
+          });
+
+          store.dispatch({ type: 'content_addContent', content: newContent });
         }
       }
 

@@ -159,6 +159,13 @@ const Vessel = (props) => {
       );
       setCurrentVessel(current_vessel);
       setCurrentVesselId(current_vessel.id);
+
+      if (current_contents[0].vesselID) {
+        current_vessel = getVesselById(current_contents[0].vesselID);
+
+        setCurrentVessel(current_vessel);
+        setCurrentVesselId(current_vessel.id);
+      }
     }
   }, [props.content]);
 

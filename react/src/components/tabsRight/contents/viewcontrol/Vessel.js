@@ -69,12 +69,12 @@ const Vessel = (props) => {
           currentVesselTypeGroup[0].type === 'Dish' ||
           currentVesselTypeGroup[0].type === 'Wafer'
         ) {
-          if (currentVesselTypeGroup[i].size >= (maxRow + 1) * (maxCol + 1)) {
+          if (currentVesselTypeGroup[i].size >= maxRow * maxCol) {
             vesselID = currentVesselTypeGroup[i].id;
             break;
           }
         } else if (currentVesselTypeGroup[0].type === 'Slide') {
-          if (currentVesselTypeGroup[i].count >= (maxRow + 1) * (maxCol + 1)) {
+          if (currentVesselTypeGroup[i].count >= maxRow * maxCol) {
             vesselID = currentVesselTypeGroup[i].id;
             break;
           }
@@ -125,7 +125,7 @@ const Vessel = (props) => {
       }
     }
 
-    let vesselID = getCorrectVesselID(seriesStr, maxRow + 1, maxCol);
+    let vesselID = getCorrectVesselID(seriesStr, maxRow, maxCol);
     setCurrentVessel(getVesselById(vesselID));
     setCurrentVesselId(vesselID);
   };

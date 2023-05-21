@@ -219,8 +219,8 @@ const WellPlates = (props) => {
     setHoleClicked(holeNumber);
     //if (!activeHoles.includes(holeNumber)) activeHoles.push(holeNumber);
 
-    const maxWellPlateNumbers = 384;
-    for (let i = 0; i < maxWellPlateNumbers; i++) activeHoles.push(i);
+    //const maxWellPlateNumbers = 384;
+    //for (let i = 0; i < maxWellPlateNumbers; i++) activeHoles.push(i);
 
     if (activeHoles.includes(holeNumber)) {
       // let dataHoleChosen = content[holeNumber]

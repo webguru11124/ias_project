@@ -143,34 +143,31 @@ const Viewer = (props, { isFullScreen }) => {
   }, []);
 
   useEffect(() => {
-    const initialViewState = getDefaultInitialViewState(loader, viewSize);
-    let imgWidth = loader[0].shape[4];
-    let imgHeight = loader[0].shape[3];
-    let deck_width = localStorage.getItem('imageViewSizeWidth');
-    let deck_height = localStorage.getItem('imageViewSizeHeight');
-    let zoom = localStorage.getItem('CANV_ZOOM');
-    const { selectedVessel } = props;
-    let r = selectedVessel.row;
-    let c = selectedVessel.col - 1;
-
-    if (
-      selectedVessel.colCount == 0 ||
-      selectedVessel.colCount == undefined ||
-      selectedVessel.rowCount == 0 ||
-      selectedVessel.rowCount == undefined
-    ) {
-      return;
-    }
-
-    let unitW = imgWidth / selectedVessel.colCount;
-    let unitH = imgHeight / selectedVessel.rowCount;
-    let x = (c + 0.5) * unitW;
-    let y = (r + 0.5) * unitH;
-
-    setViewState({
-      ...viewState,
-      target: [x, y],
-    });
+    // const initialViewState = getDefaultInitialViewState(loader, viewSize);
+    // let imgWidth = loader[0].shape[4];
+    // let imgHeight = loader[0].shape[3];
+    // let deck_width = localStorage.getItem('imageViewSizeWidth');
+    // let deck_height = localStorage.getItem('imageViewSizeHeight');
+    // let zoom = localStorage.getItem('CANV_ZOOM');
+    // const { selectedVessel } = props;
+    // let r = selectedVessel.row;
+    // let c = selectedVessel.col - 1;
+    // if (
+    //   selectedVessel.colCount == 0 ||
+    //   selectedVessel.colCount == undefined ||
+    //   selectedVessel.rowCount == 0 ||
+    //   selectedVessel.rowCount == undefined
+    // ) {
+    //   return;
+    // }
+    // let unitW = imgWidth / selectedVessel.colCount;
+    // let unitH = imgHeight / selectedVessel.rowCount;
+    // let x = (c + 0.5) * unitW;
+    // let y = (r + 0.5) * unitH;
+    // setViewState({
+    //   ...viewState,
+    //   target: [x, y],
+    // });
   }, [props.selectedVessel]);
 
   const onViewStateChange = ({ viewState }) => {

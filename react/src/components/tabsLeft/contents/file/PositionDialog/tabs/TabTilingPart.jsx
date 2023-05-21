@@ -117,6 +117,9 @@ const TabTiling = (props) => {
   const [vesselMaxCol, setVesselMaxCol] = useState(1);
   const [vesselType, setVesselType] = useState(1);
 
+  // the editing list corresponding to well hole
+  const [holeImageList, setHoleImageList] = useState([]);
+
   //Get the image of ome tiff file extension from the original url
   const getOmeTiffUrl = (url) => {
     //console.log(tiles);
@@ -154,6 +157,11 @@ const TabTiling = (props) => {
     setVesselMaxRow(maxRow);
 
     let series = tiles[0].strSeries;
+
+    if (series === '') {
+      setVesselType(1);
+      return;
+    }
 
     if (series.includes('Slide')) {
       if (maxRow + 1 == 1 && maxCol == 1) {
@@ -246,38 +254,61 @@ const TabTiling = (props) => {
         }
       }
 
-      // console.log(tiles);
-      // if (tile) {
-
-      //   if (tile.row || tile.col || tile.series) {
-
-      //     let newContent = [];
-      //     let tempContent = {};
-      //     const tempVal = tile.z;
-      //     tempContent.z = tile.time;
-      //     tempContent.time = tempVal;
-      //     tempContent.dimensionChanged = tile.dimensionChanged;
-      //     tempContent.row = tile.row;
-      //     tempContent.col = tile.col;
-      //     tempContent.series = tile.strSeries;
-      //     newContent.push(tempContent);
-      //     //store.dispatch({ type: 'content_addContent', content: newContent });
-      //   } else {
-      //     let newContent = [];
-      //     let tempContent = {};
-      //     const tempVal = 0;
-      //     tempContent.z = 0;
-      //     tempContent.time = 1;
-      //     tempContent.dimensionChanged = false;
-      //     tempContent.row = 0;
-      //     tempContent.col = 0;
-      //     tempContent.series = 'Slide_Single';
-      //     newContent.push(tempContent);
-      //     //store.dispatch({ type: 'content_addContent', content: newContent });
-      //   }
-      // }
+      setHoleImageList(tiles);
     }
   }, [tiles]);
+
+  //When the holeImageLists is reload
+  useEffect(() => {
+    if (holeImageList) {
+      if (holeImageList[0]) {
+        setResultImagePath(getOmeTiffUrl(holeImageList[0].url));
+      }
+    }
+  }, [holeImageList]);
+
+  //get the Edit Image List from the row and col
+  const getImageList = (row, col) => {
+    const lists = [];
+    const tempList = [];
+    //console.log(tiles);
+    if (tiles) {
+      if (tiles.length > 0) {
+        if (
+          tiles[0].row !== undefined &&
+          tiles[0].col !== undefined &&
+          tiles[0].row !== '' &&
+          tiles[0].col !== ''
+        ) {
+          tiles.map((tile) => {
+            tempList.push({
+              row: Number(tile.row.charCodeAt() - 'A'.charCodeAt()),
+              col: Number(tile.col),
+            });
+            if (
+              Number(tile.row.charCodeAt() - 'A'.charCodeAt()) == row &&
+              Number(tile.col) == col
+            ) {
+              lists.push(tile);
+            }
+          });
+        } else return tiles;
+      }
+    }
+    return lists;
+  };
+
+  //When the row and col are changed
+  useEffect(() => {
+    const hole = props.selectedVesselHole;
+
+    if (hole) {
+      if (hole.row !== undefined && hole.col != undefined) {
+        const lists = getImageList(hole.row, hole.col);
+        setHoleImageList(lists);
+      }
+    }
+  }, [props.selectedVesselHole]);
 
   //Get the Correction Image Path from the server
   const getCorrectionImagePath = () => {
@@ -559,11 +590,11 @@ const TabTiling = (props) => {
 
   // When the list item of Edting is changed
   const handleListContentItemClick = async (event, index) => {
-    if (tiles.length > 0) {
+    if (holeImageList.length > 0) {
       setSelectedImageFileIndex(index);
 
-      setResultImagePath(getOmeTiffUrl(tiles[index].url));
-      let tile = tiles[index];
+      setResultImagePath(getOmeTiffUrl(holeImageList[index].url));
+      let tile = holeImageList[index];
 
       if (tile.z || tile.row || tile.col || tile.series) {
         let newContent = [];
@@ -696,9 +727,9 @@ const TabTiling = (props) => {
                   <h5>Editing</h5>
                 </CardContent>
                 <div className="inside overflow-auto">
-                  {tiles !== undefined && tiles !== null ? (
+                  {holeImageList !== undefined && holeImageList !== null ? (
                     <List>
-                      {tiles.map((item, idx) => {
+                      {holeImageList.map((item, idx) => {
                         if (idx === selectedImageFileIndex) {
                           return (
                             <ListItemButton

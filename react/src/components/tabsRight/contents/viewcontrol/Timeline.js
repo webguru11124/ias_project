@@ -64,16 +64,6 @@ const Timeline = (props) => {
   const [minSlider, setMinSlider] = useState(1);
   const [maxSlider, setMaxSlider] = useState(10);
 
-  // useEffect(() => {
-  //   console.log(props.displayOption);
-  //   if(props.displayOption.id == "Metadata") {
-
-  //     const v = props.displayOption.sizeT;
-  //     if(!isNaN(v)) updateTime(5);
-  //   }
-
-  // }, [props])
-
   const [selections, setPropertiesForChannel] = useChannelsStore(
     (store) => [store.selections, store.setPropertiesForChannel],
     shallow,

@@ -32,6 +32,8 @@ const Vessel = (props) => {
   const [contents, setContents] = useState(props.content ?? []); //added ?? by QmQ
   const [ref, { width }] = useElementSize();
 
+  const [slideSelect, setSlideSelect] = useState(false);
+
   // updated by QmQ
   useEffect(() => {
     store.dispatch({
@@ -162,9 +164,12 @@ const Vessel = (props) => {
 
       if (current_contents[0].vesselID) {
         current_vessel = getVesselById(current_contents[0].vesselID);
-
         setCurrentVessel(current_vessel);
         setCurrentVesselId(current_vessel.id);
+
+        if (current_contents[0].vesselID === 1) {
+          setSlideSelect(true);
+        }
       }
     }
   }, [props.content]);
@@ -177,7 +182,14 @@ const Vessel = (props) => {
     if (currentVessel) {
       switch (currentVessel.type) {
         case 'Slide':
-          return <Slides width={width} count={currentVessel.count} />;
+          return (
+            <Slides
+              width={width}
+              count={currentVessel.count}
+              showHole={slideSelect}
+              areaPercentage={100}
+            />
+          );
         case 'Dish':
           return <Dishes width={width} size={currentVessel.size} />;
         case 'WellPlate':

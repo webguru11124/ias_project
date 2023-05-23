@@ -12,7 +12,7 @@ import ExpAutoComplete from '@/components/assemblies/ExpAutoComplete';
 import InfoDialog from '@/components/dialogs/InfoDialog';
 import ClosableDialog from '@/components/dialogs/ClosableDialog';
 
-import { setExperiment_folder } from '@/api/experiment';
+import { deleteImageFiles, setExperiment_folder } from '@/api/experiment';
 import { getImageByPath } from '@/api/image';
 
 import store from '@/reducers';
@@ -25,6 +25,7 @@ const ExperimentDialog = ({
   onClose,
   title,
   onSelectFiles,
+
   folderUploadable = false,
 }) => {
   const { experiments, loadExperiments } = useExperimentStore();
@@ -88,6 +89,12 @@ const ExperimentDialog = ({
     }
 
     setUploading(false);
+  };
+
+  const deleteImages = () => {
+    // const img = [] ;
+    // selectedFiles.map((path) => img.append(getImageByPath(toTiffPath(path))))
+    // deleteImageFiles(img);
   };
 
   return (
@@ -199,6 +206,7 @@ const ExperimentDialog = ({
                   color="error"
                   fullWidth
                   disabled={!selectedFiles.length}
+                  onClick={deleteImages}
                 >
                   Delete
                 </Button>

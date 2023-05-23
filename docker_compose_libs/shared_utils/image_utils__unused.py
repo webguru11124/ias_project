@@ -69,6 +69,7 @@ def convert_to_tiff(source_file):
     dest_file = str(dest_dir.joinpath(file_name + '.tiff'))
 
     shell_script = f'gm convert {source_file} {dest_file}'
+
     call(shell_script, shell=True)
 
     return dest_file

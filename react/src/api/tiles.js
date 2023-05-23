@@ -80,6 +80,7 @@ export const listTiles = (callback) => {
 
 export const alignTilesApi = (rows, method, callback) => {
   const formData = new FormData();
+
   formData.append('method', method);
   formData.append('row', rows);
   api

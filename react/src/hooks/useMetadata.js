@@ -15,11 +15,15 @@ export default function useMetadata(urls, onLoading = () => void 0) {
       const tiffs = await Promise.all(
         urls.map((url) => {
           if (metadataMap[url]) {
+            //console.log("metadataMap::");
             return Promise.resolve([{ metadata: metadataMap[url] }]);
           }
           return createLoader(url);
         }),
       );
+      //console.log("Tiffs");
+      //console.log(tiffs);
+
       const metadata = tiffs.map((data) =>
         data.length ? data[0].metadata : data.metadata,
       );

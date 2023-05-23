@@ -25,6 +25,7 @@ async def get_all_tiles(user: UserModelDB, db: AsyncIOMotorDatabase):
     return tiles
 
 
+
 async def add_image_tiles(
     path: Path,
     files: List[UploadFile],
@@ -36,12 +37,13 @@ async def add_image_tiles(
         file_name = each_file.filename
         file_path = os.path.join(path, file_name)
         pre = file_path.rsplit(".", 1)[0]
+        new_file_name = file_name.rsplit(".",1)[0] + ".ome.tiff"
 
         async with aiofiles.open(file_path, "wb") as f:
             content = await each_file.read()
             await f.write(content)
 
-        if file_name.endswith(("ome.tiff", "ome.tif", "tiff", "tif")):
+        if file_name.endswith("jpg|png|jpeg|JPG|PNG"):
             input = os.path.abspath(file_path)
             output = os.path.abspath(f"{pre}.png")
 
@@ -56,6 +58,14 @@ async def add_image_tiles(
 
             # remove temp png image
             os.remove(output)
+
+            #convert all supported image files to .ome.tiff file
+
+            output = os.path.abspath(f"{pre}.ome.tiff")
+
+            bf_cmd = f"sh /app/mainApi/bftools/bfconvert -separate -overwrite '{input}' '{output}'"
+            await shell(bf_cmd)
+
         else:
             img = Image.open(file_path)
             img.thumbnail([100, 100])
@@ -64,6 +74,7 @@ async def add_image_tiles(
         tile = {
             "user_id": current_user.id,
             "filename": file_name,
+            "con"
             "path": f"{CURRENT_STATIC}/{current_user.id}/images/{file_name}",
         }
         new_tiles.append(tile)

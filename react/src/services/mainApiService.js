@@ -11,6 +11,7 @@ mainApiService.interceptors.request.use((config) => {
   if (tokenType && token) {
     config.headers.Authorization = `${tokenType} ${token}`;
   }
+
   return config;
 });
 

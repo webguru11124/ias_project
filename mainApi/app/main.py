@@ -25,6 +25,7 @@ import javabridge
 import bioformats
 
 
+CORS_ALLOWED_ORIGINS = ['*']
 # gunicorn_error_logger = logging.getLogger("gunicorn.error")
 # gunicorn_logger = logging.getLogger("gunicorn")
 # uvicorn_access_logger = logging.getLogger("uvicorn.access")
@@ -38,7 +39,7 @@ middleware = [
         allow_origins=['*'],
         allow_methods=['*'],
         allow_headers=['*'],
-        # allow_origins=['http://ias.lifeanalytics.org']
+        #allow_origins=['http://ias.lifeanalytics.org']
     )
 ]
 app = FastAPI(title='IAS Project', middleware=middleware)

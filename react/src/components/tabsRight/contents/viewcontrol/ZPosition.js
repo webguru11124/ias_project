@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import Grid from '@mui/material/Grid';
 import Slider from '@mui/material/Slider';
 import Box from '@mui/material/Box';
@@ -12,6 +13,7 @@ import {
   useImageSettingsStore,
   useLoader,
 } from '@/state';
+import store from '@/reducers';
 import { connect } from 'react-redux';
 
 const mapStateToProps = (state) => ({
@@ -28,6 +30,8 @@ function ZPosition(props) {
     shallow,
   );
   const globalSelection = useViewerStore((store) => store.globalSelection);
+  const zpositionData = useSelector((state) => state.measure.zposition);
+
   // eslint-disable-next-line
   const changeSelection = useCallback(
     debounce(
@@ -35,6 +39,12 @@ function ZPosition(props) {
         useViewerStore.setState({
           isChannelLoading: selections.map(() => true),
         });
+        // ** update the z position value ** QmQ
+        store.dispatch({
+          type: 'UPDATE_MEASURE_ZPOSITION',
+          payload: { z: newValue },
+        });
+
         const newSelections = [...selections].map((sel) => ({
           ...sel,
           z: newValue,

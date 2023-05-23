@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { connect } from 'react-redux';
 import Card from '@mui/material/Card';
 import { getVesselById, VESSELS } from '@/constants/vessel-types';
@@ -43,6 +44,7 @@ const Vessel = (props) => {
   }, [currentVessel]);
 
   const getCorrectVesselID = (seriesStr, maxRow, maxCol) => {
+    // console.log('get correct vessel id', seriesStr, maxRow, maxCol)
     let vesselID = -1;
     let currentVesselTypeGroup = [];
 
@@ -83,6 +85,7 @@ const Vessel = (props) => {
         }
       }
     }
+
 
     if (vesselID === -1) {
       // console.log('There is no suitable size in VESSEL!');
@@ -131,14 +134,27 @@ const Vessel = (props) => {
     setCurrentVessel(getVesselById(vesselID));
     setCurrentVesselId(vesselID);
   };
+  const handleExpansionDialogClose = (percentVal) => {
+    store.dispatch({
+      type: 'UPDATE_MEASURE_VESSEL_DATA',
+      payload: { area_percentage: percentVal },
+    });
+    setShowExpansionDialog(false);
 
+  };
   useEffect(() => {
     if (props.content && props.content !== []) {
       let current_contents = JSON.parse(JSON.stringify(props.content));
 
       //console.log(current_contents);
 
+
+      //console.log(current_contents);
+
       setContents(JSON.parse(JSON.stringify(current_contents)));
+
+      //console.log("Current Content is ");
+      //console.log(current_contents);
 
       //console.log("Current Content is ");
       //console.log(current_contents);
@@ -182,6 +198,14 @@ const Vessel = (props) => {
     if (currentVessel) {
       switch (currentVessel.type) {
         case 'Slide':
+          return (
+            <Slides
+              width={width}
+              count={currentVessel.count}
+              showHole={slideSelect}
+              areaPercentage={100}
+            />
+          );
           return (
             <Slides
               width={width}

@@ -15,7 +15,7 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import DialogPM from '../../DialogPM';
 import Icon from '@mdi/react';
-import { mdiWeatherSunny, mdiCropFree, mdiClose, mdiPencil } from '@mdi/js';
+import { mdiWeatherSunny } from '@mdi/js';
 import { connect } from 'react-redux';
 import Vessel from '../../../../../tabsRight/contents/viewcontrol/Vessel';
 import Objective from '../../../../../tabsRight/contents/viewcontrol/Objective';
@@ -25,12 +25,10 @@ import ZPosition from '../../../../../tabsRight/contents/viewcontrol/ZPosition';
 import Timeline from '../../../../../tabsRight/contents/viewcontrol/Timeline';
 import store from '../../../../../../reducers';
 import useTilingStore from '@/stores/useTilingStore';
-import { TileSeriesDescription } from 'igniteui-react-core';
 import { DialogActions, ImageList, ImageListItem, Paper } from '@mui/material';
 import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
 import Avivator from '../../../../../avivator/Avivator';
 import { Alignments, Directions, SortOrder } from './constants';
-import useMetadata from '@/hooks/useMetadata';
 import { useChannelsStore } from '@/state';
 import { buildPyramid } from '@/api/tiling';
 import { Typography } from 'react-md';
@@ -85,29 +83,19 @@ const TabTiling = (props) => {
 
   //Parameters in Shading UI
   const [gamma, setGamma] = useState(10);
-  const canvasElement = useRef(null);
 
   //Path used in displaying Images
   const [resultImagePath, setResultImagePath] = useState('');
   const [finalResultImagePath, setFinalResultImagePath] = useState('');
 
-  const channelState = useChannelsStore((state) => state);
-
   //Logs
   const [infoMessage, setInfoMessage] = useState();
 
-  // get Row, Col, vessel type
-  const [vesselMaxRow, setVesselMaxRow] = useState(1);
-  const [vesselMaxCol, setVesselMaxCol] = useState(1);
-  const [vesselType, setVesselType] = useState(1);
+  // // get Row, Col, vessel type
+  // const [vesselType, setVesselType] = useState(1);
 
   // the editing list corresponding to well hole
   const [holeImageList, setHoleImageList] = useState([]);
-
-  //the channel type
-  const [selectedImageChannel, setSelectedImageChannel] = useState([]);
-  const [selectedImageTime, setSelectedImageTime] = useState(0);
-  const [selectedImageZ, setSelectedImageZ] = useState(0);
 
   //Get the image of ome tiff file extension from the original url
   const getOmeTiffUrl = (url) => {
@@ -128,68 +116,65 @@ const TabTiling = (props) => {
     [tiles],
   );
 
-  //Get the MaxRow, MaxCol, and VesselType
-  const getVesselType = () => {
-    let maxRow = 0;
-    let maxCol = 0;
+  // //Get the MaxRow, MaxCol, and VesselType
+  // const getVesselType = () => {
+  //   let maxRow = 0;
+  //   let maxCol = 0;
 
-    tiles.forEach((tile) => {
-      let row = tile.row.charCodeAt() - 'A'.charCodeAt();
-      if (maxRow < row) maxRow = row;
-      if (maxCol < Number(tile.col)) maxCol = Number(tile.col);
-    });
+  //   tiles.forEach((tile) => {
+  //     let row = tile.row.charCodeAt() - 'A'.charCodeAt();
+  //     if (maxRow < row) maxRow = row;
+  //     if (maxCol < Number(tile.col)) maxCol = Number(tile.col);
+  //   });
 
-    setVesselMaxCol(maxCol);
-    setVesselMaxRow(maxRow);
+  //   let series = tiles[0].strSeries;
 
-    let series = tiles[0].strSeries;
+  //   if (series === '') {
+  //     setVesselType(1);
+  //     return;
+  //   }
 
-    if (series === '') {
-      setVesselType(1);
-      return;
-    }
+  //   if (series.includes('Slide')) {
+  //     if (maxRow + 1 === 1 && maxCol === 1) {
+  //       setVesselType(1);
+  //     }
+  //     if (maxRow + 1 === 1 && maxCol === 2) {
+  //       setVesselType(2);
+  //     }
+  //     if (maxRow + 1 === 1 && maxCol === 4) {
+  //       setVesselType(4);
+  //     }
 
-    if (series.includes('Slide')) {
-      if (maxRow + 1 === 1 && maxCol === 1) {
-        setVesselType(1);
-      }
-      if (maxRow + 1 === 1 && maxCol === 2) {
-        setVesselType(2);
-      }
-      if (maxRow + 1 === 1 && maxCol === 4) {
-        setVesselType(4);
-      }
+  //     return;
+  //   } else if (series.includes('Plate')) {
+  //     if (maxRow + 1 === 2 && maxCol === 2) {
+  //       setVesselType(7);
+  //     }
+  //     if (maxRow + 1 === 2 && maxCol === 3) {
+  //       setVesselType(8);
+  //     }
+  //     if (maxRow + 1 === 3 && maxCol === 4) {
+  //       setVesselType(9);
+  //     }
+  //     if (maxRow + 1 === 4 && maxCol === 6) {
+  //       setVesselType(10);
+  //     }
+  //     if (maxRow + 1 === 6 && maxCol === 8) {
+  //       setVesselType(11);
+  //     }
+  //     if (maxRow + 1 === 8 && maxCol === 12) {
+  //       setVesselType(12);
+  //     }
+  //     if (maxRow + 1 === 16 && maxCol === 24) {
+  //       setVesselType(13);
+  //     }
+  //     return;
+  //   } else {
+  //     setVesselType(14);
+  //   }
 
-      return;
-    } else if (series.includes('Plate')) {
-      if (maxRow + 1 === 2 && maxCol === 2) {
-        setVesselType(7);
-      }
-      if (maxRow + 1 === 2 && maxCol === 3) {
-        setVesselType(8);
-      }
-      if (maxRow + 1 === 3 && maxCol === 4) {
-        setVesselType(9);
-      }
-      if (maxRow + 1 === 4 && maxCol === 6) {
-        setVesselType(10);
-      }
-      if (maxRow + 1 === 6 && maxCol === 8) {
-        setVesselType(11);
-      }
-      if (maxRow + 1 === 8 && maxCol === 12) {
-        setVesselType(12);
-      }
-      if (maxRow + 1 === 16 && maxCol === 24) {
-        setVesselType(13);
-      }
-      return;
-    } else {
-      setVesselType(14);
-    }
-
-    return;
-  };
+  //   return;
+  // };
 
   // When the tiles reload, set dim by default 1 * tiles.length()
   useEffect(() => {
@@ -214,7 +199,6 @@ const TabTiling = (props) => {
           tile.series !== '' &&
           tile.col !== ''
         ) {
-          getVesselType();
           let newContent = [];
 
           sortedTiles.map((tile) => {

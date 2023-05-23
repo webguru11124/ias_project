@@ -24,14 +24,7 @@ import { MAX_CHANNELS } from '@hms-dbmi/viv';
 import { getSingleSelectionStats, randomId } from '@/helpers/avivator';
 import { COLOR_PALETTE } from '@/constants';
 import { connect } from 'react-redux';
-
-const mapStateToProps = (state) => ({
-  content: state.files.content,
-});
-
 import store from '@/reducers';
-
-import { connect } from 'react-redux';
 
 const mapStateToProps = (state) => ({
   content: state.files.content,

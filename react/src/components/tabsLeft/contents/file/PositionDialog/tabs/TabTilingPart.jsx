@@ -13,16 +13,10 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
-import ScrollArea from 'react-scrollbar';
 import DialogPM from '../../DialogPM';
 import Icon from '@mdi/react';
 import { mdiWeatherSunny, mdiCropFree, mdiClose, mdiPencil } from '@mdi/js';
 import { connect } from 'react-redux';
-import * as api_tiles from '../../../../../../api/tiles';
-import { getImageByUrl } from '../../../../../../api/fetch';
-import RoutedAvivator from '../../../../../avivator/Avivator';
 import Vessel from '../../../../../tabsRight/contents/viewcontrol/Vessel';
 import Objective from '../../../../../tabsRight/contents/viewcontrol/Objective';
 import Channel from '../../../../../tabsRight/contents/viewcontrol/Channel';
@@ -30,7 +24,6 @@ import ImageAdjust from '../../../../../tabsRight/contents/viewcontrol/ImageAdju
 import ZPosition from '../../../../../tabsRight/contents/viewcontrol/ZPosition';
 import Timeline from '../../../../../tabsRight/contents/viewcontrol/Timeline';
 import store from '../../../../../../reducers';
-import UTIF from 'utif';
 import useTilingStore from '@/stores/useTilingStore';
 import { TileSeriesDescription } from 'igniteui-react-core';
 import { DialogActions, ImageList, ImageListItem, Paper } from '@mui/material';
@@ -39,17 +32,8 @@ import Avivator from '../../../../../avivator/Avivator';
 import { Alignments, Directions, SortOrder } from './constants';
 import useMetadata from '@/hooks/useMetadata';
 import { useChannelsStore } from '@/state';
-import {
-  buildPyramid,
-  correctionTiledImage,
-  gammaTiledImage,
-  normalizeTiledImage,
-  snapToEdge,
-} from '@/api/tiling';
+import { buildPyramid } from '@/api/tiling';
 import { Typography } from 'react-md';
-import { loadOmeTiff } from '@hms-dbmi/viv';
-import { createLoader } from './../../../../../../helpers/avivator';
-import { forEach } from 'lodash';
 
 const tilingMenus = [
   'Edit',
@@ -144,9 +128,6 @@ const TabTiling = (props) => {
     [tiles],
   );
 
-  //Metadata
-  const [metadata, loading] = useMetadata(urls);
-
   //Get the MaxRow, MaxCol, and VesselType
   const getVesselType = () => {
     let maxRow = 0;
@@ -169,37 +150,37 @@ const TabTiling = (props) => {
     }
 
     if (series.includes('Slide')) {
-      if (maxRow + 1 == 1 && maxCol == 1) {
+      if (maxRow + 1 === 1 && maxCol === 1) {
         setVesselType(1);
       }
-      if (maxRow + 1 == 1 && maxCol == 2) {
+      if (maxRow + 1 === 1 && maxCol === 2) {
         setVesselType(2);
       }
-      if (maxRow + 1 == 1 && maxCol == 4) {
+      if (maxRow + 1 === 1 && maxCol === 4) {
         setVesselType(4);
       }
 
       return;
     } else if (series.includes('Plate')) {
-      if (maxRow + 1 == 2 && maxCol == 2) {
+      if (maxRow + 1 === 2 && maxCol === 2) {
         setVesselType(7);
       }
-      if (maxRow + 1 == 2 && maxCol == 3) {
+      if (maxRow + 1 === 2 && maxCol === 3) {
         setVesselType(8);
       }
-      if (maxRow + 1 == 3 && maxCol == 4) {
+      if (maxRow + 1 === 3 && maxCol === 4) {
         setVesselType(9);
       }
-      if (maxRow + 1 == 4 && maxCol == 6) {
+      if (maxRow + 1 === 4 && maxCol === 6) {
         setVesselType(10);
       }
-      if (maxRow + 1 == 6 && maxCol == 8) {
+      if (maxRow + 1 === 6 && maxCol === 8) {
         setVesselType(11);
       }
-      if (maxRow + 1 == 8 && maxCol == 12) {
+      if (maxRow + 1 === 8 && maxCol === 12) {
         setVesselType(12);
       }
-      if (maxRow + 1 == 16 && maxCol == 24) {
+      if (maxRow + 1 === 16 && maxCol === 24) {
         setVesselType(13);
       }
       return;
@@ -300,8 +281,8 @@ const TabTiling = (props) => {
               col: Number(tile.col),
             });
             if (
-              Number(tile.row.charCodeAt() - 'A'.charCodeAt()) == row &&
-              Number(tile.col) == col
+              Number(tile.row.charCodeAt() - 'A'.charCodeAt()) === row &&
+              Number(tile.col) === col
             ) {
               lists.push(tile);
             }
@@ -474,7 +455,6 @@ const TabTiling = (props) => {
       for (let i = 0; i < rows; i++) chunks.push([]);
       for (let i = 0; i < rows; i++) {
         for (let j = 0; j < cols; j++) {
-          const id = j * rows + i;
           chunks[i].push(sortedTiles.at(j * rows + i));
         }
       }
@@ -568,15 +548,15 @@ const TabTiling = (props) => {
   //when the radio button in alignment was changed
   const handleAlignOptionChange = (e) => {
     if (e.target.value === 'Up-Down') {
-      if (dir == Directions.horizontal) {
+      if (dir === Directions.horizontal) {
         setDir(Directions.vertical);
       } else setDir(Directions.horizontal);
     } else if (e.target.value === 'Left-Right') {
-      if (align == Alignments.raster) {
+      if (align === Alignments.raster) {
         setAlign(Alignments.snake);
       } else setAlign(Alignments.raster);
     } else if (e.target.value === 'DecendingOrder') {
-      if (sortOrder == SortOrder.ascending) setSortOrder(SortOrder.descending);
+      if (sortOrder === SortOrder.ascending) setSortOrder(SortOrder.descending);
       else setSortOrder(SortOrder.ascending);
     }
   };
@@ -599,7 +579,7 @@ const TabTiling = (props) => {
   //When the radio button in bonding was changed
   const handleChange = (event) => {
     if (event.target.id === '3') {
-      if (tilingBondingPatternMatch == false) {
+      if (tilingBondingPatternMatch === false) {
         setTilingBondingPatterMatch(true);
         event.target.checked = true;
       } else {
@@ -615,7 +595,7 @@ const TabTiling = (props) => {
       SnapToEdge();
     }
 
-    if (event.target.id == '1') {
+    if (event.target.id === '1') {
       normalizeImgLuminance();
     }
   };
@@ -658,8 +638,6 @@ const TabTiling = (props) => {
     setInfoMessage('Best Fit Image has been Display.');
   };
 
-  const exportTiledImage = () => {};
-
   // When the list item of Edting is changed
   const handleListContentItemClick = async (event, index) => {
     if (holeImageList.length > 0) {
@@ -677,7 +655,6 @@ const TabTiling = (props) => {
     };
 
     setInfoMessage('Build Started');
-    const hostAddr = tiles[0].url.split('/static')[0];
     const output = await buildPyramid(ashlarParams);
     const outputUrl = getResultPath();
     setFinalResultImagePath(outputUrl);
@@ -1168,7 +1145,7 @@ const TabTiling = (props) => {
         >
           {/*  Tiling Preview  */}
           <div style={{ flexDirection: 'column' }}>
-            {selectedIndex == 1 && (
+            {selectedIndex === 1 && (
               <Paper
                 variant="outlined"
                 sx={{ height: '800px', width: '600px' }}
@@ -1204,13 +1181,13 @@ const TabTiling = (props) => {
               </Paper>
             )}
 
-            {(selectedIndex == 0 ||
-              selectedIndex == 2 ||
-              selectedIndex == 3 ||
-              selectedIndex == 4) && (
+            {(selectedIndex === 0 ||
+              selectedIndex === 2 ||
+              selectedIndex === 3 ||
+              selectedIndex === 4) && (
               <Avivator type={'tiling'} source={resultImagePath} />
             )}
-            {selectedIndex == 5 && (
+            {selectedIndex === 5 && (
               <Avivator type={'tiling'} source={finalResultImagePath} />
             )}
           </div>

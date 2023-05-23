@@ -14,6 +14,17 @@ export const api = axios.create({
   },
 });
 
+export const apiForm = axios.create({
+  baseURL: process.env.REACT_APP_BASE_API_URL,
+  headers: {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
+    'Content-Type': 'multipart/form-data',
+    // Authorization: state.auth.tokenType + ' ' + state.auth.token,
+  },
+});
+
 export const ilastikApi = axios.create({
   baseURL: process.env.REACT_APP_BASE_ILASTIK_API_URL,
   headers: {

@@ -343,3 +343,51 @@ export const MLGetProcessedImage = async (payload) => {
     // console.log(e)
   }
 };
+
+export const MLICTProcessImage = async (payload) => {
+  try {
+    const state = store.getState();
+    const formData = new FormData();
+    formData.append('original_image_url', payload.original_image_url);
+    formData.append('type', payload.type);
+    formData.append('sensitivity', payload.sensitivity);
+
+    let response = await api.post('image/ml_ips_process', formData, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Allow-Methods':
+          'GET, POST, PATCH, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
+        'Content-Type': 'multipart/form-data',
+        Authorization: state.auth.tokenType + ' ' + state.auth.token,
+      },
+    });
+    return response.data;
+  } catch (e) {
+    // console.log(e)
+  }
+};
+
+export const MLConvertResult = async (payload) => {
+  try {
+    const state = store.getState();
+    const formData = new FormData();
+    formData.append('image_path', payload.image_path);
+
+    let response = await api.post('image/ml_convert_result', formData, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Allow-Methods':
+          'GET, POST, PATCH, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
+        'Content-Type': 'multipart/form-data',
+        Authorization: state.auth.tokenType + ' ' + state.auth.token,
+      },
+    });
+    return response.data;
+  } catch (e) {
+    // console.log(e)
+  }
+};

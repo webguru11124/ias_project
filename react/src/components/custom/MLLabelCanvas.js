@@ -75,7 +75,9 @@ function MLLabelCanvas(props) {
   const onUp = () => {
     // add the drawn curve to the specific label position information.
     if (mouseTrack?.length === 0) return;
+    // console.log('before-track:', mouseTrack);
     processedTrackInfo = processTrackInfo(mouseTrack);
+    // console.log('after-track:', processedTrackInfo);
 
     if (MLSelectTargetMode === 'object') {
       store.dispatch({
@@ -97,10 +99,7 @@ function MLLabelCanvas(props) {
       // console.log('===============> background pos', _labelPosInfo)
     }
 
-    let draw_style = localStorage.getItem('CANV_ STYLE');
-    if (draw_style == 'user_custom_area') {
-      user_custom_area.push(mouseTrack);
-    }
+    user_custom_area.push(mouseTrack);
     // console.log('user_area', user_custom_area)
     setMouseTrack([]);
     setDrawing(false);
@@ -179,7 +178,7 @@ function MLLabelCanvas(props) {
 
     const context = canvas.current.getContext('2d');
     context.fillStyle = 'blue';
-    context.clearRect(0, 0, canvas.current.width, canvas.current.height); //clear canvas
+    // context.clearRect(0, 0, canvas.current.width, canvas.current.height); //clear canvas
     context.beginPath();
     let rwidth = newPosition.x - originalPosition.x;
     let rheight = newPosition.y - originalPosition.y;
@@ -190,29 +189,63 @@ function MLLabelCanvas(props) {
   };
 
   const drawEllipse = (originalPosition, newPosition) => {
+    // console.log('drawing-ellipse');
     if (!canvas.current) {
       return null;
     }
 
     const context = canvas.current.getContext('2d');
+    let thinkness = MLMethod.params.thickness ?? props.strokeWidth;
     context.fillStyle = 'blue';
-    context.clearRect(0, 0, canvas.current.width, canvas.current.height); //clear canvas
+    context.lineWidth = thinkness;
+    let minX = Math.min(originalPosition.x, newPosition.x);
+    let minY = Math.min(originalPosition.y, newPosition.y);
+    context.clearRect(
+      minX - thinkness,
+      minY - thinkness,
+      Math.abs(newPosition.x - originalPosition.x) + 2 * thinkness,
+      Math.abs(newPosition.y - originalPosition.y) + 2 * thinkness,
+    ); //clear canvas
     context.beginPath();
     let radiusX = (newPosition.x - originalPosition.x) / 2;
     let radiusY = (newPosition.y - originalPosition.y) / 2;
     let centerX = originalPosition.x + radiusX;
     let centerY = originalPosition.y + radiusY;
-    context.ellipse(
-      centerX,
-      centerY,
-      Math.abs(radiusX),
-      Math.abs(radiusY),
-      0,
-      0,
-      2 * Math.PI,
-    );
+    // context.ellipse(
+    //   centerX,
+    //   centerY,
+    //   Math.abs(radiusX),
+    //   Math.abs(radiusY),
+    //   0,
+    //   0,
+    //   2 * Math.PI,
+    // );
+
+    let angleStep = 0.05,
+      angle = angleStep;
+    let _mouseTrack = [...mouseTrack];
+    context.moveTo(centerX + radiusX, centerY); // start at angle 0
+    _mouseTrack.push({
+      x: centerX + radiusX,
+      y: centerY,
+    });
+    while (angle < Math.PI * 2) {
+      context.lineTo(
+        centerX + radiusX * Math.cos(angle),
+        centerY + radiusY * Math.sin(angle),
+      );
+
+      _mouseTrack.push({
+        x: centerX + radiusX * Math.cos(angle),
+        y: centerY + radiusY * Math.sin(angle),
+      });
+
+      angle += angleStep;
+    }
+    context.closePath();
     context.strokeStyle = getActiveColor();
     context.stroke();
+    setMouseTrack(_mouseTrack);
     handleDraw(context.getImageData(0, 0, width, height));
   };
 

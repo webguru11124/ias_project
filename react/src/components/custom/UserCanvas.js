@@ -45,10 +45,13 @@ function Usercanvas(props) {
       // let temp_border = get_roi_border(i);
       if (check_roi_valid(i, pos, new_pos) === true) {
         outlines[i] = {
-          line: outlines[i].line, show: !outlines[i].show
-        }
+          line: outlines[i].line,
+          show: !outlines[i].show,
+        };
         selected_rois.push(i);
-        selected_rois = selected_rois.filter( item => outlines[item].show === false)
+        selected_rois = selected_rois.filter(
+          (item) => outlines[item].show === false,
+        );
         localStorage.setItem('CANV_ROIS', selected_rois);
       }
     }
@@ -121,7 +124,7 @@ function Usercanvas(props) {
       let maxY = 0;
       for (let j = 0; j < track.length; j++) {
         let x = track[j].x;
-        let y = track[j].y
+        let y = track[j].y;
         if (x >= maxX) maxX = x;
         if (x <= minX) minX = x;
         if (y >= maxY) maxY = y;
@@ -134,22 +137,23 @@ function Usercanvas(props) {
         maxY: Math.floor(maxY),
       };
     }
-  }
+  };
 
   function rectanglesOverlap(rect1, rect2) {
-    let x1 = rect1.minX; let y1 = rect1.minY;
-    let w1 = rect1.maxX - rect1.minX; let h1 = rect1.maxY - rect1.minY;
-    let x2 = rect2.minX; let y2= rect2.minY;
-    let w2 = rect2.maxX - rect2.minX; let h2 = rect2.maxY - rect2.minY;
-    return x1 < x2 + w2 &&
-           x1 + w1 > x2 &&
-           y1 < y2 + h2 &&
-           h1 + y1 > y2;
+    let x1 = rect1.minX;
+    let y1 = rect1.minY;
+    let w1 = rect1.maxX - rect1.minX;
+    let h1 = rect1.maxY - rect1.minY;
+    let x2 = rect2.minX;
+    let y2 = rect2.minY;
+    let w2 = rect2.maxX - rect2.minX;
+    let h2 = rect2.maxY - rect2.minY;
+    return x1 < x2 + w2 && x1 + w1 > x2 && y1 < y2 + h2 && h1 + y1 > y2;
   }
 
   const contains = (a, b) =>
     a.x1 <= b.x1 && a.y1 <= b.y1 && a.x2 >= b.x2 && a.y2 >= b.y2;
-  
+
   const check_duplicate = (arr1, arr2) => {
     let dump = {};
     let line_dump = [];
@@ -158,28 +162,28 @@ function Usercanvas(props) {
     for (let j = 0; j < temp_row.length; j += 2) {
       let x = Math.floor(temp_row[j] * Math.pow(2, zoom));
       let y = Math.floor(temp_row[j + 1] * Math.pow(2, zoom));
-      line_dump.push({x: x, y: y});
+      line_dump.push({ x: x, y: y });
     }
     let myPath = line_dump;
     line_dump = Array.from(new Set(myPath.map(JSON.stringify))).map(JSON.parse);
-    myPath= arr1;
+    myPath = arr1;
     // arr1 = Array.from(new Set(myPath.map(JSON.stringify))).map(JSON.parse);
     // console.log('arr1', arr1);
     // console.log('arr2', line_dump);
     let count = 0;
-    for (let i = 0; i < arr1.length ; i++) {
-      if(!dump[arr1[i]]) {
+    for (let i = 0; i < arr1.length; i++) {
+      if (!dump[arr1[i]]) {
         const element = arr1[i];
         dump[element] = true;
       }
     }
-    for (let j= 0 ; j < line_dump.length ; j++) {
-      if(dump[line_dump[j]]) {
-        count ++;
+    for (let j = 0; j < line_dump.length; j++) {
+      if (dump[line_dump[j]]) {
+        count++;
       }
     }
     return count;
-  }
+  };
 
   const onDown = useCallback((event) => {
     if (event.button === 0) {
@@ -200,11 +204,11 @@ function Usercanvas(props) {
     let draw_style = localStorage.getItem('CANV_STYLE');
     // console.log('track', mouse_track);
     if (draw_style === 'user_custom_area') {
-      console.log('final-track', mouse_track);
+      // console.log('final-track', mouse_track);
       for (let i in outlines) {
-        let count= check_duplicate(mouse_track,  outlines[i]);
-        if(count > 0) {
-          console.log('duplicate', i)
+        let count = check_duplicate(mouse_track, outlines[i]);
+        if (count > 0) {
+          // console.log('duplicate', i)
         }
       }
     }
@@ -239,18 +243,18 @@ function Usercanvas(props) {
         const newPosition = getCoordinates(event);
         let draw_style = localStorage.getItem('CANV_STYLE');
         if (position && newPosition) {
-          if (draw_style === "user_custom_area") {
+          if (draw_style === 'user_custom_area') {
             drawLine(position, newPosition);
             setPosition(newPosition);
-          } else if (draw_style === "user_custom_rectangle") {
+          } else if (draw_style === 'user_custom_rectangle') {
             drawRectangle(position, newPosition);
             get_selected_rois(position, newPosition);
             drawOutlines();
-          } else if (draw_style === "user_custom_ellipse") {
+          } else if (draw_style === 'user_custom_ellipse') {
             drawEllipse(position, newPosition);
             get_selected_rois(position, newPosition);
             drawOutlines();
-          } else if (draw_style == "user_custom_eraser") {
+          } else if (draw_style == 'user_custom_eraser') {
             Eraser(position, newPosition);
             setPosition(newPosition);
           }
@@ -271,11 +275,11 @@ function Usercanvas(props) {
       // context.strokeStyle = activeColor
       const track = [...mouse_track, originalPosition];
       setMouseTrack(track);
-      context.globalCompositeOperation="source-over";
+      context.globalCompositeOperation = 'source-over';
       context.lineJoin = 'round';
       context.beginPath();
-      context.lineWidth = "15";
-      context.strokeStyle = "red";
+      context.lineWidth = '15';
+      context.strokeStyle = 'red';
       context.moveTo(originalPosition.x, originalPosition.y);
       context.lineTo(newPosition.x, newPosition.y);
       context.closePath();
@@ -286,10 +290,17 @@ function Usercanvas(props) {
   const Eraser = (originalPosition, newPosition) => {
     const context = canvas.current.getContext('2d');
     context.beginPath();
-    context.globalCompositeOperation="destination-out";
-    context.arc(originalPosition.x,originalPosition.y,8,0,Math.PI*2,false);
+    context.globalCompositeOperation = 'destination-out';
+    context.arc(
+      originalPosition.x,
+      originalPosition.y,
+      8,
+      0,
+      Math.PI * 2,
+      false,
+    );
     context.fill();
-  }
+  };
 
   const drawRectangle = (originalPosition, newPosition) => {
     if (!canvas.current) {
@@ -299,8 +310,8 @@ function Usercanvas(props) {
     const context = canvas.current.getContext('2d');
     context.clearRect(0, 0, canvas.current.width, canvas.current.height); //clear canvas
     context.beginPath();
-    context.lineWidth = "2";
-    context.strokeStyle = "red";
+    context.lineWidth = '2';
+    context.strokeStyle = 'red';
     let rwidth = newPosition.x - originalPosition.x;
     let rheight = newPosition.y - originalPosition.y;
     context.rect(originalPosition.x, originalPosition.y, rwidth, rheight);
@@ -315,8 +326,8 @@ function Usercanvas(props) {
     const context = canvas.current.getContext('2d');
     context.clearRect(0, 0, canvas.current.width, canvas.current.height); //clear canvas
     context.beginPath();
-    context.lineWidth = "2";
-    context.strokeStyle = "red";
+    context.lineWidth = '2';
+    context.strokeStyle = 'red';
     let radiusX = (newPosition.x - originalPosition.x) / 2;
     let radiusY = (newPosition.y - originalPosition.y) / 2;
     let centerX = originalPosition.x + radiusX;
@@ -358,21 +369,23 @@ function Usercanvas(props) {
     // }
     const state = store.getState();
     let imgPath = '';
-    if(typeof state.files.imagePathForAvivator === 'string') {
+    if (typeof state.files.imagePathForAvivator === 'string') {
       imgPath = state.files.imagePathForAvivator;
-    }
-    else if (typeof state.files.imagePathForAvivator === 'object') {
+    } else if (typeof state.files.imagePathForAvivator === 'object') {
       imgPath = state.files.imagePathForAvivator[0].path;
     }
     let exp_name = imgPath.split('/');
-    let result = await api_experiment.get_mask_path(
-      imgPath,
-      exp_name
-    );
+    let result = await api_experiment.get_mask_path(imgPath, exp_name);
     const image = new Image();
     image.src = result.data.success;
     image.onload = () => {
-      context.drawImage(image, 0, 0, canvas.current.width, canvas.current.height);
+      context.drawImage(
+        image,
+        0,
+        0,
+        canvas.current.width,
+        canvas.current.height,
+      );
     };
     image.setAttribute('crossorigin', 'anonymous');
   };
@@ -388,21 +401,20 @@ function Usercanvas(props) {
   }, []);
 
   const ContextItem = async (item, model) => {
-    if(item === 'train') {
-      if(model === null) {
+    if (item === 'train') {
+      if (model === null) {
         alert('Please select the model by doing cell segment');
         return;
       }
       const state = store.getState();
       let imgPath = '';
-      if(typeof state.files.imagePathForAvivator === 'string') {
+      if (typeof state.files.imagePathForAvivator === 'string') {
         imgPath = state.files.imagePathForAvivator;
-      }
-      else if (typeof state.files.imagePathForAvivator === 'object') {
+      } else if (typeof state.files.imagePathForAvivator === 'object') {
         imgPath = state.files.imagePathForAvivator[0].path;
       }
       let exp_name = imgPath.split('/');
-      let mask_info = canvas.current.toDataURL("image/png");
+      let mask_info = canvas.current.toDataURL('image/png');
       let result = await api_experiment.upload_mask(
         imgPath,
         exp_name,
@@ -412,28 +424,28 @@ function Usercanvas(props) {
       setContext(false);
       useFlagsStore.setState({ DialogTrainingFlag: true });
     }
-    if(item === 'clear') {
+    if (item === 'clear') {
       const context = canvas.current.getContext('2d');
       context.clearRect(0, 0, canvas.current.width, canvas.current.height); //clear canvas
       localStorage.setItem('CANV_ROIS', '');
       selected_rois = [];
       setContext(false);
     }
-    if(item === 'close') {
+    if (item === 'close') {
       useFlagsStore.setState({ UserCanvasFlag: false });
       localStorage.setItem('CANV_ROIS', '');
       selected_rois = [];
       setContext(false);
     }
-    if(item === 'eraser') {
+    if (item === 'eraser') {
       localStorage.setItem('CANV_STYLE', 'user_custom_eraser');
       setContext(false);
     }
-    if(item === 'drawing') {
+    if (item === 'drawing') {
       localStorage.setItem('CANV_STYLE', 'user_custom_area');
       setContext(false);
     }
-  }
+  };
 
   useEffect(() => {
     localStorage.setItem('CANV_ROIS', '');
@@ -473,12 +485,14 @@ function Usercanvas(props) {
         width={width}
         height={height}
       />
-      {context && <DLRightContext 
-        left={contLeft} 
-        top={contTop} 
-        handleItem={ContextItem} 
-        selectedModel={props.selectedModel}
-      />}
+      {context && (
+        <DLRightContext
+          left={contLeft}
+          top={contTop}
+          handleItem={ContextItem}
+          selectedModel={props.selectedModel}
+        />
+      )}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useSelector } from 'react-redux';
 import Slider from '@mui/material/Slider';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
@@ -11,6 +12,7 @@ import LightModeIcon from '@mui/icons-material/LightMode';
 import ContrastIcon from '@mui/icons-material/Contrast';
 import { useChannelsStore } from '@/state';
 import styled from '@emotion/styled';
+import store from '@/reducers';
 
 const PARAMS = [
   {
@@ -47,15 +49,35 @@ const ParamItem = styled(Grid)`
 
 export default function ImageAdjust() {
   const channelState = useChannelsStore((state) => state);
+  const imageAdjustData = useSelector(
+    (state) => state.measure.image_adjust_data,
+  );
   const { setPropertiesForChannel, selectedChannel: channel } = channelState;
 
   const handleSlide = (event, newValue) => {
+    let specificField = imageAdjustData[[event.target.name]];
+    specificField[[channel]] = newValue ? Number(newValue) : 0;
+    store.dispatch({
+      type: 'UPDATE_MEASURE_IMAGE_ADJUST_DATA',
+      payload: {
+        [event.target.name]: specificField,
+      },
+    });
     setPropertiesForChannel(channel, {
       [event.target.name]: newValue ? Number(newValue) : 0,
     });
   };
   const handleInput = (event) => {
     const newValue = Number(event.target.value);
+    let specificField = imageAdjustData[[event.target.name]];
+    specificField[[channel]] = newValue;
+
+    store.dispatch({
+      type: 'UPDATE_MEASURE_IMAGE_ADJUST_DATA',
+      payload: {
+        [event.target.name]: specificField,
+      },
+    });
     setPropertiesForChannel(channel, { [event.target.name]: newValue ?? 0 });
   };
 

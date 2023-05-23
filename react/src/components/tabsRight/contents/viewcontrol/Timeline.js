@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { Col, Container } from 'react-bootstrap';
 // import Slider from '@mui/material/Slider';
 import { styled } from '@mui/material/styles';
@@ -64,7 +65,7 @@ const Timeline = (props) => {
   const [value, setValue] = useState(0);
   const [minSlider, setMinSlider] = useState(0);
   const [maxSlider, setMaxSlider] = useState(10);
-
+  const zposition = useSelector((state) => state.measure.zposition);
   const [selections, setPropertiesForChannel] = useChannelsStore(
     (store) => [store.selections, store.setPropertiesForChannel],
     shallow,
@@ -76,10 +77,17 @@ const Timeline = (props) => {
         useViewerStore.setState({
           isChannelLoading: selections.map(() => true),
         });
+        store.dispatch({
+          type: 'UPDATE_MEASURE_ZPOSITION',
+          payload: {
+            [label]: newValue,
+          },
+        });
         const newSelections = [...selections].map((sel) => ({
           ...sel,
           [label]: newValue,
         }));
+
         getMultiSelectionStats({
           loader,
           selections: newSelections,

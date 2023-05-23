@@ -18,7 +18,6 @@ import * as Icon from './ModelIcons';
 import { toTiffPath } from '@/helpers/avivator';
 import { getImageUrl } from '@/helpers/file';
 
-
 function TabContainer(props) {
   return (
     <Typography component="div" style={{ padding: 0 }}>
@@ -39,10 +38,9 @@ const CustomDialog = () => {
   );
 
   const showCustomNameDialog = async () => {
-    if(LockFlag) {
+    if (LockFlag) {
       useFlagsStore.setState({ DialogLockFlag: true });
-    }
-    else {
+    } else {
       const state = store.getState();
       if (isNull(state.files.imagePathForAvivator)) {
         alert('Please enter your image file!');
@@ -55,10 +53,9 @@ const CustomDialog = () => {
       }
 
       let imgPath = '';
-      if(typeof state.files.imagePathForAvivator === 'string') {
+      if (typeof state.files.imagePathForAvivator === 'string') {
         imgPath = state.files.imagePathForAvivator;
-      }
-      else if (typeof state.files.imagePathForAvivator === 'object') {
+      } else if (typeof state.files.imagePathForAvivator === 'object') {
         imgPath = state.files.imagePathForAvivator[0].path;
       }
       let exp_name = imgPath.split('/');
@@ -68,7 +65,7 @@ const CustomDialog = () => {
         imgPath,
         exp_name,
         selectedIcon,
-        );
+      );
       let imagePathForAvivator = null;
       if (result.data.error) {
         //alert("Error occured while getting the tree")
@@ -81,10 +78,10 @@ const CustomDialog = () => {
           return;
         }
         let file_path = result.data.success;
-        exp_name = exp_name[exp_name.length-2];
-        console.log('exp_name', exp_name);
+        exp_name = exp_name[exp_name.length - 2];
+        // console.log('exp_name', exp_name);
         const file = await getImageUrl(exp_name + '/' + file_path, true, true);
-        if (file) imagePathForAvivator = file
+        if (file) imagePathForAvivator = file;
       }
       // if (imagePathForAvivator.length <= 0) imagePathForAvivator = null;
       store.dispatch({
@@ -161,7 +158,7 @@ const CustomDialog = () => {
     noun19: Icon.imgNoun19,
     noun20: Icon.imgNoun20,
     noun21: Icon.imgNoun21,
-    noun22: Icon.imgNoun22
+    noun22: Icon.imgNoun22,
   };
 
   const [selectedIcon, setSelectedIcon] = useState('');

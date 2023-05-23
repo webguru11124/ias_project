@@ -16,7 +16,7 @@ export default function Objective(prop) {
   useEffect(() => {
     if (prop.value !== undefined) {
       setActiveButton(prop.value);
-      //console.log(prop.value);
+      // console.log(prop.value);
     }
   }, [prop]);
 

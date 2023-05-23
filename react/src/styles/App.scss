@@ -520,3 +520,54 @@ h6 {
 p {
     margin-bottom: 0 !important;
 }
+
+.card {
+    &.has-title {
+        min-height: 30px;
+        margin-top: 10px;
+        position: relative;
+
+        .card-title {
+            position: absolute;
+            top: -13px;
+            left: 10px;
+
+            label {
+                background: white;
+                padding: 0 10px;
+            }
+        }
+    }
+}
+
+.flex-input-container {
+    display: flex;
+
+    .MuiInputBase-root {
+        margin-left: 10px;
+        border: 1px solid;
+    }
+}
+
+.aaa {
+    position: static !important;
+    height: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+}
+
+.ant-modal-body {
+    border-top: 1px solid #e0e0e0;
+    margin-top: 15px;
+    padding-top: 10px;
+}
+
+.ant-modal-footer {
+    border-top: 1px solid #e2e2e2;
+    padding-top: 10px;
+}
+
+.ml-popup-body {
+    max-height: calc(100vh - 300px);
+    overflow-y: scroll;
+}

@@ -245,6 +245,8 @@ const DEFAUlT_FLAG_STATE = {
   MLDialogMethodSelectFlag: false, //added by QmQ
   MLDialogFeatureSelectFlag: false, //added by QmQ
   MLDialogLabelSelectFlag: false, //added by QmQ
+  IsMLAdvance: false, //added by JL
+  MLDialogICTSelectFlag: false, //added by JL
 };
 
 export const useFlagsStore = create((set) => ({

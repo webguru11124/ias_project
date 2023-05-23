@@ -19,8 +19,7 @@ from mainApi.app.auth.models.user import CreateUserModel, CreateUserReplyModel
 from mainApi.app.db.mongodb import get_database, get_database_client
 from mainApi.app.db.mongodb_utils import connect_to_mongo, close_mongo_connection
 from mainApi.app.images.sub_routers.tile.models import TileModelDB
-from mainApi.app.images.sub_routers.tile.routers import upload_image_tiles
-from mainApi.app.images.utils.file import add_image_tiles
+# from mainApi.app.images.utils.file import add_image_tiles
 from mainApi.app.main import app
 from mainApi.config import MONGO_DB_NAME, CACHE_PATH
 
@@ -114,25 +113,25 @@ async def other_created_user(other_user_to_create, db) -> CreateUserReplyModel:
     yield created_user
 
 
-@pytest.fixture(scope="function")
-async def tiles(db, created_user) -> List[TileModelDB]:
-
-    test_tile_folder = Path("./test_image_tiles/")
-    file_paths = glob.glob(str(test_tile_folder.absolute()) + '/*')
-    files = [open(path, 'rb') for path in file_paths]
-
-    upload_files = []
-    for file in files:
-        upload_files.append(UploadFile(filename=os.path.basename(file.name), file=file, content_type="image/tiff"))
-
-    tiles: List[TileModelDB] = await add_image_tiles(files=upload_files,
-                                                     clear_previous=True,
-                                                     current_user=created_user.user,
-                                                     db=db)
-
-    yield tiles
-
-    folder_path = Path(tiles[0].absolute_path).parent.parent
-    shutil.rmtree(str(folder_path)) # delete the folder
+# @pytest.fixture(scope="function")
+# async def tiles(db, created_user) -> List[TileModelDB]:
+#
+#     test_tile_folder = Path("./test_image_tiles/")
+#     file_paths = glob.glob(str(test_tile_folder.absolute()) + '/*')
+#     files = [open(path, 'rb') for path in file_paths]
+#
+#     upload_files = []
+#     for file in files:
+#         upload_files.append(UploadFile(filename=os.path.basename(file.name), file=file, content_type="image/tiff"))
+#
+#     tiles: List[TileModelDB] = await add_image_tiles(files=upload_files,
+#                                                      clear_previous=True,
+#                                                      current_user=created_user.user,
+#                                                      db=db)
+#
+#     yield tiles
+#
+#     folder_path = Path(tiles[0].absolute_path).parent.parent
+#     shutil.rmtree(str(folder_path)) # delete the folder
 
 

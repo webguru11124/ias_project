@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AccordionSummary,
   Accordion,
@@ -21,6 +21,9 @@ import { mdiImageCheck } from '@mdi/js';
 
 import { COLORS } from '@/constants';
 import '@/styles/ML.css';
+import { useSelector } from 'react-redux';
+import store from '@/reducers';
+import { useViewerStore } from '@/state';
 
 export default function DLMLTab() {
   const [expanded, setExpanded] = useState(false);
@@ -28,10 +31,33 @@ export default function DLMLTab() {
   const handleChange = (panel) => (event, isExpanded) => {
     setExpanded(isExpanded ? panel : false);
   };
+  const imagePathForOrigin = useSelector(
+    (state) => state.files.imagePathForOrigin,
+  );
+  const imagePathForResult = useSelector(
+    (state) => state.files.imagePathForResult,
+  );
+
+  useEffect(() => {
+    if (imagePathForResult) {
+      setViewMode('processed');
+    }
+  }, [imagePathForResult]);
 
   const handleChangeViewMode = (e, newViewMode) => {
     e.stopPropagation();
     setViewMode(newViewMode);
+    if (newViewMode === 'original') {
+      store.dispatch({
+        type: 'set_image_path_for_avivator',
+        content: imagePathForOrigin,
+      });
+    } else {
+      store.dispatch({
+        type: 'set_image_path_for_avivator',
+        content: imagePathForResult,
+      });
+    }
   };
 
   return (
@@ -90,6 +116,7 @@ export default function DLMLTab() {
                 className="toggleBtn"
                 value="processed"
                 aria-label="module"
+                disabled={!imagePathForResult}
               >
                 <Icon path={mdiImageCheck} size={1} color={COLORS.LIGHT_CYAN} />
               </ToggleButton>

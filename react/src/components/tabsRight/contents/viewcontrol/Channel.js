@@ -134,16 +134,18 @@ const Channel = (prop) => {
     if (prop.content && channels && prop.content.length > 0) {
       const tempChannels = prop.content[0].channels;
 
-      channels.map((channel, id) => {
-        if (tempChannels[id] === 1) {
-          channel.visible = true;
-          channel.disabled = false;
-          //setChannleVisible(id);
-        } else {
-          channel.visible = false;
-          channel.disabled = true;
-        }
-      });
+      if (tempChannels !== undefined) {
+        channels.map((channel, id) => {
+          if (tempChannels[id] === 1) {
+            channel.visible = true;
+            channel.disabled = false;
+            //setChannleVisible(id);
+          } else {
+            channel.visible = false;
+            channel.disabled = true;
+          }
+        });
+      }
     }
   }, [prop]);
 

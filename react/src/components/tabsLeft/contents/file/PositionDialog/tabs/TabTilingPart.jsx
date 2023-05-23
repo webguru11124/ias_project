@@ -120,6 +120,11 @@ const TabTiling = (props) => {
   // the editing list corresponding to well hole
   const [holeImageList, setHoleImageList] = useState([]);
 
+  //the channel type
+  const [selectedImageChannel, setSelectedImageChannel] = useState([]);
+  const [selectedImageTime, setSelectedImageTime] = useState(0);
+  const [selectedImageZ, setSelectedImageZ] = useState(0);
+
   //Get the image of ome tiff file extension from the original url
   const getOmeTiffUrl = (url) => {
     //console.log(tiles);
@@ -214,14 +219,24 @@ const TabTiling = (props) => {
       }
       setInfoMessage(`${tiles.length} images are loaded.`);
 
-      let tile = tiles[0];
+      const sortedTiles = tiles.sort((a, b) =>
+        a.filename.localeCompare(b.filename),
+      );
+
+      let tile = sortedTiles[0];
 
       if (tile) {
-        if (tile.row || tile.col || tile.series) {
+        if (
+          tile.row !== undefined &&
+          tile.col !== undefined &&
+          tile.series !== undefined &&
+          tile.series !== '' &&
+          tile.col !== ''
+        ) {
           getVesselType();
           let newContent = [];
 
-          tiles.map((tile) => {
+          sortedTiles.map((tile) => {
             let tempContent = {};
             tempContent.z = tile.z;
             tempContent.time = tile.time;
@@ -237,7 +252,7 @@ const TabTiling = (props) => {
         } else {
           let newContent = [];
 
-          tiles.map((tile) => {
+          sortedTiles.map((tile) => {
             let tempContent = {};
             tempContent.z = 0;
             tempContent.time = 0;
@@ -253,8 +268,7 @@ const TabTiling = (props) => {
           store.dispatch({ type: 'content_addContent', content: newContent });
         }
       }
-
-      setHoleImageList(tiles);
+      setHoleImageList(sortedTiles);
     }
   }, [tiles]);
 
@@ -303,9 +317,67 @@ const TabTiling = (props) => {
     const hole = props.selectedVesselHole;
 
     if (hole) {
-      if (hole.row !== undefined && hole.col != undefined) {
+      if (hole.row !== undefined && hole.col !== undefined) {
         const lists = getImageList(hole.row, hole.col);
-        setHoleImageList(lists);
+
+        const sortedTiles = lists.sort((a, b) =>
+          a.filename.localeCompare(b.filename),
+        );
+        setHoleImageList(sortedTiles);
+
+        const time = Number(sortedTiles[0].time.split('p')[1]);
+        const channel = Number(sortedTiles[0].channel.split('d')[1]);
+        const tempChannels = [1, 0, 0, 0, 0, 0, 0];
+
+        sortedTiles.map((image) => {
+          const idx = Number(image.channel.split('d')[1]);
+          tempChannels[idx] = 1;
+        });
+
+        const fullList = tiles.sort((a, b) =>
+          a.filename.localeCompare(b.filename),
+        );
+
+        if (
+          fullList[0].strSeries !== undefined &&
+          fullList[0].row !== undefined &&
+          fullList[0].channel !== undefined &&
+          fullList[0].strSeries !== '' &&
+          fullList[0].row !== '' &&
+          fullList[0].channel !== ''
+        ) {
+          let newContent = [];
+          let tempContent = {};
+          tempContent.z = sortedTiles[0].z;
+          tempContent.time = time;
+          tempContent.dimensionChanged = sortedTiles[0].dimensionChanged;
+          tempContent.row = hole.row;
+          tempContent.col = hole.col;
+          tempContent.series = sortedTiles[0].strSeries;
+          tempContent.channel = Number(sortedTiles[0].channel.split('d')[1]);
+          newContent.push(tempContent);
+
+          fullList.map((tile) => {
+            let tempContent = {};
+
+            tempContent.z = tile.z;
+            tempContent.time = time;
+            tempContent.dimensionChanged = tile.dimensionChanged;
+            tempContent.row = tile.row.charCodeAt() - 'A'.charCodeAt();
+            tempContent.col = tile.col;
+            tempContent.series = tile.strSeries;
+            tempContent.channel = Number(tile.channel.split('d')[1]);
+            newContent.push(tempContent);
+          });
+
+          newContent[0].channels = tempChannels;
+
+          store.dispatch({ type: 'content_addContent', content: newContent });
+        }
+
+        //setSelectedImageTime(time);
+        //setSelectedImageZ(lists[0].z);
+        //setSelectedImageChannel(channels);
       }
     }
   }, [props.selectedVesselHole]);
@@ -485,7 +557,7 @@ const TabTiling = (props) => {
     setAlignGapX(event.target.value === '' ? '' : Number(event.target.value));
   };
 
-  const handleAlignViewClicked = () => {};
+  // const handleAlignViewClicked = () => {};
 
   //When the alignment Image buttons are clicked
   const handleAlignment = (event) => {
@@ -592,56 +664,7 @@ const TabTiling = (props) => {
   const handleListContentItemClick = async (event, index) => {
     if (holeImageList.length > 0) {
       setSelectedImageFileIndex(index);
-
       setResultImagePath(getOmeTiffUrl(holeImageList[index].url));
-      let tile = holeImageList[index];
-
-      if (tile.z || tile.row || tile.col || tile.series) {
-        let newContent = [];
-        let tempContent = {};
-        const tempVal = tile.z;
-        tempContent.z = tile.time;
-        tempContent.time = tempVal;
-        tempContent.dimensionChanged = tile.dimensionChanged;
-        tempContent.row = tile.row.charCodeAt() - 'A'.charCodeAt();
-        tempContent.col = tile.col;
-        tempContent.series = tile.strSeries;
-        tempContent.vesselID = vesselType;
-        tempContent.channel = tile.channel;
-        newContent.push(tempContent);
-
-        tiles.map((tile) => {
-          tempContent = {};
-          tempContent.z = tile.z;
-          tempContent.time = tile.time;
-          tempContent.dimensionChanged = tile.dimensionChanged;
-          tempContent.row = tile.row.charCodeAt() - 'A'.charCodeAt();
-          tempContent.col = tile.col;
-          tempContent.series = tile.strSeries;
-          tempContent.channel = tile.channel;
-          newContent.push(tempContent);
-        });
-
-        //console.log(newContent);
-
-        store.dispatch({ type: 'content_addContent', content: newContent });
-      }
-
-      // if (tile.z || tile.row || tile.col || tile.series) {
-      //   let newContent = [];
-      //   let tempContent = {};
-      //   const tempVal = tile.z;
-      //   tempContent.z = tile.time;
-      //   tempContent.time = tempVal;
-      //   tempContent.dimensionChanged = tile.dimensionChanged;
-      //   tempContent.row = tile.row.charCodeAt() - 'A'.charCodeAt();
-      //   tempContent.col = tile.col - 1;
-      //   tempContent.series = tile.strSeries;
-
-      //   newContent.push(tempContent);
-
-      //   store.dispatch({ type: 'content_addContent', content: newContent });
-      // }
     }
   };
 
@@ -662,24 +685,6 @@ const TabTiling = (props) => {
     setInfoMessage(
       'Build Finished. You can see the result Image in result page.',
     );
-  };
-
-  const displayResult = async () => {
-    const canvas = document.getElementById('canvas');
-
-    //Load an OME_TIFF file
-    const filename = tiles[0].url.split('/').pop();
-    const resultpath = tiles[0].url.replace(filename, '') + 'result.ome.tiff';
-
-    const options = { defaultTimePoint: 0 };
-    setInfoMessage('Loading result file, please wait.');
-    const source = await loadOmeTiff(resultpath, options);
-    setInfoMessage('Loading Finished.');
-    const loader = createLoader(resultpath);
-
-    const layer = loader.addOmeTiff(source);
-
-    loader.render();
   };
 
   //When the list item clicked in left tab in the Tiling Part

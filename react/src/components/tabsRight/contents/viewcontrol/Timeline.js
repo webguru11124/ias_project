@@ -49,6 +49,7 @@ const Timeline = (props) => {
   const { isImageLoading } = props;
   const [isLoading, setIsLoading] = useState(false);
   const [sliderRange, setSliderRange] = useState([
+    { value: 0, step: 1 },
     { value: 1, step: 1 },
     { value: 2, step: 1 },
     { value: 3, step: 1 },
@@ -60,8 +61,8 @@ const Timeline = (props) => {
     { value: 9, step: 1 },
     { value: 10, step: 1 },
   ]);
-  const [value, setValue] = useState(1);
-  const [minSlider, setMinSlider] = useState(1);
+  const [value, setValue] = useState(0);
+  const [minSlider, setMinSlider] = useState(0);
   const [maxSlider, setMaxSlider] = useState(10);
 
   const [selections, setPropertiesForChannel] = useChannelsStore(
@@ -136,9 +137,16 @@ const Timeline = (props) => {
   };
 
   const onRefresh = () => {
-    setValue(1);
-    updateTime(1);
+    setValue(0);
+    updateTime(0);
   };
+
+  useEffect(() => {
+    if (props.value !== undefined) {
+      setValue(props.value);
+    }
+  }, [props]);
+
   const onSetting = () => {};
   // const onPlay = () => {
   // }

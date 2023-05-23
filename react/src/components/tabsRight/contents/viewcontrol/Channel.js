@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect, useState } from 'react';
 import Stack from '@mui/material/Stack';
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -22,8 +22,13 @@ import { ChannelColors } from '@/constants/enums';
 import { MAX_CHANNELS } from '@hms-dbmi/viv';
 import { getSingleSelectionStats, randomId } from '@/helpers/avivator';
 import { COLOR_PALETTE } from '@/constants';
+import { connect } from 'react-redux';
 
-const Channel = () => {
+const mapStateToProps = (state) => ({
+  content: state.files.content,
+});
+
+const Channel = (prop) => {
   const loader = useLoader();
   const metadata = useMetadata();
   const { labels } = loader[0];
@@ -125,6 +130,23 @@ const Channel = () => {
     selectChannel(chId);
   };
 
+  useEffect(() => {
+    if (prop.content && channels && prop.content.length > 0) {
+      const tempChannels = prop.content[0].channels;
+
+      channels.map((channel, id) => {
+        if (tempChannels[id] === 1) {
+          channel.visible = true;
+          channel.disabled = false;
+          //setChannleVisible(id);
+        } else {
+          channel.visible = false;
+          channel.disabled = true;
+        }
+      });
+    }
+  }, [prop]);
+
   return (
     <Box px={1}>
       <Typography variant="card-title" gutterBottom>
@@ -187,4 +209,4 @@ const Channel = () => {
   );
 };
 
-export default Channel;
+export default connect(mapStateToProps)(Channel);

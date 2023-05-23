@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SmallCard from '@/components/custom/SmallCard';
 import ObjectiveButton from '@/components/custom/ObjectiveButton';
-export default function Objective() {
+
+export default function Objective(prop) {
   const [activeButton, setActiveButton] = useState(0); //id
 
   const objectives = [
@@ -11,6 +12,13 @@ export default function Objective() {
     { id: 3, m: 40, active: false },
     { id: 4, m: 100, active: false },
   ];
+
+  useEffect(() => {
+    if (prop.value !== undefined) {
+      setActiveButton(prop.value);
+      //console.log(prop.value);
+    }
+  }, [prop]);
 
   const handleClickButton = (e, id) => {
     setActiveButton(id);

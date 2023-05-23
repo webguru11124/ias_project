@@ -1,11 +1,11 @@
 const DEFAULT_PARAMS = {
-  currentVesselType: 'Well',
+  currentVesselType: 'Slide',
   selectedVesselHole: { row: 0, col: 1 },
   selectedVesselZ: 0,
   selectedVesselTime: 0,
   channels: [],
   viewConfigsObj: {},
-  object: 10,
+  object: 0,
   currentVesseelCount: 1,
 };
 
@@ -40,10 +40,11 @@ const vessel = (state = initState, action) => {
       break;
     case 'SET_NULL_VIEW':
       state.channels = [];
-      state.object = 10;
+      state.object = 0;
       break;
     case 'SET_VESSEL_STATUS_COUNT':
       state.currentVesseelCount = action.count;
+
     default:
       break;
   }

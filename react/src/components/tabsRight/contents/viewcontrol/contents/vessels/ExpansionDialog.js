@@ -42,7 +42,7 @@ export const ExpansionDialog = (props) => {
   const [currentVessel, setCurrentVessel] = useState(props.currentVessel);
 
   const handleClose = () => {
-    props.closeDialog();
+    props.closeDialog(areaPercentage);
   };
 
   const changeCurrentVessel = (id) => {
@@ -52,7 +52,7 @@ export const ExpansionDialog = (props) => {
     }
   };
 
-  const [areaPercentage, setAreaPercentage] = useState(30);
+  const [areaPercentage, setAreaPercentage] = useState(props.areaPercentage);
 
   useEffect(() => {
     setOpen(props.open);

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { connect } from 'react-redux';
 import Card from '@mui/material/Card';
 import { getVesselById, VESSELS } from '@/constants/vessel-types';
@@ -24,8 +25,15 @@ const mapStateToProps = (state) => ({
 });
 
 const Vessel = (props) => {
-  const [currentVesselId, setCurrentVesselId] = useState(1);
-  const [currentVessel, setCurrentVessel] = useState(getVesselById(1));
+  const vesselData = useSelector((state) => state.vessel);
+  const measureData = useSelector((state) => state.measure);
+  // console.log("measure Dtata, vessel Data", measureData, measureData.vessel_data)
+
+  const [shape, setShape] = useState('rect'); // ['rect', 'circle']
+  const [currentVesselId, setCurrentVesselId] = useState(
+    measureData.vessel_data.id,
+  );
+  const [currentVessel, setCurrentVessel] = useState(measureData.vessel_data);
   const [showSelectDialog, setShowSelectDialog] = useState(false);
   const [showExpansionDialog, setShowExpansionDialog] = useState(false);
   const [contents, setContents] = useState(props.content ?? []); //added ?? by QmQ
@@ -39,7 +47,20 @@ const Vessel = (props) => {
     });
   }, [currentVessel]);
 
+  // ** measurement view part update  ** QmQ
+  const setCurrentVesselStatus = (id) => {
+    let _currentVesselContent = getVesselById(id);
+    setCurrentVesselId(id);
+    setCurrentVessel(_currentVesselContent);
+
+    store.dispatch({
+      type: 'UPDATE_MEASURE_VESSEL_DATA',
+      payload: _currentVesselContent,
+    });
+  };
+
   const getCorrectVesselID = (seriesStr, maxRow, maxCol) => {
+    // console.log('get correct vessel id', seriesStr, maxRow, maxCol)
     let vesselID = -1;
     let currentVesselTypeGroup = [];
     for (let i = 0; i < VESSELS.length; i++) {
@@ -80,7 +101,7 @@ const Vessel = (props) => {
     }
     if (vesselID === -1) {
       alert('There is no suitable size in VESSEL!');
-      vesselID = 12;
+      vesselID = 1;
     }
     return vesselID;
   };
@@ -115,10 +136,15 @@ const Vessel = (props) => {
       }
     }
     let vesselID = getCorrectVesselID(seriesStr, maxRow + 1, maxCol);
-    setCurrentVessel(getVesselById(vesselID));
-    setCurrentVesselId(vesselID);
+    setCurrentVesselStatus(vesselID);
   };
-
+  const handleExpansionDialogClose = (percentVal) => {
+    store.dispatch({
+      type: 'UPDATE_MEASURE_VESSEL_DATA',
+      payload: { area_percentage: percentVal },
+    });
+    setShowExpansionDialog(false);
+  };
   useEffect(() => {
     if (props.content && props.content !== []) {
       let current_contents = JSON.parse(JSON.stringify(props.content));
@@ -222,8 +248,7 @@ const Vessel = (props) => {
             setShowSelectDialog(false);
           }}
           changeVessel={(id) => {
-            setCurrentVesselId(id);
-            setCurrentVessel(getVesselById(id));
+            setCurrentVesselStatus(id);
           }}
         />
       )}
@@ -231,8 +256,9 @@ const Vessel = (props) => {
         <ExpansionDialog
           currentVessel={currentVesselId}
           open={showExpansionDialog}
-          closeDialog={() => {
-            setShowExpansionDialog(false);
+          areaPercentage={measureData.vessel_data.area_percentage}
+          closeDialog={(percentVal) => {
+            handleExpansionDialogClose(percentVal);
           }}
         />
       )}

@@ -238,12 +238,15 @@ const DEFAUlT_FLAG_STATE = {
   DialogLockFlag: false,
   DialogTrainingFlag: false,
   DialogTargetDrawingFlag: false,
+  LockFlag: false,
   MLCanvasFlag: false, // added by QmQ
   selectedLabel: {}, //added by QmQ
   MLDialogMethodAddFlag: false, //added by QmQ
   MLDialogMethodSelectFlag: false, //added by QmQ
   MLDialogFeatureSelectFlag: false, //added by QmQ
   MLDialogLabelSelectFlag: false, //added by QmQ
+  IsMLAdvance: false, //added by JL
+  MLDialogICTSelectFlag: false, //added by JL
 };
 
 export const useFlagsStore = create((set) => ({

@@ -3,26 +3,26 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import { useFlagsStore } from '@/state';
-import { Row, Col} from 'react-bootstrap';
+import { Row, Col } from 'react-bootstrap';
 import SmallCard from '@/components/custom/SmallCard';
 import CustomButton from '@/components/custom/CustomButton';
 import {
   mdiNearMe,
   mdiPencil,
   mdiCheckboxBlankCircleOutline,
-  mdiDotsVertical,
   mdiVectorRectangle,
-  mdiSquareEditOutline,
-  mdiTrashCanOutline,
+  mdiEraser,
 } from '@mdi/js';
 import store from '@/reducers';
 import * as api_experiment from '@/api/experiment';
 
 const TargetDrawingDialog = () => {
-  const DialogTargetDrawingFlag = useFlagsStore((store) => store.DialogTargetDrawingFlag);
+  const DialogTargetDrawingFlag = useFlagsStore(
+    (store) => store.DialogTargetDrawingFlag,
+  );
   const UserCanvasFlag = useFlagsStore((store) => store.UserCanvasFlag);
   const [password, setPassword] = React.useState('');
-  
+
   const close = () => {
     useFlagsStore.setState({ DialogTargetDrawingFlag: false });
   };
@@ -30,18 +30,16 @@ const TargetDrawingDialog = () => {
   const select1 = async () => {
     const state = store.getState();
     let outlines = state.experiment.canvas_info.outlines;
-    if(outlines.length === 0) {
+    if (outlines.length === 0) {
       outlines = await get_outline();
-      if(outlines === 'NO') {
+      if (outlines === 'NO') {
         alert('Please enter your image file and rocess with cellpose!');
         return;
       }
     }
     let outline_obj = [];
     for (let i in outlines) {
-      outline_obj.push(
-        { line: outlines[i], show: true }
-      )
+      outline_obj.push({ line: outlines[i], show: true });
     }
     let canvas_info = state.experiment.canvas_info;
     let canv_info = {
@@ -60,18 +58,16 @@ const TargetDrawingDialog = () => {
   const select2 = async () => {
     const state = store.getState();
     let outlines = state.experiment.canvas_info.outlines;
-    if(outlines.length === 0) {
+    if (outlines.length === 0) {
       outlines = await get_outline();
-      if(outlines === 'NO') {
+      if (outlines === 'NO') {
         alert('Please enter your image file and rocess with cellpose!');
         return;
       }
     }
     let outline_obj = [];
     for (let i in outlines) {
-      outline_obj.push(
-        { line: outlines[i], show: true }
-      )
+      outline_obj.push({ line: outlines[i], show: true });
     }
     let canvas_info = state.experiment.canvas_info;
     let canv_info = {
@@ -91,18 +87,16 @@ const TargetDrawingDialog = () => {
   const select3 = async () => {
     const state = store.getState();
     let outlines = state.experiment.canvas_info.outlines;
-    if(outlines.length === 0) {
+    if (outlines.length === 0) {
       outlines = await get_outline();
-      if(outlines === 'NO') {
+      if (outlines === 'NO') {
         alert('Please enter your image file and rocess with cellpose!');
         return;
       }
     }
     let outline_obj = [];
     for (let i in outlines) {
-      outline_obj.push(
-        { line: outlines[i], show: true }
-      )
+      outline_obj.push({ line: outlines[i], show: true });
     }
     let canvas_info = state.experiment.canvas_info;
     let canv_info = {
@@ -122,18 +116,45 @@ const TargetDrawingDialog = () => {
   const select4 = async () => {
     const state = store.getState();
     let outlines = state.experiment.canvas_info.outlines;
-    if(outlines.length === 0) {
+    if (outlines.length === 0) {
       outlines = await get_outline();
-      if(outlines === 'NO') {
+      if (outlines === 'NO') {
         alert('Please enter your image file and rocess with cellpose!');
         return;
       }
     }
     let outline_obj = [];
     for (let i in outlines) {
-      outline_obj.push(
-        { line: outlines[i], show: true }
-      )
+      outline_obj.push({ line: outlines[i], show: true });
+    }
+    let canvas_info = state.experiment.canvas_info;
+    let canv_info = {
+      ...canvas_info,
+      draw_style: 'user_custom_eraser',
+      outlines: outline_obj,
+    };
+    store.dispatch({
+      type: 'set_canvas',
+      content: canv_info,
+    });
+    localStorage.setItem('CANV_STYLE', 'user_custom_eraser');
+    useFlagsStore.setState({ UserCanvasFlag: true });
+    useFlagsStore.setState({ DialogTargetDrawingFlag: false });
+    // console.log("Select-5");
+  };
+  const select5 = async () => {
+    const state = store.getState();
+    let outlines = state.experiment.canvas_info.outlines;
+    if (outlines.length === 0) {
+      outlines = await get_outline();
+      if (outlines === 'NO') {
+        alert('Please enter your image file and rocess with cellpose!');
+        return;
+      }
+    }
+    let outline_obj = [];
+    for (let i in outlines) {
+      outline_obj.push({ line: outlines[i], show: true });
     }
     let canvas_info = state.experiment.canvas_info;
     let canv_info = {
@@ -148,7 +169,6 @@ const TargetDrawingDialog = () => {
     localStorage.setItem('CANV_STYLE', 'user_custom_rectangle');
     useFlagsStore.setState({ UserCanvasFlag: true });
     useFlagsStore.setState({ DialogTargetDrawingFlag: false });
-    // console.log("Select-5");
   };
   const get_outline = async () => {
     const state = store.getState();
@@ -157,10 +177,9 @@ const TargetDrawingDialog = () => {
       return 'NO';
     }
     let imgPath = '';
-    if(typeof state.files.imagePathForAvivator === 'string') {
+    if (typeof state.files.imagePathForAvivator === 'string') {
       imgPath = state.files.imagePathForAvivator;
-    }
-    else if (typeof state.files.imagePathForAvivator === 'object') {
+    } else if (typeof state.files.imagePathForAvivator === 'object') {
       imgPath = state.files.imagePathForAvivator[0].path;
     }
     let exp_name = imgPath.split('/');
@@ -187,7 +206,7 @@ const TargetDrawingDialog = () => {
   return (
     <>
       <Dialog open={DialogTargetDrawingFlag} onClose={close} maxWidth={'450'}>
-        <div className="d-flex border-bottom">
+        <div className="d-flex border-bottom target_drawing_dlg">
           <DialogTitle>Select Method for drawing target area.</DialogTitle>
           <button className="dialog-close-btn" color="primary" onClick={close}>
             &times;
@@ -196,23 +215,26 @@ const TargetDrawingDialog = () => {
         <div className="mx-3 my-2" style={{ width: 450 }}>
           <Row>
             <Col xs={12}>
-            <SmallCard title="Select drawing tools">
-              <div className="d-flex flex-row justify-content-around w-100 ">
-                <CustomButton icon={mdiNearMe} click={() => select1()} />
-                <CustomButton icon={mdiPencil} click={() => select2()} />
-                <CustomButton
-                  icon={mdiCheckboxBlankCircleOutline}
-                  click={() => select3()}
-                />
-                <CustomButton icon={mdiVectorRectangle} click={() => select4()} />
-              </div>
-            </SmallCard>
+              <SmallCard title="Select drawing tools">
+                <div className="d-flex flex-row justify-content-around w-100 ">
+                  <CustomButton icon={mdiNearMe} click={() => select1()} />
+                  <CustomButton icon={mdiPencil} click={() => select2()} />
+                  <CustomButton
+                    icon={mdiCheckboxBlankCircleOutline}
+                    click={() => select3()}
+                  />
+                  <CustomButton icon={mdiEraser} click={() => select4()} />
+                  <CustomButton
+                    icon={mdiVectorRectangle}
+                    click={() => select5()}
+                  />
+                </div>
+              </SmallCard>
             </Col>
           </Row>
         </div>
         <div className="border-top mt-2">
-          <DialogActions>
-          </DialogActions>
+          <DialogActions></DialogActions>
         </div>
       </Dialog>
     </>

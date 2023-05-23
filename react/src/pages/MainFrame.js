@@ -50,10 +50,11 @@ import { useSelector } from 'react-redux';
 
 import LoadingDialog from '@/components/custom/LoadingDialog';
 import UserCanvas from '@/components/custom/UserCanvas';
-import MLLabelCanvas from '@/components/custom/MLLabelCanvas'; 
-import LockScreen from '@/components/custom/LockScreen'; 
-import TrainingDialog from '@/components/tabsLeft/contents/dlml/dialog/TrainingDialog'// added by Wang
+import MLLabelCanvas from '@/components/custom/MLLabelCanvas';
+import LockScreen from '@/components/custom/LockScreen';
+import TrainingDialog from '@/components/tabsLeft/contents/dlml/dialog/TrainingDialog'; // added by Wang
 import TargetDrawingDialog from '@/components/tabsLeft/contents/dlml/dialog/TargetDrawingDialog';
+import MLPopupDialog from '@/components/tabsLeft/contents/dlml/dialog/MLPopupDialog';
 import { useFlagsStore } from '@/state';
 function TabContainer(props) {
   return (
@@ -83,7 +84,7 @@ const darkTheme = createTheme({
   },
 });
 
-const fixedBarHeight = 91;
+const fixedBarHeight = 66; //91=>68
 const MainFrame = (props) => {
   const { currentVesseelCount } = props;
   const [userPage, setUserPage] = useState(false);
@@ -98,8 +99,10 @@ const MainFrame = (props) => {
   const UserCanvasFlag = useFlagsStore((store) => store.UserCanvasFlag);
   const DialogLockFlag = useFlagsStore((store) => store.DialogLockFlag);
   const DialogTrainingFlag = useFlagsStore((store) => store.DialogTrainingFlag);
-  const DialogTargetDrawingFlag = useFlagsStore((store) => store.DialogTargetDrawingFlag); //added by Wang
-  const MLCanvasFlag = useFlagsStore((store) => store.MLCanvasFlag); 
+  const DialogTargetDrawingFlag = useFlagsStore(
+    (store) => store.DialogTargetDrawingFlag,
+  ); //added by Wang
+  const MLCanvasFlag = useFlagsStore((store) => store.MLCanvasFlag);
 
   const imageViewAreaRef = useRef(null);
   const [height, setHeight] = useState(100);
@@ -199,6 +202,27 @@ const MainFrame = (props) => {
                 <img width="116" height="48" src={logo75} alt="Logo" />
               </Typography>
               <div>
+                <IconButton
+                  size="large"
+                  aria-label="account of current user"
+                  aria-controls="menu-appbar"
+                  aria-haspopup="true"
+                  color="inherit"
+                  className="btn btn-sm pt-0 pb-0"
+                  style={{}}
+                  onClick={() => {
+                    setShowChatFlag(!showChatFlag);
+                  }}
+                >
+                  <Icon
+                    size={1}
+                    horizontal
+                    vertical
+                    rotate={180}
+                    color="#EFEFEF"
+                    path={mdiChatQuestionOutline}
+                  ></Icon>
+                </IconButton>
                 <IconButton
                   size="large"
                   aria-label="account of current user"
@@ -604,10 +628,11 @@ const MainFrame = (props) => {
         />
       )}
       {DialogLoadingFlag && <LoadingDialog />}
-      {DialogLockFlag && <LockScreen/>}
-      {DialogTrainingFlag && <TrainingDialog/>}
-      {DialogTargetDrawingFlag && <TargetDrawingDialog/>}
-      <FooterContent />
+      {DialogLockFlag && <LockScreen />}
+      {DialogTrainingFlag && <TrainingDialog />}
+      {DialogTargetDrawingFlag && <TargetDrawingDialog />}
+      {/* <FooterContent /> */}
+      <MLPopupDialog />
     </>
   );
 };

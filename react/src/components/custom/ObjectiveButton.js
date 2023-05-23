@@ -1,6 +1,7 @@
 import React from 'react';
 import objective from '../../assets/images/object.png';
 import { useSelector } from 'react-redux';
+import '@/styles/measure.css';
 
 export default function ObjectiveButton({
   onClick,
@@ -15,9 +16,10 @@ export default function ObjectiveButton({
       <button
         onClick={(e) => onClick(e, id)}
         className={
-          id === activeId && id === vessel.object
-            ? 'px-0 grey border lighten-2'
-            : 'px-0'
+          // id === activeId && id === vessel.object // ** previous code
+          id === activeId // ** modified by ** QmQ
+            ? 'objective-btn objective-btn-active px-0 grey border lighten-2'
+            : 'objective-btn px-0'
         }
         style={{ minHeight: 35, minWidth: 24, color: 'teal', border: 'unset' }}
         disabled={pDisabled}

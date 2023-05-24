@@ -1,5 +1,6 @@
 import h5py
 import json
+import datetime
 
 # with h5py.File('test004.hdf5', 'w') as f:
 #     print('call me 1')
@@ -35,6 +36,10 @@ import json
 
 # def update_h5py_file(data, keyList):
 def update_h5py_file(data, keyList):
+    now = datetime.datetime.now()
+    # Convert to string
+    date_time_str = now.strftime('%Y-%m-%d %H:%M:%S')
+
     print('update h5py file')
     # print(data)
     with h5py.File('measure_result.hdf5', 'w') as f:
@@ -59,8 +64,8 @@ def update_h5py_file(data, keyList):
         # Add Measured_Account attributes
         m_account_setting_group.attrs['Measured_Account_Name'] = 'dimco_pajkic'
         m_account_setting_group.attrs['Measured_Experiment_Name'] = 'first_experiment'
-        m_account_setting_group.attrs['Data_Measurement_Start_Date_Time'] = '2023-05-04 00:00:00'
-        m_account_setting_group.attrs['Data_Measurement_End_Date_Time'] = '2023-05-04 01:00:00'
+        m_account_setting_group.attrs['Data_Measurement_Start_Date_Time'] = date_time_str
+        m_account_setting_group.attrs['Data_Measurement_End_Date_Time'] = date_time_str
         m_account_setting_group.attrs['Data_Measurement_Time'] = 3600
         m_account_setting_group.attrs['Number_of_Series_Measured'] = 1
     f.close()

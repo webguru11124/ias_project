@@ -40,6 +40,44 @@ const LockScreen = () => {
       useFlagsStore.setState({ IsMLAdvance: false });
       if (selectedMethod === 'cyto') {
         useFlagsStore.setState({ MLDialogICTSelectFlag: true });
+      } else if (selectedMethod === 'ipscAdvance') {
+        useFlagsStore.setState({ DialogLoadingFlag: true });
+        let fullPath = state.files.imagePathForAvivator;
+        let subPath = /path=(.*)/.exec(fullPath)[1];
+        let imgPath = subPath.split('/').slice(1).join('/');
+
+        let _payload = {
+          original_image_url: imgPath,
+        };
+        store.dispatch({
+          type: 'UPDATE_ML_MEASURE_PARAMS',
+          payload: {
+            method: 'iPS-TR',
+          },
+        });
+        let res = await api_experiment.MLIPSProcessImage(_payload);
+        // console.log('ICT-result:', res);
+        _payload = {
+          image_path: res.image_path,
+        };
+        res = await api_experiment.MLConvertResult(_payload);
+        // console.log('ICT-convert-result:', res);
+        useFlagsStore.setState({ DialogLoadingFlag: false });
+        let source = getImageUrl(res.image_path, false, true);
+        let source1 = getImageUrl(res.image_count_path, false, true);
+        store.dispatch({ type: 'set_image_path_for_result', content: source });
+        store.dispatch({
+          type: 'set_image_path_for_count_result',
+          content: source1,
+        });
+        store.dispatch({
+          type: 'set_csv_path_for_result',
+          content: res.csv_path,
+        });
+        store.dispatch({
+          type: 'set_image_path_for_avivator',
+          content: source,
+        });
       }
     } else {
       let selectedIcon = state.experiment.current_model.custom_name;

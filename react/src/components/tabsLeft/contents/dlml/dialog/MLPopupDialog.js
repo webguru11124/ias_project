@@ -54,6 +54,13 @@ const MLPopupDialog = (props) => {
     });
   };
 
+  const handleSelect = (e) => {
+    store.dispatch({
+      type: 'UPDATE_ML_POPUP_STATUS',
+      payload: false,
+    });
+  };
+
   const onStart = (event, uiData) => {
     const { clientWidth, clientHeight } = window?.document?.documentElement;
     const targetRect = draggleRef?.current?.getBoundingClientRect();
@@ -131,6 +138,7 @@ const MLPopupDialog = (props) => {
                 <div className="flex justify-content-center">
                   <button
                     key="back"
+                    onClick={handleSelect}
                     className="btn btn-primary"
                     style={{ marginRight: '10px' }}
                   >
@@ -194,7 +202,7 @@ const MLPopupDialog = (props) => {
             </ToggleButtonGroup>
           </div>
           <Channel />
-          <MLContainer />
+          <MLContainer isPopup={true} />
         </div>
       </Modal>
     </>

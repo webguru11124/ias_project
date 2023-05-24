@@ -9,13 +9,13 @@ import MLClassObjectStatus from './contents/dlml/MLClassObjectStatus';
 import { Divider } from 'semantic-ui-react';
 import SmallCard from '../custom/SmallCard';
 
-export default function MLContainer() {
+const MLContainer = (props) => {
   return (
     <>
       <MLMethodSelection />
       <Divider sx={{ padding: '16px 0px' }} />
-      <MLTrainingContainer />
-      <Divider sx={{ padding: '16px 0px' }} />
+      {!props.isPopup && <MLTrainingContainer />}
+      {!props.isPopup && <Divider sx={{ padding: '16px 0px' }} />}
       <div className="pt-2 pl-1" style={{ padding: '2px' }}>
         <div
           className={'mb-2'}
@@ -35,4 +35,6 @@ export default function MLContainer() {
       <MLClassObjectStatus />
     </>
   );
-}
+};
+
+export default MLContainer;

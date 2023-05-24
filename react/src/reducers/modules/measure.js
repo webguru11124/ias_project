@@ -114,7 +114,7 @@ const DEFAULT_PARAMS = {
     area_percentage: 30,
   },
   objective_data: { id: 0, rate: 4 },
-  channel_data: DEFAULT_CHANNEL_DATA,
+  channel_data: [], //DEFAULT_CHANNEL_DATA,
   image_adjust_data: {
     brightness: [0, 0, 0, 0, 0, 0, 0],
     contrast: [0, 0, 0, 0, 0, 0, 0],
@@ -123,6 +123,7 @@ const DEFAULT_PARAMS = {
   zposition: { z: 0, c: 0, t: 0 },
   timeline: null,
   class_setting_data: [],
+  ml_measure_params: {},
 };
 
 const initState = {
@@ -156,10 +157,7 @@ const measure = (state = initState, action) => {
     case 'UPDATE_MEASURE_CHANNEL_DATA':
       return {
         ...state,
-        channel_data: {
-          ...state.channel_data,
-          ...action.payload,
-        },
+        channel_data: action.payload,
       };
     case 'UPDATE_MEASURE_IMAGE_ADJUST_DATA':
       return {
@@ -198,6 +196,11 @@ const measure = (state = initState, action) => {
       return {
         ...state,
         showMLPopup: action.payload,
+      };
+    case 'UPDATE_ML_MEASURE_PARAMS':
+      return {
+        ...state,
+        ml_measure_params: action.payload,
       };
     default:
       return state;

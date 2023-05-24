@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Button } from 'react-bootstrap';
 import SmallCard from '../../../custom/SmallCard';
 import MeasureItemDialog from '../itemSetting/MeasureItemDialog';
@@ -9,22 +10,28 @@ import {
   classSettingRows,
 } from '@/constants/class-setting';
 import SortAreaDialog from '../itemSetting/SortAreaDialog';
-import AccessibleTable from './ClassSettingTable';
+import ClassSettingTable from './ClassSettingTable';
+import * as api_measure from '@/api/measure';
 
 export default function ClassSettingPage() {
   const [showMeasureItemDialog, setShowMeasureItemDialog] = useState(false);
   const [showSortAreaDialog, setShowSortAreaDialog] = useState(false);
+  const measureData = useSelector((state) => state.measure);
 
-  const onClick7 = () => {};
-  const onClick8 = () => {};
-  const onClick9 = () => {};
-  const onClick10 = () => {};
+  const handleGo = async () => {
+    let res = await api_measure.uploadMeasureData(measureData);
+  };
+  const handleStop = () => {};
+  const handleSave = async () => {
+    let res = await api_measure.uploadMeasureData(measureData);
+  };
+  const handleCancel = () => {};
 
   return (
     <>
       <SmallCard title="Class Setting">
-        <Box sx={{ height: 360, width: '100%' }}>
-          <AccessibleTable />
+        <Box sx={{ maxHeight: 360, width: '100%' }}>
+          <ClassSettingTable />
           {/* <DataGrid
             rows={classSettingRows}
             columns={classSettingColumns}
@@ -94,16 +101,16 @@ export default function ClassSettingPage() {
         </Button>
       </SmallCard>
       <SmallCard title="Go">
-        <Button className="btn btn-light btn-sm w-3/12" onClick={onClick7}>
+        <Button className="btn btn-light btn-sm w-3/12" onClick={handleGo}>
           Go
         </Button>
-        <Button className="btn btn-light btn-sm w-3/12" onClick={onClick8}>
+        <Button className="btn btn-light btn-sm w-3/12" onClick={handleStop}>
           Stop
         </Button>
-        <Button className="btn btn-light btn-sm w-3/12" onClick={onClick9}>
+        <Button className="btn btn-light btn-sm w-3/12" onClick={handleSave}>
           Save
         </Button>
-        <Button className="btn btn-light btn-sm w-3/12" onClick={onClick10}>
+        <Button className="btn btn-light btn-sm w-3/12" onClick={handleCancel}>
           Cancel
         </Button>
       </SmallCard>

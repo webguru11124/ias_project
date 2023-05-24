@@ -12,7 +12,9 @@ const DEFAULT_PARAMS = {
   imagePathForAvivator: null,
   imagePathForTree: [],
   imagePathForResult: null,
+  imagePathForCountResult: null,
   imagePathForOrigin: null,
+  csvPathForResult: null,
   selectedFilesForDropZone: '',
 };
 
@@ -54,6 +56,12 @@ const files = (state = initState, action) => {
       break;
     case 'set_image_path_for_result':
       state.imagePathForResult = action.content;
+      break;
+    case 'set_image_path_for_count_result':
+      state.imagePathForCountResult = action.content;
+      break;
+    case 'set_csv_path_for_result':
+      state.csvPathForResult = action.content;
       break;
     case 'set_image_path_for_origin':
       state.imagePathForOrigin = action.content;

@@ -114,7 +114,7 @@ const DEFAULT_PARAMS = {
     area_percentage: 30,
   },
   objective_data: { id: 0, rate: 4 },
-  channel_data: DEFAULT_CHANNEL_DATA,
+  channel_data: [], //DEFAULT_CHANNEL_DATA,
   image_adjust_data: {
     brightness: [0, 0, 0, 0, 0, 0, 0],
     contrast: [0, 0, 0, 0, 0, 0, 0],
@@ -157,10 +157,7 @@ const measure = (state = initState, action) => {
     case 'UPDATE_MEASURE_CHANNEL_DATA':
       return {
         ...state,
-        channel_data: {
-          ...state.channel_data,
-          ...action.payload,
-        },
+        channel_data: action.payload,
       };
     case 'UPDATE_MEASURE_IMAGE_ADJUST_DATA':
       return {

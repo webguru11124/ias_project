@@ -91,8 +91,8 @@ const TabTiling = (props) => {
   //Logs
   const [infoMessage, setInfoMessage] = useState();
 
-  // // get Row, Col, vessel type
-  // const [vesselType, setVesselType] = useState(1);
+  // get Row, Col, vessel type
+  const [vesselType, setVesselType] = useState(1);
 
   // the editing list corresponding to well hole
   const [holeImageList, setHoleImageList] = useState([]);
@@ -116,65 +116,65 @@ const TabTiling = (props) => {
     [tiles],
   );
 
-  // //Get the MaxRow, MaxCol, and VesselType
-  // const getVesselType = () => {
-  //   let maxRow = 0;
-  //   let maxCol = 0;
+  //Get the MaxRow, MaxCol, and VesselType
+  const getVesselType = () => {
+    let maxRow = 0;
+    let maxCol = 0;
 
-  //   tiles.forEach((tile) => {
-  //     let row = tile.row.charCodeAt() - 'A'.charCodeAt();
-  //     if (maxRow < row) maxRow = row;
-  //     if (maxCol < Number(tile.col)) maxCol = Number(tile.col);
-  //   });
+    tiles.forEach((tile) => {
+      let row = tile.row.charCodeAt() - 'A'.charCodeAt();
+      if (maxRow < row) maxRow = row;
+      if (maxCol < Number(tile.col)) maxCol = Number(tile.col);
+    });
 
-  //   let series = tiles[0].strSeries;
+    let series = tiles[0].strSeries;
 
-  //   if (series === '') {
-  //     setVesselType(1);
-  //     return;
-  //   }
+    if (series === '') {
+      setVesselType(1);
+      return;
+    }
 
-  //   if (series.includes('Slide')) {
-  //     if (maxRow + 1 === 1 && maxCol === 1) {
-  //       setVesselType(1);
-  //     }
-  //     if (maxRow + 1 === 1 && maxCol === 2) {
-  //       setVesselType(2);
-  //     }
-  //     if (maxRow + 1 === 1 && maxCol === 4) {
-  //       setVesselType(4);
-  //     }
+    if (series.includes('Slide')) {
+      if (maxRow + 1 === 1 && maxCol === 1) {
+        setVesselType(1);
+      }
+      if (maxRow + 1 === 1 && maxCol === 2) {
+        setVesselType(2);
+      }
+      if (maxRow + 1 === 1 && maxCol === 4) {
+        setVesselType(4);
+      }
 
-  //     return;
-  //   } else if (series.includes('Plate')) {
-  //     if (maxRow + 1 === 2 && maxCol === 2) {
-  //       setVesselType(7);
-  //     }
-  //     if (maxRow + 1 === 2 && maxCol === 3) {
-  //       setVesselType(8);
-  //     }
-  //     if (maxRow + 1 === 3 && maxCol === 4) {
-  //       setVesselType(9);
-  //     }
-  //     if (maxRow + 1 === 4 && maxCol === 6) {
-  //       setVesselType(10);
-  //     }
-  //     if (maxRow + 1 === 6 && maxCol === 8) {
-  //       setVesselType(11);
-  //     }
-  //     if (maxRow + 1 === 8 && maxCol === 12) {
-  //       setVesselType(12);
-  //     }
-  //     if (maxRow + 1 === 16 && maxCol === 24) {
-  //       setVesselType(13);
-  //     }
-  //     return;
-  //   } else {
-  //     setVesselType(14);
-  //   }
+      return;
+    } else if (series.includes('Plate')) {
+      if (maxRow + 1 === 2 && maxCol === 2) {
+        setVesselType(7);
+      }
+      if (maxRow + 1 === 2 && maxCol === 3) {
+        setVesselType(8);
+      }
+      if (maxRow + 1 === 3 && maxCol === 4) {
+        setVesselType(9);
+      }
+      if (maxRow + 1 === 4 && maxCol === 6) {
+        setVesselType(10);
+      }
+      if (maxRow + 1 === 6 && maxCol === 8) {
+        setVesselType(11);
+      }
+      if (maxRow + 1 === 8 && maxCol === 12) {
+        setVesselType(12);
+      }
+      if (maxRow + 1 === 16 && maxCol === 24) {
+        setVesselType(13);
+      }
+      return;
+    } else {
+      setVesselType(14);
+    }
 
-  //   return;
-  // };
+    return;
+  };
 
   // When the tiles reload, set dim by default 1 * tiles.length()
   useEffect(() => {
@@ -200,6 +200,8 @@ const TabTiling = (props) => {
           tile.col !== ''
         ) {
           let newContent = [];
+
+          getVesselType();
 
           sortedTiles.map((tile) => {
             let tempContent = {};
@@ -281,6 +283,48 @@ const TabTiling = (props) => {
   useEffect(() => {
     const hole = props.selectedVesselHole;
 
+    if (vesselType === 1 || vesselType === 2 || vesselType == 4) {
+      const fullList = tiles.sort((a, b) =>
+        a.filename.localeCompare(b.filename),
+      );
+
+      if (
+        fullList[0].strSeries !== undefined &&
+        fullList[0].row !== undefined &&
+        fullList[0].channel !== undefined &&
+        fullList[0].strSeries !== '' &&
+        fullList[0].row !== '' &&
+        fullList[0].channel !== ''
+      ) {
+        let newContent = [];
+
+        fullList.map((tile) => {
+          let tempContent = {};
+
+          tempContent.z = tile.z;
+          tempContent.time = Number(tile.time.split('p')[1]);
+          tempContent.dimensionChanged = tile.dimensionChanged;
+          tempContent.row = tile.row.charCodeAt() - 'A'.charCodeAt();
+          tempContent.col = tile.col;
+          tempContent.series = tile.strSeries;
+          tempContent.channel = Number(tile.channel.split('d')[1]);
+          newContent.push(tempContent);
+        });
+
+        const tempChannels = [1, 0, 0, 0, 0, 0, 0];
+        newContent[0].channels = tempChannels;
+
+        fullList.map((image) => {
+          const idx = Number(image.channel.split('d')[1]);
+          tempChannels[idx] = 1;
+        });
+
+        store.dispatch({ type: 'content_addContent', content: newContent });
+
+        return;
+      }
+    }
+
     if (hole) {
       if (hole.row !== undefined && hole.col !== undefined) {
         const lists = getImageList(hole.row, hole.col);
@@ -290,14 +334,23 @@ const TabTiling = (props) => {
         );
         setHoleImageList(sortedTiles);
 
-        const time = Number(sortedTiles[0].time.split('p')[1]);
-        const channel = Number(sortedTiles[0].channel.split('d')[1]);
         const tempChannels = [1, 0, 0, 0, 0, 0, 0];
+        const time = 0;
+        const channel = 0;
 
-        sortedTiles.map((image) => {
-          const idx = Number(image.channel.split('d')[1]);
-          tempChannels[idx] = 1;
-        });
+        if (
+          sortedTiles[0].time !== undefined &&
+          sortedTiles[0].channel !== undefined &&
+          sortedTiles[0].z != undefined
+        ) {
+          time = Number(sortedTiles[0].time.split('p')[1]);
+          channel = Number(sortedTiles[0].channel.split('d')[1]);
+
+          sortedTiles.map((image) => {
+            const idx = Number(image.channel.split('d')[1]);
+            tempChannels[idx] = 1;
+          });
+        }
 
         const fullList = tiles.sort((a, b) =>
           a.filename.localeCompare(b.filename),
@@ -400,8 +453,14 @@ const TabTiling = (props) => {
       if (tiles.length > 0) {
         if (!tiles[0].field) return tiles;
       }
-      return tiles.sort((a, b) => a.field.localeCompare(b.field));
-    } else return tiles.sort((a, b) => b.field.localeCompare(a.field));
+      return tiles.sort(
+        (a, b) => Number(a.field.split('f')[1]) - Number(b.field.split('f')[1]),
+      );
+    } else {
+      return tiles.sort(
+        (a, b) => Number(b.field.split('f')[1]) - Number(a.field.split('f')[1]),
+      );
+    }
   }, [tiles]);
 
   // return tiles aligned in alignment function
@@ -409,17 +468,28 @@ const TabTiling = (props) => {
     let sortedTiles;
     if (tiles.length > 1 && tiles[0].field) {
       if (sortOrder === SortOrder.ascending) {
-        sortedTiles = sorted.sort((a, b) => a.field.localeCompare(b.field));
+        sortedTiles = sorted.sort(
+          (a, b) =>
+            Number(a.field.split('f')[1]) - Number(b.field.split('f')[1]),
+        );
       } else
-        sortedTiles = sorted.sort((a, b) => b.field.localeCompare(a.field));
+        sortedTiles = sorted.sort(
+          (a, b) =>
+            Number(b.field.split('f')[1]) - Number(a.field.split('f')[1]),
+        );
     } else sortedTiles = sorted;
+
+    //console.log(sortedTiles);
 
     if (!dim) {
       return sortedTiles;
     }
 
+    //console.log(sortedTiles);
+
     const cols = dim[1];
     const rows = dim[0];
+
     let chunks = [];
 
     // if the direction is horizontal

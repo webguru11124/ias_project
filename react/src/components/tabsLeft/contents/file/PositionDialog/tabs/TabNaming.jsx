@@ -164,13 +164,35 @@ export default function TabNaming() {
             result[key] = convertContentStringToInteger(key, tempString);
             resultContent[key] = tempString;
           }
+        } else if (key === 'field') {
+          const str = objectPerFile.filename;
+          const contentArray = str.split('_');
+          const content = contentArray[contentArray.length - 1];
+          const temp = content.split('f')[1];
+          const finalResult = temp.split('d')[0];
+
+          result[key] = 'f' + finalResult;
+          resultContent[key] = 'f' + finalResult;
+        } else if (key === 'channel') {
+          const str = objectPerFile.filename;
+          const contentArray = str.split('_');
+          const content = contentArray[contentArray.length - 1];
+          const temp = content.split('d')[1];
+          const finalResult = temp.split('.')[0];
+
+          result[key] = 'd' + finalResult;
+          resultContent[key] = 'd' + finalResult;
         } else {
           tempString = objectPerFile.filename.substring(
             namePattern[currentIndex].start + moveIndex,
             namePattern[currentIndex].end + moveIndex,
           );
+
           result[key] = convertContentStringToInteger(key, tempString);
           resultContent[key] = tempString;
+
+          // console.log(key);
+          // console.log( result[key]);
         }
       }
     }

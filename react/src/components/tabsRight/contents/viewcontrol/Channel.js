@@ -56,6 +56,7 @@ const Channel = (prop) => {
     addIsChannelLoading,
   } = useViewerStore((store) => store, shallow);
   const measureChannelData = useSelector((state) => state.measure.channel_data);
+  // console.log('------------***', channelsVisible)
   const channels = useMemo(() => {
     const _channels = Object.values(ChannelColors).map(({ rgb, symbol }) => {
       const chId = colors.findIndex((c) => c.toString() === rgb.toString());
@@ -69,6 +70,7 @@ const Channel = (prop) => {
           symbol === ChannelColors.white.symbol ? 'gray' : `rgb(${rgb})`,
       };
     });
+    // console.log('=======****>', _channels)
     store.dispatch({
       type: 'UPDATE_MEASURE_CHANNEL_DATA',
       payload: _channels,

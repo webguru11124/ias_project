@@ -11,10 +11,11 @@ import FormControl from '@mui/material/FormControl';
 import Slider from '@mui/material/Slider';
 import { range } from '@/helpers/avivator';
 import InputBase from '@mui/material/InputBase';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import * as api_experiment from '@/api/experiment';
 import store from '@/reducers';
 import { getImageUrl } from '@/helpers/file';
+import { useSelector } from 'react-redux';
 
 const ICTMethodDialog = () => {
   const DialogICTSelectFlag = useFlagsStore(
@@ -27,33 +28,74 @@ const ICTMethodDialog = () => {
     useFlagsStore.setState({ MLDialogICTSelectFlag: false });
   };
 
+  const imagePathForAvivator = useSelector(
+    (state) => state.files.imagePathForAvivator,
+  );
+
   const handleBackdropClick = (e) => {
     e.stopPropagation();
     return false;
   };
 
+  useEffect(() => {
+    if (imagePathForAvivator) {
+      let path = imagePathForAvivator.toLowerCase();
+      if (path.indexOf('pointa') >= 0) {
+        setType('a');
+      }
+      if (path.indexOf('pointb') >= 0) {
+        setType('b');
+      }
+      if (path.indexOf('pointc') >= 0) {
+        setType('c');
+      }
+      if (path.indexOf('pointd') >= 0) {
+        setType('d');
+      }
+    }
+  }, [imagePathForAvivator]);
+
   const handleSelectedMethod = async () => {
+    useFlagsStore.setState({ MLDialogICTSelectFlag: false });
     const state = store.getState();
     let fullPath = state.files.imagePathForAvivator;
     let subPath = /path=(.*)/.exec(fullPath)[1];
     let imgPath = subPath.split('/').slice(1).join('/');
 
+    useFlagsStore.setState({ DialogLoadingFlag: true });
     let _payload = {
       original_image_url: imgPath,
       type,
       sensitivity,
     };
+    store.dispatch({
+      type: 'UPDATE_ML_MEASURE_PARAMS',
+      payload: {
+        method: 'iCT',
+        type,
+        sensitivity,
+      },
+    });
     let res = await api_experiment.MLICTProcessImage(_payload);
     // console.log('ICT-result:', res);
     _payload = {
       image_path: res.image_path,
     };
     res = await api_experiment.MLConvertResult(_payload);
+    useFlagsStore.setState({ DialogLoadingFlag: false });
     // console.log('ICT-convert-result:', res);
     let source = getImageUrl(res.image_path, false, true);
+    let source1 = getImageUrl(res.image_count_path, false, true);
     store.dispatch({ type: 'set_image_path_for_result', content: source });
+    store.dispatch({
+      type: 'set_image_path_for_count_result',
+      content: source1,
+    });
+    store.dispatch({
+      type: 'set_csv_path_for_result',
+      content: res.csv_path,
+    });
     store.dispatch({ type: 'set_image_path_for_avivator', content: source });
-    useFlagsStore.setState({ MLDialogICTSelectFlag: false });
   };
 
   const handleDaysChange = (event) => {

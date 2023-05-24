@@ -123,6 +123,7 @@ const DEFAULT_PARAMS = {
   zposition: { z: 0, c: 0, t: 0 },
   timeline: null,
   class_setting_data: [],
+  ml_measure_params: {},
 };
 
 const initState = {
@@ -195,6 +196,11 @@ const measure = (state = initState, action) => {
       return {
         ...state,
         showMLPopup: action.payload,
+      };
+    case 'UPDATE_ML_MEASURE_PARAMS':
+      return {
+        ...state,
+        ml_measure_params: action.payload,
       };
     default:
       return state;

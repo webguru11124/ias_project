@@ -571,3 +571,7 @@ p {
     max-height: calc(100vh - 300px);
     overflow-y: scroll;
 }
+
+.ant-modal {
+    z-index: 10000;
+}

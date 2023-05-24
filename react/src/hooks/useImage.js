@@ -33,11 +33,16 @@ export const useImage = (source) => {
       useViewerStore.setState({ isViewerLoading: true });
       store.dispatch({ type: 'image_loading_state_change', content: true });
       if (use3d) toggleUse3d();
+
+      //console.log(source);
+
       const newLoader = await createLoader(source, (message) => {
         useViewerStore.setState({
           loaderErrorSnackbar: { on: true, message },
         });
       });
+
+      //console.log(newLoader);
 
       let nextMeta;
       let nextLoader;
@@ -50,8 +55,10 @@ export const useImage = (source) => {
           nextLoader = newLoader[0].data;
         }
       } else {
-        nextMeta = newLoader.metadata;
-        nextLoader = newLoader.data;
+        try {
+          nextMeta = newLoader.metadata;
+          nextLoader = newLoader.data;
+        } catch {}
       }
 
       if (nextLoader) {

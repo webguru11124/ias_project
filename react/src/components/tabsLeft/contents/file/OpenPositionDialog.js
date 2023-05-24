@@ -1296,6 +1296,9 @@ const OpenPositionDialog = (props) => {
   // };
 
   const handleSetSetting = async () => {
+    //console.log("This lines are here");
+    //console.log(contents);
+
     if (contents !== [] && contents !== null && contents !== undefined) {
       await api_tiles.updateNameFile(JSON.parse(JSON.stringify(contents)));
       store.dispatch({
@@ -1442,6 +1445,31 @@ const OpenPositionDialog = (props) => {
               Set
             </Button>
           )}
+          {selectedTab === 5 && (
+            <TabContainer>
+              <div className="d-flex">
+                <Button
+                  className="cloud-btn"
+                  variant="contained"
+                  onClick={props.setCloudDialog}
+                  color="primary"
+                  style={{
+                    height: 'fit-content',
+                    margin: '10px',
+                    marginTop: '50px',
+                  }}
+                >
+                  Extra
+                </Button>
+                <ImageDropzone
+                  setLoading={(loading) => setIsLoading(loading)}
+                  fileNames={fileNames}
+                  metaDatas={metaDatas}
+                  handleExperimentDialog={props.setCloudDialog}
+                />
+              </div>
+            </TabContainer>
+          )}
           <Button
             size="medium"
             color="primary"
@@ -1459,6 +1487,10 @@ const OpenPositionDialog = (props) => {
 const mapStateToProps = (state) => ({
   files: state.files.file,
   filesChosen: state.vessel.selectedVesselHole,
+  content: state.files.content,
+  //files: state.files.files,
+  selectedVesselHole: state.vessel.selectedVesselHole,
+  isImageLoading: state.files.isImageLoading,
 });
 
 OpenPositionDialog.propTypes = { handleClose: PropTypes.func.isRequired };

@@ -15,29 +15,27 @@ export const getImageByUrl = async function (folderName, imgName) {
   try {
     const state = store.getState();
 
-    let response = await fetch(
-      process.env.REACT_APP_BASE_API_URL +
-        'image/tile/get_image/' +
-        folderName +
-        '/' +
-        imgName,
-      {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods':
-            'GET, POST, PATCH, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
-          Authorization: state.auth.tokenType + ' ' + state.auth.token,
-        },
+    // console.log(folderName);
+
+    let response = await fetch(folderName, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods':
+          'GET, POST, PATCH, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
+        Authorization: state.auth.tokenType + ' ' + state.auth.token,
       },
-    );
+    });
     let blob = await response.blob();
 
-    let file = new File([blob], imgName, { type: 'image/tiff' });
+    // console.log(blob);
 
-    file.path = imgName;
+    let file = new File([blob], folderName, { type: blob.type });
+
+    file.path = folderName;
     return file;
   } catch (err) {
+    //console.log(err);
     return null;
   }
 };

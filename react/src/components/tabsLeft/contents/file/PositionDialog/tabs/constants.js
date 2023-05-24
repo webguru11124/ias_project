@@ -10,8 +10,7 @@ export const PositionTabLabels = {
   [PositionTabs.images]: 'Images',
   [PositionTabs.tiling]: 'Tiling',
   [PositionTabs.metadata]: 'Metadata',
-  [PositionTabs.naming]: 'Naming & Files',
-  [PositionTabs.groups]: 'Groups',
+  [PositionTabs.naming]: 'Name & Files',
 };
 
 export const TilingTabs = {
@@ -35,6 +34,11 @@ export const AlignmentLabels = {
 export const Directions = {
   horizontal: 'horizontal',
   vertical: 'vertical',
+};
+
+export const SortOrder = {
+  ascending: 'Ascending Order',
+  descending: 'Descending Order',
 };
 
 export const DirectionLabels = {
@@ -168,3 +172,15 @@ export const NAME_TABLE_COLUMNS = [
   { headerName: 'Z', field: 'z', width: 60 },
   { headerName: 'T', field: 'time', width: 60 },
 ];
+
+export const NAME_TILING_OPTIONS = [
+  { id: 0, name: 'Edit' },
+  { id: 1, name: 'Alignment' },
+  { id: 2, name: 'Bonding' },
+  { id: 3, name: 'Shading' },
+  { id: 4, name: 'Display' },
+  { id: 5, name: 'Option' },
+  { id: 6, name: 'Result' },
+];
+
+export const NAME_BONDING_OPTIONS = ['None', 'Snap To Edge', 'Pattern Match'];

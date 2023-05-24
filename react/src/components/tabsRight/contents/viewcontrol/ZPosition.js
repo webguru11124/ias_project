@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import Grid from '@mui/material/Grid';
 import Slider from '@mui/material/Slider';
@@ -14,8 +14,13 @@ import {
   useLoader,
 } from '@/state';
 import store from '@/reducers';
+import { connect } from 'react-redux';
 
-export default function ZPosition() {
+const mapStateToProps = (state) => ({
+  display: state.display,
+});
+
+function ZPosition(props) {
   const loader = useLoader();
   const { shape, labels } = loader[0];
   const size = shape[labels.indexOf('z')];
@@ -77,6 +82,7 @@ export default function ZPosition() {
     ),
     [loader, selections, setPropertiesForChannel],
   );
+
   return (
     <Grid container sx={{ p: 1 }}>
       <Grid item xs={12}>
@@ -85,6 +91,7 @@ export default function ZPosition() {
       <Grid item xs={12} sx={{ px: 1, pt: 1 }}>
         <Slider
           value={globalSelection.z}
+          defaultValue={1}
           onChange={(event, newValue) => {
             useViewerStore.setState({
               globalSelection: {
@@ -107,3 +114,4 @@ export default function ZPosition() {
     </Grid>
   );
 }
+export default connect(mapStateToProps)(ZPosition);

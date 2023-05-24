@@ -9,7 +9,7 @@ import {
   DETAIL_VIEW_ID,
   getDefaultInitialViewState,
 } from '@hms-dbmi/viv';
-
+import { connect } from 'react-redux';
 import {
   useImageSettingsStore,
   useViewerStore,
@@ -24,7 +24,7 @@ import CustomPaletteExtension from './extensions/custom-palette-extension';
 import CustomPipViewer from './viewers/CustomPipViewer';
 import store from '@/reducers';
 
-const Viewer = ({ isFullScreen }) => {
+const Viewer = (props, { isFullScreen }) => {
   const { useLinkedView, use3d, viewState, setViewState } = useViewerStore(
     (state) => state,
     shallow,
@@ -102,7 +102,10 @@ const Viewer = ({ isFullScreen }) => {
 
   useEffect(() => {
     const initialViewState = getDefaultInitialViewState(loader, viewSize);
+
+    //console.log(initialViewState);
     setViewState(initialViewState);
+    //console.log(viewState);
     // console.log('zoom', initialViewState.zoom);
     let deck_width = localStorage.getItem('imageViewSizeWidth');
     let deck_height = localStorage.getItem('imageViewSizeHeight');
@@ -139,12 +142,42 @@ const Viewer = ({ isFullScreen }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    // const initialViewState = getDefaultInitialViewState(loader, viewSize);
+    // let imgWidth = loader[0].shape[4];
+    // let imgHeight = loader[0].shape[3];
+    // let deck_width = localStorage.getItem('imageViewSizeWidth');
+    // let deck_height = localStorage.getItem('imageViewSizeHeight');
+    // let zoom = localStorage.getItem('CANV_ZOOM');
+    // const { selectedVessel } = props;
+    // let r = selectedVessel.row;
+    // let c = selectedVessel.col - 1;
+    // if (
+    //   selectedVessel.colCount == 0 ||
+    //   selectedVessel.colCount == undefined ||
+    //   selectedVessel.rowCount == 0 ||
+    //   selectedVessel.rowCount == undefined
+    // ) {
+    //   return;
+    // }
+    // let unitW = imgWidth / selectedVessel.colCount;
+    // let unitH = imgHeight / selectedVessel.rowCount;
+    // let x = (c + 0.5) * unitW;
+    // let y = (r + 0.5) * unitH;
+    // setViewState({
+    //   ...viewState,
+    //   target: [x, y],
+    // });
+  }, [props.selectedVessel]);
+
   const onViewStateChange = ({ viewState }) => {
-    // console.log(`X-${viewState.target[0]} Y:${viewState.target[1]}`)
+    //console.log(`X-${viewState.target[0]} Y:${viewState.target[1]}`);
+
     let deck_width = localStorage.getItem('imageViewSizeWidth');
     let deck_height = localStorage.getItem('imageViewSizeHeight');
     // console.log(`Width: ${width} Height: ${height}`)
     const state = store.getState();
+
     let canvas_info = state.experiment.canvas_info;
     let canvas_save = {
       ...canvas_info,
@@ -250,4 +283,13 @@ const Viewer = ({ isFullScreen }) => {
     />
   );
 };
-export default Viewer;
+
+// Viewer.PropTypes = {
+//   selectedVessel: PropTypes.number
+// };
+
+const mapStateToProps = (state) => ({
+  selectedVessel: state.vessel.selectedVesselHole,
+});
+
+export default connect(mapStateToProps)(Viewer);

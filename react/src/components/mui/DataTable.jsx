@@ -15,6 +15,8 @@ import FirstPageIcon from '@mui/icons-material/FirstPage';
 import KeyboardArrowLeft from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
 import LastPageIcon from '@mui/icons-material/LastPage';
+import store from '@/reducers';
+import { useViewerStore } from '@/state';
 
 function TablePaginationActions(props) {
   const theme = useTheme();
@@ -78,10 +80,10 @@ function TablePaginationActions(props) {
   );
 }
 
-export default function DataTable({ rows, columns }) {
+export default function DataTable({ rows, columns, type }) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
-
+  const [selectedRow, setSelectedRow] = React.useState({});
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
@@ -94,6 +96,39 @@ export default function DataTable({ rows, columns }) {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
+
+  const globalSelection = useViewerStore((store) => store.globalSelection);
+
+  const handleRowChange = () => {
+    if (type == 'TabNaming') {
+      const content = {
+        channel: selectedRow.channel,
+        col: selectedRow.col,
+        row: selectedRow.row,
+        field: selectedRow.field,
+        z: selectedRow.z,
+        time: selectedRow.time,
+        id: 'Naming',
+      };
+      store.dispatch({ type: 'displayOptions', content: content });
+    }
+
+    if (type == 'TabMetadata') {
+      const content = {
+        dimensionOrder: selectedRow.DimensionOrder,
+        sizeX: selectedRow.SizeX,
+        sizeY: selectedRow.SizeY,
+        sizeC: selectedRow.SizeC,
+        sizeZ: selectedRow.SizeZ,
+        sizeT: selectedRow.SizeT,
+        type: selectedRow.Type,
+        id: 'Metadata',
+      };
+      store.dispatch({ type: 'displayOptions', content: content });
+    }
+  };
+
+  handleRowChange();
 
   return (
     <TableContainer component={Paper}>
@@ -112,7 +147,15 @@ export default function DataTable({ rows, columns }) {
             ? rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             : rows
           ).map((row) => (
-            <TableRow key={row.id}>
+            <TableRow
+              key={row.id}
+              onClick={() => {
+                setSelectedRow(row);
+              }}
+              sx={{
+                backgroundColor: row.id == selectedRow.id ? 'gray' : 'white',
+              }}
+            >
               {columns.map((col) => (
                 <TableCell key={`cell-${row.id}-${col.field}`}>
                   {row[col.field]}

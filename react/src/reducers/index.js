@@ -6,6 +6,7 @@ import image from './modules/image';
 import vessel from './modules/vessel';
 import tiling from './modules/tiling';
 import measure from './modules/measure';
+import display from './modules/displayReducer';
 
 const reducer = combineReducers({
   auth: auth,
@@ -15,6 +16,7 @@ const reducer = combineReducers({
   vessel: vessel,
   tiling: tiling,
   measure: measure,
+  display: display,
 });
 
 const store = createStore(reducer);

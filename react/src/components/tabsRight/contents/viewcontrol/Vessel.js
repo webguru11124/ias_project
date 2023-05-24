@@ -39,6 +39,8 @@ const Vessel = (props) => {
   const [contents, setContents] = useState(props.content ?? []); //added ?? by QmQ
   const [ref, { width }] = useElementSize();
 
+  const [slideSelect, setSlideSelect] = useState(false);
+
   // updated by QmQ
   useEffect(() => {
     store.dispatch({
@@ -63,6 +65,7 @@ const Vessel = (props) => {
     // console.log('get correct vessel id', seriesStr, maxRow, maxCol)
     let vesselID = -1;
     let currentVesselTypeGroup = [];
+
     for (let i = 0; i < VESSELS.length; i++) {
       if (seriesStr.includes(VESSELS[i][0].type)) {
         currentVesselTypeGroup = VESSELS[i];
@@ -73,6 +76,7 @@ const Vessel = (props) => {
         break;
       }
     }
+
     if (currentVesselTypeGroup.length > 0) {
       for (let i = 0; i < currentVesselTypeGroup.length; i++) {
         if (currentVesselTypeGroup[0].type === 'WellPlate') {
@@ -87,20 +91,27 @@ const Vessel = (props) => {
           currentVesselTypeGroup[0].type === 'Dish' ||
           currentVesselTypeGroup[0].type === 'Wafer'
         ) {
-          if (currentVesselTypeGroup[i].size >= (maxRow + 1) * (maxCol + 1)) {
+          if (currentVesselTypeGroup[i].size >= maxRow * maxCol) {
             vesselID = currentVesselTypeGroup[i].id;
             break;
           }
-        } else if (currentVesselTypeGroup[0] === 'Slide') {
-          if (currentVesselTypeGroup[i].count >= (maxRow + 1) * (maxCol + 1)) {
+        } else if (currentVesselTypeGroup[0].type === 'Slide') {
+          if (currentVesselTypeGroup[i].count >= maxRow * maxCol) {
             vesselID = currentVesselTypeGroup[i].id;
             break;
           }
         }
       }
     }
+
     if (vesselID === -1) {
-      alert('There is no suitable size in VESSEL!');
+      // console.log('There is no suitable size in VESSEL!');
+      vesselID = 12;
+      if (currentVesselTypeGroup[0]) {
+        if (currentVesselTypeGroup[0].type === 'Slide') vesselID = 1;
+      }
+    }
+    if (currentVesselTypeGroup.length == 0) {
       vesselID = 1;
     }
     return vesselID;
@@ -148,7 +159,13 @@ const Vessel = (props) => {
   useEffect(() => {
     if (props.content && props.content !== []) {
       let current_contents = JSON.parse(JSON.stringify(props.content));
+
+      //console.log(current_contents);
+
       setContents(JSON.parse(JSON.stringify(current_contents)));
+
+      //console.log("Current Content is ");
+      //console.log(current_contents);
       let current_vessel = {
         id: 12,
         type: 'WellPlate',
@@ -168,6 +185,16 @@ const Vessel = (props) => {
       );
       setCurrentVessel(current_vessel);
       setCurrentVesselId(current_vessel.id);
+
+      if (current_contents[0].vesselID) {
+        current_vessel = getVesselById(current_contents[0].vesselID);
+        setCurrentVessel(current_vessel);
+        setCurrentVesselId(current_vessel.id);
+
+        if (current_contents[0].vesselID === 1) {
+          setSlideSelect(true);
+        }
+      }
     }
   }, [props.content]);
 
@@ -179,7 +206,14 @@ const Vessel = (props) => {
     if (currentVessel) {
       switch (currentVessel.type) {
         case 'Slide':
-          return <Slides width={width} count={currentVessel.count} />;
+          return (
+            <Slides
+              width={width}
+              count={currentVessel.count}
+              showHole={slideSelect}
+              areaPercentage={100}
+            />
+          );
         case 'Dish':
           return <Dishes width={width} size={currentVessel.size} />;
         case 'WellPlate':

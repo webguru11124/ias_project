@@ -29,6 +29,7 @@ export default function Wafers(props) {
   );
 
   useEffect(() => {
+    //console.log(props);
     if (width !== props.width || size !== props.size) {
       if (props.width * VESSEL_WAFER_RATIO > VESSEL_WAFER_MAX_HEIGHT) {
         calculateDRect.height = VESSEL_WAFER_MAX_HEIGHT;

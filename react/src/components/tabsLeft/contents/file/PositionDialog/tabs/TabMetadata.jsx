@@ -3,18 +3,53 @@ import DataTable from '@/components/mui/DataTable';
 import DialogContent from '@/components/mui/DialogContent';
 import useMetadata from '@/hooks/useMetadata';
 import useTilingStore from '@/stores/useTilingStore';
-import { Box } from '@mui/material';
+import { Box, DialogActions } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Typography } from 'react-md';
 import { METADATA_COLUMNS } from './constants';
 
 export default function TabMetadata() {
   const { tiles } = useTilingStore();
+  const [infoMessage, setInfoMessage] = useState();
+
+  const getOmeTiffUrl = (url) => {
+    //console.log(tiles);
+
+    const ext = url.split('.').pop();
+    if (ext === 'tiff' || ext === 'tif') return url;
+
+    const newExtension = 'ome.tiff';
+    const newUrl = url.replace(/\.[^/.]+$/, `.${newExtension}`);
+
+    return newUrl;
+  };
+  //console.log(tiles);
+
   const urls = useMemo(
-    () => tiles.filter((tile) => /tif?f/.test(tile.path)).map((img) => img.url),
+    () =>
+      tiles
+        .filter((tile) => /tif?f|jpg|jpeg|png|JPG|PNG/.test(tile.path))
+        .map((img) => getOmeTiffUrl(img.url)),
     [tiles],
   );
+
+  //console.log(urls);
+  //co//nsole.log(urls);
+
   const [metadata, loading] = useMetadata(urls);
+
+  //console.log(metadata);
+
+  useEffect(() => {
+    if (metadata === undefined || metadata == null || metadata.length === 0) {
+      setInfoMessage('There is no metadata to display');
+    } else {
+      setInfoMessage(`${metadata.length} metadata was displayed`);
+    }
+  }, [metadata]);
+  //console.log(metadata);
+
   const rows = useMemo(
     () =>
       metadata.map((data, idx) => ({
@@ -26,16 +61,25 @@ export default function TabMetadata() {
   );
 
   return (
-    <DialogContent dividers sx={{ height: '100%' }}>
-      {loading ? (
-        <BoxCenter height="100%">
-          <CircularProgress />
-        </BoxCenter>
-      ) : (
-        <Box sx={{ height: '100%', width: '100%' }}>
-          <DataTable columns={METADATA_COLUMNS} rows={rows} />
-        </Box>
-      )}
-    </DialogContent>
+    <>
+      <DialogContent dividers sx={{ height: '100%' }}>
+        {loading ? (
+          <BoxCenter height="100%">
+            <CircularProgress />
+          </BoxCenter>
+        ) : (
+          <Box sx={{ height: '100%', width: '100%' }}>
+            <DataTable
+              columns={METADATA_COLUMNS}
+              rows={rows}
+              type={'TabMetadata'}
+            />
+          </Box>
+        )}
+      </DialogContent>
+      <DialogActions sx={{ px: 3, py: 2 }}>
+        <Typography sx={{ flexGrow: 1 }}>{infoMessage}</Typography>
+      </DialogActions>
+    </>
   );
 }

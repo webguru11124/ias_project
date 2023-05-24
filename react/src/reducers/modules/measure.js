@@ -105,6 +105,7 @@ const DEFAULT_PARAMS = {
   object_method: '',
   method_info: '',
   showMLPopup: false,
+  showMeasureItemPopup: false,
   // view Data
   vessel_data: {
     id: 1,
@@ -196,6 +197,11 @@ const measure = (state = initState, action) => {
       return {
         ...state,
         showMLPopup: action.payload,
+      };
+    case 'UPDATE_MEASURE_ITEM_POPUP_STATUS':
+      return {
+        ...state,
+        showMeasureItemPopup: action.payload,
       };
     case 'UPDATE_ML_MEASURE_PARAMS':
       return {

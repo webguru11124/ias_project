@@ -57,6 +57,25 @@ async def download_exp_image(
         content = file.read(content_length)
         return Response(content, headers=headers, status_code=206)
 
+@router.get("/download_csv")
+async def download_exp_image(
+    request: Request,
+    path: str
+):
+    full_path = f"{STATIC_PATH}/{path}"
+    print("download-csv-path:", full_path)
+    file_size = os.path.getsize(full_path)
+    if not os.path.isfile(full_path):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    headers = {
+        "Accept-Ranges": "bytes",
+        "Content-Length": str(file_size),
+    }
+    with open(full_path, "rb") as file:
+        content = file.read()
+        return Response(content, headers=headers, status_code=206)
+
 @router.post(
     "/before_process",
     response_description="Process image",

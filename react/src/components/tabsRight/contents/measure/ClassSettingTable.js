@@ -38,6 +38,8 @@ export default function ClassSettingTable() {
       className,
       channelId,
       parentId,
+      items: [1, 2, 3, 4, 5],
+      selectedItems: [],
     };
     if (className === '') return;
     // console.log('classs setting======>', classSettingData, )
@@ -96,9 +98,9 @@ export default function ClassSettingTable() {
             setChannelId={setChannelId}
           />
           {classSettingData.length ? (
-            classSettingData.map((row) => (
+            classSettingData.map((row, index) => (
               <TableRow
-                key={row.name}
+                key={index}
                 onClick={() => handleSelect(row)}
                 padding="none"
               >

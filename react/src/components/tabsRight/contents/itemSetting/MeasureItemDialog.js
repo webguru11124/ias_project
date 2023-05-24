@@ -18,9 +18,9 @@ import {
 import { connect, useSelector } from 'react-redux';
 import { Modal } from 'antd';
 import Draggable from 'react-draggable';
+import store from '@/reducers';
 import { getCSVUrl } from '@/helpers/file';
 import { readRemoteFile } from 'react-papaparse';
-import store from '@/reducers';
 
 const mapStateToProps = (state) => ({
   showMeasureItemPopup: state.measure.showMeasureItemPopup,
@@ -32,6 +32,7 @@ const MeasureItemDialog = (props) => {
   const maxDialogWidth = 800;
   const [visible, setVisible] = useState(false);
   const [disabled, setDisabled] = useState(true);
+  const [updatedAt, setUpdatedAt] = useState('');
   const [bounds, setBounds] = useState({
     left: 0,
     top: 0,
@@ -39,6 +40,11 @@ const MeasureItemDialog = (props) => {
     right: 0,
   });
   const [showFooter, setShowFooter] = useState(true);
+  const [items, setItems] = useState([]);
+  const [item, setItem] = useState(-1);
+  const [rightItem, setRightItem] = useState(-1);
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [csvData, setCSVData] = useState([]);
 
   const draggleRef = React.createRef();
   const classSettingData = useSelector(
@@ -53,11 +59,21 @@ const MeasureItemDialog = (props) => {
     if (path) {
       readRemoteFile(path, {
         complete: (results) => {
-          // console.log('csv-data:', results);
+          // console.log('set-csv-data:', results);
+          setCSVData(results.data);
         },
       });
     }
   }, [csvResultPath]);
+
+  useEffect(() => {
+    if (classSettingData && classSettingData.length > 0) {
+      if (Object.keys(classSettingData[0]).length > 0) {
+        setItems(classSettingData[0].items);
+        setSelectedItems(classSettingData[0].selectedItems);
+      }
+    }
+  }, [classSettingData]);
 
   useEffect(() => {
     setVisible(props.showMeasureItemPopup);
@@ -65,6 +81,10 @@ const MeasureItemDialog = (props) => {
 
   const handleTabChange = (_event, newValue) => {
     setTab(newValue);
+    setItems(classSettingData[newValue].items);
+    setSelectedItems(classSettingData[newValue].selectedItems);
+    setItem(-1);
+    setRightItem(-1);
   };
 
   const handleClose = () => {
@@ -86,6 +106,23 @@ const MeasureItemDialog = (props) => {
   };
 
   const handleOk = (e) => {
+    let results = [];
+    for (let i = 0; i < classSettingData.length; i++) {
+      if (classSettingData[i].selectedItems.length > 0) {
+        let data = [];
+        for (let j = 0; j < classSettingData[i].selectedItems.length; j++) {
+          data.push(csvData[classSettingData[i].selectedItems[j]]);
+        }
+        results.push({
+          name: classSettingData[i].className,
+          data,
+        });
+      }
+    }
+    store.dispatch({
+      type: 'SET_ML_MEASURE_DATA',
+      payload: results,
+    });
     store.dispatch({
       type: 'UPDATE_MEASURE_ITEM_POPUP_STATUS',
       payload: false,
@@ -93,9 +130,94 @@ const MeasureItemDialog = (props) => {
   };
 
   const handleCancel = (e) => {
+    for (let i = 0; i < classSettingData.length; i++) {
+      classSettingData[i].items = classSettingData[i].items.concat(
+        classSettingData[i].selectedItems,
+      );
+      classSettingData[i].selectedItems = [];
+    }
+    store.dispatch({
+      type: 'SET_MEASURE_CLASS_SETTING',
+      payload: classSettingData,
+    });
+
     store.dispatch({
       type: 'UPDATE_MEASURE_ITEM_POPUP_STATUS',
       payload: false,
+    });
+  };
+
+  const chooseLeftItem = (e) => {
+    setItem(e);
+  };
+
+  const chooseRightItem = (e) => {
+    setRightItem(e);
+  };
+
+  const doSelectItems = () => {
+    if (!item || item == -1) return;
+    classSettingData[tab].selectedItems.push(item);
+    classSettingData[tab].items.splice(
+      classSettingData[tab].items.indexOf(item),
+      1,
+    );
+    setItems(classSettingData[tab].items);
+    setSelectedItems(classSettingData[tab].selectedItems);
+    setItem(-1);
+    let time = new Date();
+    setUpdatedAt(time.getTime());
+    store.dispatch({
+      type: 'SET_MEASURE_CLASS_SETTING',
+      payload: classSettingData,
+    });
+  };
+
+  const doUnselectItems = () => {
+    if (!rightItem || rightItem == -1) return;
+    classSettingData[tab].items.push(rightItem);
+    classSettingData[tab].selectedItems.splice(
+      classSettingData[tab].selectedItems.indexOf(rightItem),
+      1,
+    );
+    setItems(classSettingData[tab].items);
+    setSelectedItems(classSettingData[tab].selectedItems);
+    setRightItem(-1);
+    let time = new Date();
+    setUpdatedAt(time.getTime());
+    store.dispatch({
+      type: 'SET_MEASURE_CLASS_SETTING',
+      payload: classSettingData,
+    });
+  };
+
+  const doSelectAll = () => {
+    classSettingData[tab].selectedItems = classSettingData[
+      tab
+    ].selectedItems.concat(classSettingData[tab].items);
+    classSettingData[tab].items = [];
+    setItems(classSettingData[tab].items);
+    setSelectedItems(classSettingData[tab].selectedItems);
+    let time = new Date();
+    setUpdatedAt(time.getTime());
+    store.dispatch({
+      type: 'SET_MEASURE_CLASS_SETTING',
+      payload: classSettingData,
+    });
+  };
+
+  const doUnselectAll = () => {
+    classSettingData[tab].items = classSettingData[tab].items.concat(
+      classSettingData[tab].selectedItems,
+    );
+    classSettingData[tab].selectedItems = [];
+    setItems(classSettingData[tab].items);
+    setSelectedItems(classSettingData[tab].selectedItems);
+    let time = new Date();
+    setUpdatedAt(time.getTime());
+    store.dispatch({
+      type: 'SET_MEASURE_CLASS_SETTING',
+      payload: classSettingData,
     });
   };
 
@@ -157,7 +279,7 @@ const MeasureItemDialog = (props) => {
                   </button>
                   <button
                     key="back"
-                    onClick={handleClose}
+                    onClick={handleCancel}
                     className="btn btn-outline-dark"
                     style={{ marginRight: '10px' }}
                   >
@@ -165,7 +287,7 @@ const MeasureItemDialog = (props) => {
                   </button>
                   <button
                     key="back"
-                    onClick={handleClose}
+                    onClick={handleOk}
                     className="btn btn-primary"
                   >
                     Select
@@ -181,6 +303,7 @@ const MeasureItemDialog = (props) => {
             disabled={disabled}
             bounds={bounds}
             onStart={(event, uiData) => onStart(event, uiData)}
+            key="measure-item-dialog"
           >
             <div aa="2" ref={draggleRef}>
               {modal}
@@ -210,12 +333,23 @@ const MeasureItemDialog = (props) => {
                 borderTop: '1px solid #dfdfdf',
               }}
             >
-              <Candidate />
+              <Candidate
+                items={items}
+                key={items.length}
+                onSelectItem={(item) => {
+                  chooseLeftItem(item);
+                }}
+                updatedAt={updatedAt}
+              />
               <DialogActions
                 className="d-flex"
                 style={{ flexDirection: 'column', justifyContent: 'center' }}
               >
-                <Button>
+                <Button
+                  onClick={() => {
+                    doSelectItems();
+                  }}
+                >
                   <Icon
                     size={1.2}
                     horizontal
@@ -226,7 +360,12 @@ const MeasureItemDialog = (props) => {
                     style={{ border: '1px solid #000000de' }}
                   ></Icon>
                 </Button>
-                <Button style={{ margin: '0' }}>
+                <Button
+                  style={{ margin: '0' }}
+                  onClick={() => {
+                    doSelectAll();
+                  }}
+                >
                   <Icon
                     size={1.2}
                     horizontal
@@ -237,7 +376,12 @@ const MeasureItemDialog = (props) => {
                     style={{ border: '1px solid #000000de' }}
                   ></Icon>
                 </Button>
-                <Button style={{ margin: '0' }}>
+                <Button
+                  style={{ margin: '0' }}
+                  onClick={() => {
+                    doUnselectItems();
+                  }}
+                >
                   <Icon
                     size={1.2}
                     horizontal
@@ -248,7 +392,12 @@ const MeasureItemDialog = (props) => {
                     style={{ border: '1px solid #000000de' }}
                   ></Icon>
                 </Button>
-                <Button style={{ margin: '0' }}>
+                <Button
+                  style={{ margin: '0' }}
+                  onClick={() => {
+                    doUnselectAll();
+                  }}
+                >
                   <Icon
                     size={1.2}
                     horizontal
@@ -260,7 +409,14 @@ const MeasureItemDialog = (props) => {
                   ></Icon>
                 </Button>
               </DialogActions>
-              <Selected />
+              <Selected
+                items={selectedItems}
+                key={selectedItems.length}
+                onSelectItem={(item) => {
+                  chooseRightItem(item);
+                }}
+                updatedAt={updatedAt}
+              />
             </div>
           </Box>
         </div>

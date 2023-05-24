@@ -162,6 +162,7 @@ const MLPopupDialog = (props) => {
             disabled={disabled}
             bounds={bounds}
             onStart={(event, uiData) => onStart(event, uiData)}
+            key="ml-popup-dialog"
           >
             <div aa="2" ref={draggleRef}>
               {modal}

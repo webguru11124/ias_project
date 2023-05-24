@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -18,6 +18,8 @@ import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/Delete';
 
 import '@/styles/measure.css';
+import { getCSVUrl } from '@/helpers/file';
+import { readRemoteFile } from 'react-papaparse';
 
 const channels = ['S', 'B', 'G', 'R', 'C', 'Y', 'M'];
 
@@ -32,13 +34,42 @@ export default function ClassSettingTable() {
   const [className, setClassName] = useState('class1');
   const [channelId, setChannelId] = useState(-1);
   const [parentId, setParentId] = useState(-1);
+  const [csvData, setCSVData] = useState([]);
+  const csvResultPath = useSelector((state) => state.files.csvPathForResult);
+
+  useEffect(() => {
+    // console.log('csv-path:', csvResultPath);
+    let path = getCSVUrl(csvResultPath);
+    if (path) {
+      readRemoteFile(path, {
+        complete: (results) => {
+          // console.log('csv-data:', results);
+          setCSVData(results.data);
+          store.dispatch({
+            type: 'SEV_MEASURE_CSV_DATA',
+            payload: results.data,
+          });
+        },
+      });
+    }
+  }, [csvResultPath]);
 
   const onAdd = () => {
+    let items = [];
+    for (let i = 1; i < csvData.length - 1; i++) {
+      items.push(i);
+    }
+    let rcId = 0;
+    for (let i = 0; i < channelData.length; i++) {
+      if (channelData[i].id == channelId) {
+        rcId = channels.indexOf(channelData[i].symbol);
+      }
+    }
     const payload = {
       className,
-      channelId,
+      channelId: rcId,
       parentId,
-      items: [1, 2, 3, 4, 5],
+      items: items,
       selectedItems: [],
     };
     if (className === '') return;

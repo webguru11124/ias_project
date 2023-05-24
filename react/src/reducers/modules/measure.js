@@ -125,6 +125,8 @@ const DEFAULT_PARAMS = {
   timeline: null,
   class_setting_data: [],
   ml_measure_params: {},
+  csvData: [],
+  ml_measure_data: [],
 };
 
 const initState = {
@@ -184,6 +186,21 @@ const measure = (state = initState, action) => {
       return {
         ...state,
         class_setting_data: _added_class_setting_data,
+      };
+    case 'SET_MEASURE_CLASS_SETTING':
+      return {
+        ...state,
+        class_setting_data: action.payload,
+      };
+    case 'SET_MEASURE_CSV_DATA':
+      return {
+        ...state,
+        csvData: action.payload,
+      };
+    case 'SET_ML_MEASURE_DATA':
+      return {
+        ...state,
+        ml_measure_data: action.payload,
       };
     case 'DELETE_MEASURE_CLASS_SETTING':
       let _deleted_class_setting_data = state.class_setting_data.filter(

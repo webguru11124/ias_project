@@ -13,16 +13,10 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
-import ScrollArea from 'react-scrollbar';
 import DialogPM from '../../DialogPM';
 import Icon from '@mdi/react';
-import { mdiWeatherSunny, mdiCropFree, mdiClose, mdiPencil } from '@mdi/js';
+import { mdiWeatherSunny } from '@mdi/js';
 import { connect } from 'react-redux';
-import * as api_tiles from '../../../../../../api/tiles';
-import { getImageByUrl } from '../../../../../../api/fetch';
-import RoutedAvivator from '../../../../../avivator/Avivator';
 import Vessel from '../../../../../tabsRight/contents/viewcontrol/Vessel';
 import Objective from '../../../../../tabsRight/contents/viewcontrol/Objective';
 import Channel from '../../../../../tabsRight/contents/viewcontrol/Channel';
@@ -30,26 +24,14 @@ import ImageAdjust from '../../../../../tabsRight/contents/viewcontrol/ImageAdju
 import ZPosition from '../../../../../tabsRight/contents/viewcontrol/ZPosition';
 import Timeline from '../../../../../tabsRight/contents/viewcontrol/Timeline';
 import store from '../../../../../../reducers';
-import UTIF from 'utif';
 import useTilingStore from '@/stores/useTilingStore';
-import { TileSeriesDescription } from 'igniteui-react-core';
 import { DialogActions, ImageList, ImageListItem, Paper } from '@mui/material';
 import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
 import Avivator from '../../../../../avivator/Avivator';
 import { Alignments, Directions, SortOrder } from './constants';
-import useMetadata from '@/hooks/useMetadata';
 import { useChannelsStore } from '@/state';
-import {
-  buildPyramid,
-  correctionTiledImage,
-  gammaTiledImage,
-  normalizeTiledImage,
-  snapToEdge,
-} from '@/api/tiling';
+import { buildPyramid } from '@/api/tiling';
 import { Typography } from 'react-md';
-import { loadOmeTiff } from '@hms-dbmi/viv';
-import { createLoader } from './../../../../../../helpers/avivator';
-import { forEach } from 'lodash';
 
 const tilingMenus = [
   'Edit',
@@ -101,29 +83,19 @@ const TabTiling = (props) => {
 
   //Parameters in Shading UI
   const [gamma, setGamma] = useState(10);
-  const canvasElement = useRef(null);
 
   //Path used in displaying Images
   const [resultImagePath, setResultImagePath] = useState('');
   const [finalResultImagePath, setFinalResultImagePath] = useState('');
 
-  const channelState = useChannelsStore((state) => state);
-
   //Logs
   const [infoMessage, setInfoMessage] = useState();
 
   // get Row, Col, vessel type
-  const [vesselMaxRow, setVesselMaxRow] = useState(1);
-  const [vesselMaxCol, setVesselMaxCol] = useState(1);
   const [vesselType, setVesselType] = useState(1);
 
   // the editing list corresponding to well hole
   const [holeImageList, setHoleImageList] = useState([]);
-
-  //the channel type
-  const [selectedImageChannel, setSelectedImageChannel] = useState([]);
-  const [selectedImageTime, setSelectedImageTime] = useState(0);
-  const [selectedImageZ, setSelectedImageZ] = useState(0);
 
   //Get the image of ome tiff file extension from the original url
   const getOmeTiffUrl = (url) => {
@@ -144,9 +116,6 @@ const TabTiling = (props) => {
     [tiles],
   );
 
-  //Metadata
-  const [metadata, loading] = useMetadata(urls);
-
   //Get the MaxRow, MaxCol, and VesselType
   const getVesselType = () => {
     let maxRow = 0;
@@ -158,9 +127,6 @@ const TabTiling = (props) => {
       if (maxCol < Number(tile.col)) maxCol = Number(tile.col);
     });
 
-    setVesselMaxCol(maxCol);
-    setVesselMaxRow(maxRow);
-
     let series = tiles[0].strSeries;
 
     if (series === '') {
@@ -169,37 +135,37 @@ const TabTiling = (props) => {
     }
 
     if (series.includes('Slide')) {
-      if (maxRow + 1 == 1 && maxCol == 1) {
+      if (maxRow + 1 === 1 && maxCol === 1) {
         setVesselType(1);
       }
-      if (maxRow + 1 == 1 && maxCol == 2) {
+      if (maxRow + 1 === 1 && maxCol === 2) {
         setVesselType(2);
       }
-      if (maxRow + 1 == 1 && maxCol == 4) {
+      if (maxRow + 1 === 1 && maxCol === 4) {
         setVesselType(4);
       }
 
       return;
     } else if (series.includes('Plate')) {
-      if (maxRow + 1 == 2 && maxCol == 2) {
+      if (maxRow + 1 === 2 && maxCol === 2) {
         setVesselType(7);
       }
-      if (maxRow + 1 == 2 && maxCol == 3) {
+      if (maxRow + 1 === 2 && maxCol === 3) {
         setVesselType(8);
       }
-      if (maxRow + 1 == 3 && maxCol == 4) {
+      if (maxRow + 1 === 3 && maxCol === 4) {
         setVesselType(9);
       }
-      if (maxRow + 1 == 4 && maxCol == 6) {
+      if (maxRow + 1 === 4 && maxCol === 6) {
         setVesselType(10);
       }
-      if (maxRow + 1 == 6 && maxCol == 8) {
+      if (maxRow + 1 === 6 && maxCol === 8) {
         setVesselType(11);
       }
-      if (maxRow + 1 == 8 && maxCol == 12) {
+      if (maxRow + 1 === 8 && maxCol === 12) {
         setVesselType(12);
       }
-      if (maxRow + 1 == 16 && maxCol == 24) {
+      if (maxRow + 1 === 16 && maxCol === 24) {
         setVesselType(13);
       }
       return;
@@ -233,8 +199,9 @@ const TabTiling = (props) => {
           tile.series !== '' &&
           tile.col !== ''
         ) {
-          getVesselType();
           let newContent = [];
+
+          getVesselType();
 
           sortedTiles.map((tile) => {
             let tempContent = {};
@@ -300,8 +267,8 @@ const TabTiling = (props) => {
               col: Number(tile.col),
             });
             if (
-              Number(tile.row.charCodeAt() - 'A'.charCodeAt()) == row &&
-              Number(tile.col) == col
+              Number(tile.row.charCodeAt() - 'A'.charCodeAt()) === row &&
+              Number(tile.col) === col
             ) {
               lists.push(tile);
             }
@@ -316,6 +283,48 @@ const TabTiling = (props) => {
   useEffect(() => {
     const hole = props.selectedVesselHole;
 
+    if (vesselType === 1 || vesselType === 2 || vesselType == 4) {
+      const fullList = tiles.sort((a, b) =>
+        a.filename.localeCompare(b.filename),
+      );
+
+      if (
+        fullList[0].strSeries !== undefined &&
+        fullList[0].row !== undefined &&
+        fullList[0].channel !== undefined &&
+        fullList[0].strSeries !== '' &&
+        fullList[0].row !== '' &&
+        fullList[0].channel !== ''
+      ) {
+        let newContent = [];
+
+        fullList.map((tile) => {
+          let tempContent = {};
+
+          tempContent.z = tile.z;
+          tempContent.time = Number(tile.time.split('p')[1]);
+          tempContent.dimensionChanged = tile.dimensionChanged;
+          tempContent.row = tile.row.charCodeAt() - 'A'.charCodeAt();
+          tempContent.col = tile.col;
+          tempContent.series = tile.strSeries;
+          tempContent.channel = Number(tile.channel.split('d')[1]);
+          newContent.push(tempContent);
+        });
+
+        const tempChannels = [1, 0, 0, 0, 0, 0, 0];
+        newContent[0].channels = tempChannels;
+
+        fullList.map((image) => {
+          const idx = Number(image.channel.split('d')[1]);
+          tempChannels[idx] = 1;
+        });
+
+        store.dispatch({ type: 'content_addContent', content: newContent });
+
+        return;
+      }
+    }
+
     if (hole) {
       if (hole.row !== undefined && hole.col !== undefined) {
         const lists = getImageList(hole.row, hole.col);
@@ -325,14 +334,23 @@ const TabTiling = (props) => {
         );
         setHoleImageList(sortedTiles);
 
-        const time = Number(sortedTiles[0].time.split('p')[1]);
-        const channel = Number(sortedTiles[0].channel.split('d')[1]);
         const tempChannels = [1, 0, 0, 0, 0, 0, 0];
+        const time = 0;
+        const channel = 0;
 
-        sortedTiles.map((image) => {
-          const idx = Number(image.channel.split('d')[1]);
-          tempChannels[idx] = 1;
-        });
+        if (
+          sortedTiles[0].time !== undefined &&
+          sortedTiles[0].channel !== undefined &&
+          sortedTiles[0].z != undefined
+        ) {
+          time = Number(sortedTiles[0].time.split('p')[1]);
+          channel = Number(sortedTiles[0].channel.split('d')[1]);
+
+          sortedTiles.map((image) => {
+            const idx = Number(image.channel.split('d')[1]);
+            tempChannels[idx] = 1;
+          });
+        }
 
         const fullList = tiles.sort((a, b) =>
           a.filename.localeCompare(b.filename),
@@ -435,8 +453,14 @@ const TabTiling = (props) => {
       if (tiles.length > 0) {
         if (!tiles[0].field) return tiles;
       }
-      return tiles.sort((a, b) => a.field.localeCompare(b.field));
-    } else return tiles.sort((a, b) => b.field.localeCompare(a.field));
+      return tiles.sort(
+        (a, b) => Number(a.field.split('f')[1]) - Number(b.field.split('f')[1]),
+      );
+    } else {
+      return tiles.sort(
+        (a, b) => Number(b.field.split('f')[1]) - Number(a.field.split('f')[1]),
+      );
+    }
   }, [tiles]);
 
   // return tiles aligned in alignment function
@@ -444,17 +468,28 @@ const TabTiling = (props) => {
     let sortedTiles;
     if (tiles.length > 1 && tiles[0].field) {
       if (sortOrder === SortOrder.ascending) {
-        sortedTiles = sorted.sort((a, b) => a.field.localeCompare(b.field));
+        sortedTiles = sorted.sort(
+          (a, b) =>
+            Number(a.field.split('f')[1]) - Number(b.field.split('f')[1]),
+        );
       } else
-        sortedTiles = sorted.sort((a, b) => b.field.localeCompare(a.field));
+        sortedTiles = sorted.sort(
+          (a, b) =>
+            Number(b.field.split('f')[1]) - Number(a.field.split('f')[1]),
+        );
     } else sortedTiles = sorted;
+
+    //console.log(sortedTiles);
 
     if (!dim) {
       return sortedTiles;
     }
 
+    //console.log(sortedTiles);
+
     const cols = dim[1];
     const rows = dim[0];
+
     let chunks = [];
 
     // if the direction is horizontal
@@ -474,7 +509,6 @@ const TabTiling = (props) => {
       for (let i = 0; i < rows; i++) chunks.push([]);
       for (let i = 0; i < rows; i++) {
         for (let j = 0; j < cols; j++) {
-          const id = j * rows + i;
           chunks[i].push(sortedTiles.at(j * rows + i));
         }
       }
@@ -568,15 +602,15 @@ const TabTiling = (props) => {
   //when the radio button in alignment was changed
   const handleAlignOptionChange = (e) => {
     if (e.target.value === 'Up-Down') {
-      if (dir == Directions.horizontal) {
+      if (dir === Directions.horizontal) {
         setDir(Directions.vertical);
       } else setDir(Directions.horizontal);
     } else if (e.target.value === 'Left-Right') {
-      if (align == Alignments.raster) {
+      if (align === Alignments.raster) {
         setAlign(Alignments.snake);
       } else setAlign(Alignments.raster);
     } else if (e.target.value === 'DecendingOrder') {
-      if (sortOrder == SortOrder.ascending) setSortOrder(SortOrder.descending);
+      if (sortOrder === SortOrder.ascending) setSortOrder(SortOrder.descending);
       else setSortOrder(SortOrder.ascending);
     }
   };
@@ -599,7 +633,7 @@ const TabTiling = (props) => {
   //When the radio button in bonding was changed
   const handleChange = (event) => {
     if (event.target.id === '3') {
-      if (tilingBondingPatternMatch == false) {
+      if (tilingBondingPatternMatch === false) {
         setTilingBondingPatterMatch(true);
         event.target.checked = true;
       } else {
@@ -615,7 +649,7 @@ const TabTiling = (props) => {
       SnapToEdge();
     }
 
-    if (event.target.id == '1') {
+    if (event.target.id === '1') {
       normalizeImgLuminance();
     }
   };
@@ -658,8 +692,6 @@ const TabTiling = (props) => {
     setInfoMessage('Best Fit Image has been Display.');
   };
 
-  const exportTiledImage = () => {};
-
   // When the list item of Edting is changed
   const handleListContentItemClick = async (event, index) => {
     if (holeImageList.length > 0) {
@@ -677,7 +709,6 @@ const TabTiling = (props) => {
     };
 
     setInfoMessage('Build Started');
-    const hostAddr = tiles[0].url.split('/static')[0];
     const output = await buildPyramid(ashlarParams);
     const outputUrl = getResultPath();
     setFinalResultImagePath(outputUrl);
@@ -1168,7 +1199,7 @@ const TabTiling = (props) => {
         >
           {/*  Tiling Preview  */}
           <div style={{ flexDirection: 'column' }}>
-            {selectedIndex == 1 && (
+            {selectedIndex === 1 && (
               <Paper
                 variant="outlined"
                 sx={{ height: '800px', width: '600px' }}
@@ -1204,13 +1235,13 @@ const TabTiling = (props) => {
               </Paper>
             )}
 
-            {(selectedIndex == 0 ||
-              selectedIndex == 2 ||
-              selectedIndex == 3 ||
-              selectedIndex == 4) && (
+            {(selectedIndex === 0 ||
+              selectedIndex === 2 ||
+              selectedIndex === 3 ||
+              selectedIndex === 4) && (
               <Avivator type={'tiling'} source={resultImagePath} />
             )}
-            {selectedIndex == 5 && (
+            {selectedIndex === 5 && (
               <Avivator type={'tiling'} source={finalResultImagePath} />
             )}
           </div>

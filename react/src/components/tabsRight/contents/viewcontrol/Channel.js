@@ -23,10 +23,8 @@ import { ChannelColors } from '@/constants/enums';
 import { MAX_CHANNELS } from '@hms-dbmi/viv';
 import { getSingleSelectionStats, randomId } from '@/helpers/avivator';
 import { COLOR_PALETTE } from '@/constants';
-
-import store from '@/reducers';
-
 import { connect } from 'react-redux';
+import store from '@/reducers';
 
 const mapStateToProps = (state) => ({
   content: state.files.content,

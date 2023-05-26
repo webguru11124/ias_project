@@ -40,7 +40,6 @@ export const ExpansionDialog = (props) => {
   const maxDialogWidth = 600;
   const [open, setOpen] = useState(true);
   const [currentVessel, setCurrentVessel] = useState(props.currentVessel);
-
   const handleClose = () => {
     props.closeDialog(areaPercentage);
   };
@@ -173,23 +172,6 @@ export const ExpansionDialog = (props) => {
           }}
         >
           <span style={{ width: '30%' }}>Area</span>
-          {/* <FormControl sx={{ width: "30%" }}>
-            <InputLabel labelid="Percentage-label">30</InputLabel>
-            <Select
-              value={areaPercentage}
-              onChange={handleChange}
-              inputProps={{
-                name: "percentage",
-                id: "Percentage-select",
-              }}
-            >
-              {options.map((option) => (
-                <MenuItem key={option} value={option}>
-                  {option}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl> */}
           <NumericInput
             min={0}
             max={100}

@@ -78,6 +78,7 @@ export default function Wafers(props) {
             style={{
               width: radious * areaRatio,
               height: radious * areaRatio,
+              borderRadius: '50%',
               backgroundColor: '#00a0e9',
               position: 'absolute',
             }}

@@ -25,7 +25,9 @@ const mapStateToProps = (state) => ({
 });
 
 const Vessel = (props) => {
+  const expansionValue = 30;
   const [shape, setShape] = useState('rect'); // ['rect', 'circle']
+
   const [currentVesselId, setCurrentVesselId] = useState(1);
   const [currentVessel, setCurrentVessel] = useState(getVesselById(1));
   const [showSelectDialog, setShowSelectDialog] = useState(false);
@@ -86,7 +88,6 @@ const Vessel = (props) => {
       }
     }
 
-
     if (vesselID === -1) {
       // console.log('There is no suitable size in VESSEL!');
       vesselID = 12;
@@ -140,24 +141,13 @@ const Vessel = (props) => {
       payload: { area_percentage: percentVal },
     });
     setShowExpansionDialog(false);
-
   };
   useEffect(() => {
     if (props.content && props.content !== []) {
       let current_contents = JSON.parse(JSON.stringify(props.content));
 
-      //console.log(current_contents);
-
-
-      //console.log(current_contents);
-
       setContents(JSON.parse(JSON.stringify(current_contents)));
 
-      //console.log("Current Content is ");
-      //console.log(current_contents);
-
-      //console.log("Current Content is ");
-      //console.log(current_contents);
       let current_vessel = {
         id: 12,
         type: 'WellPlate',
@@ -198,14 +188,6 @@ const Vessel = (props) => {
     if (currentVessel) {
       switch (currentVessel.type) {
         case 'Slide':
-          return (
-            <Slides
-              width={width}
-              count={currentVessel.count}
-              showHole={slideSelect}
-              areaPercentage={100}
-            />
-          );
           return (
             <Slides
               width={width}
@@ -291,6 +273,7 @@ const Vessel = (props) => {
         <ExpansionDialog
           currentVessel={currentVesselId}
           open={showExpansionDialog}
+          areaPercentage={expansionValue}
           closeDialog={() => {
             setShowExpansionDialog(false);
           }}

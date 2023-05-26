@@ -80,7 +80,12 @@ function TablePaginationActions(props) {
   );
 }
 
-export default function DataTable({ rows, columns, type }) {
+export default function DataTable({
+  rows,
+  columns,
+  type,
+  onSelectedRow = null,
+}) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [selectedRow, setSelectedRow] = React.useState({});
@@ -151,6 +156,7 @@ export default function DataTable({ rows, columns, type }) {
               key={row.id}
               onClick={() => {
                 setSelectedRow(row);
+                if (onSelectedRow) onSelectedRow(row);
               }}
               sx={{
                 backgroundColor: row.id == selectedRow.id ? 'gray' : 'white',

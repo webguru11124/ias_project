@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createLoader } from '@/helpers/avivator';
 import { useExperimentStore } from '@/stores/useExperimentStore';
+import store from '@/reducers';
 
 export default function useMetadata(urls, onLoading = () => void 0) {
   const { metadataMap, updateMetadataMap } = useExperimentStore();
@@ -12,21 +13,26 @@ export default function useMetadata(urls, onLoading = () => void 0) {
       setLoading(true);
       onLoading(true);
 
+      //console.log(metadataMap);
+
       const tiffs = await Promise.all(
         urls.map((url) => {
           if (metadataMap[url]) {
-            //console.log("metadataMap::");
             return Promise.resolve([{ metadata: metadataMap[url] }]);
           }
           return createLoader(url);
         }),
       );
+
       //console.log("Tiffs");
       //console.log(tiffs);
 
       const metadata = tiffs.map((data) =>
         data.length ? data[0].metadata : data.metadata,
       );
+
+      store.dispatch({ type: 'set_MetaData', content: metadata });
+
       const map = metadata.reduce(
         (acc, data, idx) => (data ? { ...acc, [urls[idx]]: data } : acc),
         {},

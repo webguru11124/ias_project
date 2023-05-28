@@ -7,7 +7,7 @@ import store from '@/reducers';
 export default function Objective() {
   const [activeButton, setActiveButton] = useState(0); //id
   const objectiveData = useSelector((state) => state.measure.objective_data);
-  const [activeId, setActiveId] = useState(objectiveData.id ?? 0); //id
+  const [activeId, setActiveId] = useState(objectiveData.id ?? -1); //id
   const content = useSelector((state) => state.files.content);
 
   const objectives = [
@@ -44,15 +44,27 @@ export default function Objective() {
   return (
     <SmallCard title="Objective">
       {objectives.map((item) => {
-        return (
-          <ObjectiveButton
-            onClick={(e, id) => handleClickButton(e, item)}
-            id={item.id}
-            activeId={activeId}
-            label={item.rate + 'X'}
-            key={item.id}
-          />
-        );
+        if (activeId == -1) {
+          return (
+            <ObjectiveButton
+              onClick={(e, id) => handleClickButton(e, item)}
+              id={item.id}
+              activeId={0}
+              label={'N/A'}
+              key={item.id}
+            />
+          );
+        } else {
+          return (
+            <ObjectiveButton
+              onClick={(e, id) => handleClickButton(e, item)}
+              id={item.id}
+              activeId={activeId}
+              label={item.rate + 'X'}
+              key={item.id}
+            />
+          );
+        }
       })}
     </SmallCard>
   );

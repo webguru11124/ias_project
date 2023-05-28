@@ -7,10 +7,10 @@ import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
-import Slides from './Slides';
-import WellPlates from './WellPlates';
-import Dishes from './Dishes';
-import Wafers from './Wafers';
+import SlidesExpansion from './expansion/SlidesExpansion';
+import WellPlates from './expansion/WellPlatesExpansion';
+import Dishes from './expansion/DishesExpansion';
+import Wafers from './expansion/WafersExpansion';
 import { getVesselById } from '@/constants/vessel-types';
 import NumericInput from 'react-numeric-input';
 import store from '@/reducers';
@@ -89,7 +89,7 @@ export const ExpansionDialog = (props) => {
               }}
               style={{ width: maxDialogWidth }}
             >
-              <Slides
+              <SlidesExpansion
                 width={maxDialogWidth}
                 count={1}
                 key={vessel.id}

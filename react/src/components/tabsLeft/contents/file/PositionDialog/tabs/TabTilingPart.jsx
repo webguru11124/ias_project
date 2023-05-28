@@ -16,7 +16,7 @@ import Button from '@mui/material/Button';
 import DialogPM from '../../DialogPM';
 import Icon from '@mdi/react';
 import { mdiWeatherSunny } from '@mdi/js';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import Vessel from '../../../../../tabsRight/contents/viewcontrol/Vessel';
 import Objective from '../../../../../tabsRight/contents/viewcontrol/Objective';
 import Channel from '../../../../../tabsRight/contents/viewcontrol/Channel';
@@ -105,7 +105,6 @@ const TabTiling = (props) => {
 
   //Get the image of ome tiff file extension from the original url
   const getOmeTiffUrl = (url) => {
-    //console.log(tiles);
     const ext = url.split('.').pop();
     if (ext === 'tiff' || ext === 'tif') return url;
     const newExtension = 'ome.tiff';
@@ -115,9 +114,6 @@ const TabTiling = (props) => {
 
   // urls list
   const urls = useMemo(() => {
-    // console.log("Urls");
-    // console.log(tiles);
-
     if (!tiles) return [];
     const res = tiles
       .filter((tile) => /tif?f|jpg|jpeg|png|JPG|PNG/.test(tile.path))
@@ -267,7 +263,27 @@ const TabTiling = (props) => {
 
           newContent[0].objective = -1;
 
+          //current series
+          newContent[0].selectedSeriesIdx = currentSeriesIdx;
+          newContent[0].seriesCount = tileSeries.length;
+
+          const tempChannels = [1, 0, 0, 0, 0, 0, 0];
+
+          //console.log(newContent);
+
+          let images = getImageListFromCertainTiles(sortedTiles, 0, 1);
+
+          //console.log(images);
+
+          images.map((image) => {
+            const idx = Number(image.channel.split('d')[1]);
+            tempChannels[idx] = 1;
+          });
+          newContent[0].channels = tempChannels;
+
           store.dispatch({ type: 'content_addContent', content: newContent });
+
+          setHoleImageList(images);
         } else {
           let newContent = [];
 
@@ -285,11 +301,18 @@ const TabTiling = (props) => {
           });
 
           store.dispatch({ type: 'content_addContent', content: newContent });
+
+          setHoleImageList(sortedTiles);
         }
       }
-      setHoleImageList(sortedTiles);
     }
   }, [tiles]);
+
+  //when the series is changed in vessel dialog
+  useEffect(() => {
+    const changedSeriesIdx = props.selectedVesselIdx;
+    setCurrentSeriesIdx(changedSeriesIdx);
+  }, [props.selectedVesselIdx]);
 
   //When the holeImageLists is reload
   useEffect(() => {
@@ -299,6 +322,37 @@ const TabTiling = (props) => {
       }
     }
   }, [holeImageList]);
+
+  //get the images from tiles, row and col
+  const getImageListFromCertainTiles = (tiles, row, col) => {
+    const lists = [];
+    const tempList = [];
+    //console.log(tiles);
+    if (tiles) {
+      if (tiles.length > 0) {
+        if (
+          tiles[0].row !== undefined &&
+          tiles[0].col !== undefined &&
+          tiles[0].row !== '' &&
+          tiles[0].col !== ''
+        ) {
+          tiles.map((tile) => {
+            tempList.push({
+              row: Number(tile.row.charCodeAt() - 'A'.charCodeAt()),
+              col: Number(tile.col),
+            });
+            if (
+              Number(tile.row.charCodeAt() - 'A'.charCodeAt()) === row &&
+              Number(tile.col) === col
+            ) {
+              lists.push(tile);
+            }
+          });
+        } else return tiles;
+      }
+    }
+    return lists;
+  };
 
   //get the Edit Image List from the row and col
   const getImageList = (row, col) => {
@@ -398,6 +452,9 @@ const TabTiling = (props) => {
 
       newContent[0].channels = tempChannels;
       newContent[0].objective = -1;
+      //current series
+      newContent[0].selectedSeriesIdx = currentSeriesIdx;
+      newContent[0].seriesCount = tileSeries.length;
 
       store.dispatch({ type: 'content_addContent', content: newContent });
     }
@@ -440,7 +497,10 @@ const TabTiling = (props) => {
         });
 
         const tempChannels = [1, 0, 0, 0, 0, 0, 0];
-        newContent[0].channels = tempChannels;
+
+        //current series
+        newContent[0].selectedSeriesIdx = currentSeriesIdx;
+        newContent[0].seriesCount = tileSeries.length;
 
         fullList.map((image) => {
           const idx = Number(image.channel.split('d')[1]);
@@ -448,6 +508,7 @@ const TabTiling = (props) => {
         });
 
         newContent[0].objective = -1;
+        newContent[0].channels = tempChannels;
 
         store.dispatch({ type: 'content_addContent', content: newContent });
 
@@ -1340,6 +1401,7 @@ const TabTiling = (props) => {
 const mapStateToProps = (state) => ({
   content: state.files.content,
   selectedVesselHole: state.vessel.selectedVesselHole,
+  selectedVesselIdx: state.vessel.currentVesselSeriesIdx,
 });
 
 export default connect(mapStateToProps)(TabTiling);

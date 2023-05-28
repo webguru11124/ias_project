@@ -86,7 +86,6 @@ const Vessel = (props) => {
       }
     }
 
-
     if (vesselID === -1) {
       // console.log('There is no suitable size in VESSEL!');
       vesselID = 12;
@@ -111,6 +110,7 @@ const Vessel = (props) => {
     let maxRow = 0;
     let maxCol = 1;
     let current_contents = [...contents];
+
     for (let i = 0; i < current_contents.length; i++) {
       if (current_contents[i].row > maxRow) maxRow = current_contents[i].row;
       if (current_contents[i].col > maxCol) maxCol = current_contents[i].col;
@@ -133,6 +133,28 @@ const Vessel = (props) => {
     let vesselID = getCorrectVesselID(seriesStr, maxRow, maxCol);
     setCurrentVessel(getVesselById(vesselID));
     setCurrentVesselId(vesselID);
+
+    let curSeriesIdx = current_contents[0].selectedSeriesIdx;
+    let seriesCount = current_contents[0].seriesCount;
+
+    if (seriesCount === 0) {
+      store.dispatch({
+        type: 'vessel_setCurrentSeriesIdx',
+        content: curSeriesIdx,
+      });
+      return;
+    } else {
+      if (direction) {
+        curSeriesIdx = (curSeriesIdx + 1) % seriesCount;
+      } else {
+        curSeriesIdx = (curSeriesIdx + seriesCount - 1) % seriesCount;
+      }
+    }
+
+    store.dispatch({
+      type: 'vessel_setCurrentSeriesIdx',
+      content: curSeriesIdx,
+    });
   };
   const handleExpansionDialogClose = (percentVal) => {
     store.dispatch({
@@ -140,14 +162,12 @@ const Vessel = (props) => {
       payload: { area_percentage: percentVal },
     });
     setShowExpansionDialog(false);
-
   };
   useEffect(() => {
     if (props.content && props.content !== []) {
       let current_contents = JSON.parse(JSON.stringify(props.content));
 
       //console.log(current_contents);
-
 
       //console.log(current_contents);
 

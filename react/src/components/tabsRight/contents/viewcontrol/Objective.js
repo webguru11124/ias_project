@@ -47,7 +47,7 @@ export default function Objective() {
         if (activeId == -1) {
           return (
             <ObjectiveButton
-              onClick={(e, id) => handleClickButton(e, item)}
+              onClick={(e, id) => {}}
               id={item.id}
               activeId={0}
               label={'N/A'}

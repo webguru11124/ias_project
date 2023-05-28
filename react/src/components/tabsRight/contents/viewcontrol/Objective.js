@@ -18,6 +18,10 @@ export default function Objective() {
     { id: 4, rate: 100 },
   ];
 
+  useEffect(() => {
+    setActiveId(objectiveData.id);
+  }, [objectiveData.id]);
+
   const handleClickButton = (e, item) => {
     store.dispatch({
       type: 'UPDATE_MEASURE_OBJECTIVE_DATA',
@@ -30,7 +34,6 @@ export default function Objective() {
   };
 
   useEffect(() => {
-    // console.log(content);
     if (content) {
       if (content[0] && content[0].objective !== undefined) {
         setActiveId(content[0].objective);

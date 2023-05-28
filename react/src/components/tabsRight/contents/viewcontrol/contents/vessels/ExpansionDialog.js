@@ -1,10 +1,10 @@
 import Dialog from '@mui/material/Dialog';
-
 import Box from '@mui/material/Box';
 import DialogTitle from '@mui/material/DialogTitle';
 import PropTypes from 'prop-types';
 
 import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import Slides from './Slides';
@@ -13,6 +13,8 @@ import Dishes from './Dishes';
 import Wafers from './Wafers';
 import { getVesselById } from '@/constants/vessel-types';
 import NumericInput from 'react-numeric-input';
+import store from '@/reducers';
+import vessel from '@/reducers/modules/vessel';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -37,11 +39,26 @@ TabPanel.propTypes = {
 };
 
 export const ExpansionDialog = (props) => {
+  const vessel_data = useSelector((state) => state.measure.vessel_data);
   const maxDialogWidth = 600;
   const [open, setOpen] = useState(true);
   const [currentVessel, setCurrentVessel] = useState(props.currentVessel);
   const handleClose = () => {
+    updateExpansionSize();
     props.closeDialog(areaPercentage);
+  };
+
+  useEffect(() => {
+    setAreaPercentage(vessel_data.area_percentage);
+  }, [vessel_data]);
+
+  const updateExpansionSize = () => {
+    store.dispatch({
+      type: 'UPDATE_MEASURE_VESSEL_DATA',
+      payload: {
+        area_percentage: areaPercentage,
+      },
+    });
   };
 
   const changeCurrentVessel = (id) => {
@@ -51,7 +68,9 @@ export const ExpansionDialog = (props) => {
     }
   };
 
-  const [areaPercentage, setAreaPercentage] = useState(props.areaPercentage);
+  const [areaPercentage, setAreaPercentage] = useState(
+    vessel_data.area_percentage,
+  );
 
   useEffect(() => {
     setOpen(props.open);

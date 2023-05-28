@@ -32,6 +32,8 @@ import { Alignments, Directions, SortOrder } from './constants';
 import { useChannelsStore } from '@/state';
 import { buildPyramid } from '@/api/tiling';
 import { Typography } from 'react-md';
+import useMetadata from '@/hooks/useMetadata';
+import { getMetadataFromDataBase } from '@/api/tiles';
 
 const tilingMenus = [
   'Edit',
@@ -102,6 +104,18 @@ const TabTiling = (props) => {
 
   // the editing list corresponding to well hole
   const [holeImageList, setHoleImageList] = useState([]);
+
+  const selectedImage = useSelector((state) => state.selectedImage);
+
+  //Get the *.xml url from the original Image file name
+  const getXmlUrl = (url, filename) => {
+    const realUrl = url.split(filename)[0];
+    const name = filename.split('.')[0];
+
+    const newExtension = '.xml';
+    const newUrl = realUrl + name + newExtension;
+    return newUrl;
+  };
 
   //Get the image of ome tiff file extension from the original url
   const getOmeTiffUrl = (url) => {
@@ -319,6 +333,7 @@ const TabTiling = (props) => {
     if (holeImageList) {
       if (holeImageList[0]) {
         setResultImagePath(getOmeTiffUrl(holeImageList[0].url));
+        handleListContentItemClick(new Event('click'), 0);
       }
     }
   }, [holeImageList]);
@@ -822,11 +837,32 @@ const TabTiling = (props) => {
     setInfoMessage('Best Fit Image has been Display.');
   };
 
+  useEffect(() => {
+    //console.log(selectedImage);
+  }, [selectedImage]);
+
   // When the list item of Edting is changed
   const handleListContentItemClick = async (event, index) => {
     if (holeImageList.length > 0) {
       setSelectedImageFileIndex(index);
       setResultImagePath(getOmeTiffUrl(holeImageList[index].url));
+
+      let selectedImage = {};
+      selectedImage.orginalFileName = holeImageList[index].url;
+      selectedImage.url = getOmeTiffUrl(holeImageList[index].url);
+      selectedImage.xmlUrl = getXmlUrl(
+        holeImageList[index].url,
+        holeImageList[index].filename,
+      );
+
+      //const metaData = await getMetadataFromDataBase(holeImageList[index].filename);
+      //console.log(metaData);
+
+      store.dispatch({
+        type: 'set_SelectedImage',
+        content: selectedImage,
+      });
+      //console.log(holeImageList[index].url);
     }
   };
 

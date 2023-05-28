@@ -8,6 +8,7 @@ import measure from './modules/measure';
 import tiling from './modules/tiling';
 import display from './modules/displayReducer';
 import metaData from './modules/metaData';
+import selectedImage from './modules/selectedImage';
 
 const reducer = combineReducers({
   auth: auth,
@@ -19,6 +20,7 @@ const reducer = combineReducers({
   measure: measure,
   display: display,
   metaData: metaData,
+  selectedImage: selectedImage,
 });
 
 const store = createStore(reducer);

@@ -1,17 +1,68 @@
-import React, { useState } from "react";
-import Container from "@mui/material/Container";
-import Grid from "@mui/material/Grid";
-import MenuItem from "@mui/material/MenuItem";
-import FormControl from "@mui/material/FormControl";
-import Select from "@mui/material/Select";
-import InputLabel from "@mui/material/InputLabel";
-import Button from "@mui/material/Button";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
+import React, { useEffect, useState } from 'react';
+import Container from '@mui/material/Container';
+import Grid from '@mui/material/Grid';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select from '@mui/material/Select';
+import InputLabel from '@mui/material/InputLabel';
+import Input from '@mui/material/Input';
+import Button from '@mui/material/Button';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
+import { useSelector } from 'react-redux';
+import store from '@/reducers';
 
-export default function SortItemBottom() {
-  const [minValue, setMinValue] = useState("");
-  const [maxValue, setMaxValue] = useState("");
+export default function SortItemBottom(props) {
+  const [minValue, setMinValue] = useState('');
+  const [maxValue, setMaxValue] = useState('');
+  const classSettingData = useSelector(
+    (state) => state.measure.class_setting_data,
+  );
+  const measureData = useSelector((state) => state.measure.ml_measure_data);
+
+  useEffect(() => {
+    if (props.currentClass != -1 && props.currentMeasureItem) {
+      let selectedItems = classSettingData[props.currentClass].selectedItems;
+      let index = selectedItems.indexOf(props.currentMeasureItem);
+      let min = measureData[props.currentClass].data[0][index];
+      let max = measureData[props.currentClass].data[0][index];
+      for (let i = 1; i < measureData[props.currentClass].data.length; i++) {
+        if (min > measureData[props.currentClass].data[i][index]) {
+          min = measureData[props.currentClass].data[i][index];
+        }
+        if (max < measureData[props.currentClass].data[i][index]) {
+          max = measureData[props.currentClass].data[i][index];
+        }
+      }
+      setMinValue(min);
+      setMaxValue(max);
+    }
+  }, [props]);
+
+  const applyFilter = () => {
+    if (props.currentClass != -1 && props.currentMeasureItem) {
+      let newData = [].concat(measureData);
+      let data = [];
+      if (minValue !== '' && maxValue !== '') {
+        let selectedItems = classSettingData[props.currentClass].selectedItems;
+        let index = selectedItems.indexOf(props.currentMeasureItem);
+        for (let i = 0; i < measureData[props.currentClass].data.length; i++) {
+          if (minValue > measureData[props.currentClass].data[i][index]) {
+            continue;
+          }
+          if (maxValue < measureData[props.currentClass].data[i][index]) {
+            continue;
+          }
+          data.push(measureData[props.currentClass].data[i]);
+        }
+        newData[props.currentClass].data = data;
+        store.dispatch({
+          type: 'SET_ML_MEASURE_DATA',
+          payload: newData,
+        });
+      }
+    }
+  };
 
   const minHandleChange = (event) => {
     setMinValue(event.target.value);
@@ -28,43 +79,29 @@ export default function SortItemBottom() {
   return (
     <Container>
       <Grid container spacing={2}>
-        <Grid item xs={2} sx={{ display: "flex" }}>
+        <Grid item xs={2} sx={{ display: 'flex' }}>
           <FormControlLabel
             control={<Checkbox />}
             label="Active"
-            sx={{ marginBottom: "0" }}
+            sx={{ marginBottom: '0' }}
           />
         </Grid>
         <Grid
           item
           xs={7}
           sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
           }}
         >
-          <p style={{ margin: "0" }}>Min</p>
-          <FormControl sx={{ width: "90%" }}>
-            <InputLabel labelid="measure-class-label">0</InputLabel>
-            <Select
-              value={minValue}
-              onChange={minHandleChange}
-              inputProps={{
-                name: "number",
-                id: "min-number-select",
-              }}
-            >
-              {minOptions.map((minOptions) => (
-                <MenuItem key={minOptions} value={minOptions}>
-                  {minOptions}
-                </MenuItem>
-              ))}
-            </Select>
+          <p style={{ margin: '0' }}>Min</p>
+          <FormControl sx={{ width: '90%' }}>
+            <Input type="number" value={minValue} onChange={minHandleChange} />
           </FormControl>
         </Grid>
         <Grid item xs={3}></Grid>
-        <Grid item xs={2} sx={{ display: "flex", alignItems: "center" }}>
+        <Grid item xs={2} sx={{ display: 'flex', alignItems: 'center' }}>
           <Button variant="contained" color="inherit" size="small">
             Reset
           </Button>
@@ -73,32 +110,23 @@ export default function SortItemBottom() {
           item
           xs={7}
           sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
           }}
         >
-          <p style={{ margin: "0" }}>Max</p>
-          <FormControl sx={{ width: "90%" }}>
-            <InputLabel labelid="measure-class-label">0</InputLabel>
-            <Select
-              value={maxValue}
-              onChange={maxHandleChange}
-              inputProps={{
-                name: "number",
-                id: "max-number-select",
-              }}
-            >
-              {maxOptions.map((maxOptions) => (
-                <MenuItem key={maxOptions} value={maxOptions}>
-                  {maxOptions}
-                </MenuItem>
-              ))}
-            </Select>
+          <p style={{ margin: '0' }}>Max</p>
+          <FormControl sx={{ width: '90%' }}>
+            <Input type="number" value={maxValue} onChange={maxHandleChange} />
           </FormControl>
         </Grid>
-        <Grid item xs={3} sx={{ display: "flex", alignItems: "center" }}>
-          <Button variant="contained" color="inherit" size="small">
+        <Grid item xs={3} sx={{ display: 'flex', alignItems: 'center' }}>
+          <Button
+            variant="contained"
+            color="inherit"
+            size="small"
+            onClick={applyFilter}
+          >
             Apply Filter
           </Button>
         </Grid>

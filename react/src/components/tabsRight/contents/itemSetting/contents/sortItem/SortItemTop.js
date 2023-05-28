@@ -11,16 +11,38 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import InputLabel from '@mui/material/InputLabel';
+import Input from '@mui/material/Input';
 import Button from '@mui/material/Button';
+import { useSelector } from 'react-redux';
+import Tab from '@mui/material/Tab';
 
-export default function SortItemTop() {
+export default function SortItemTop(props) {
   const [value, setValue] = React.useState('');
+  const classSettingData = useSelector(
+    (state) => state.measure.class_setting_data,
+  );
+
+  const [currentData, setCurrentData] = React.useState({});
+  const [currentClass, setCurrentClass] = React.useState(-1);
+  const [measureItems, setMeasureItems] = React.useState([]);
+  const [currentMeasureItem, setCurrentMeasureItem] = React.useState('');
 
   const handleChange = (event) => {
     setValue(event.target.value);
   };
 
   const options = Array.from(Array(31).keys());
+
+  const handleChangeClass = (e, newValue) => {
+    setCurrentClass(e.target.value);
+    setMeasureItems(classSettingData[e.target.value].selectedItems);
+    props.onChangeClass(e.target.value);
+  };
+
+  const handleChangeMeasureItem = (e, newValue) => {
+    setCurrentMeasureItem(e.target.value);
+    props.onChangeMeasure(e.target.value);
+  };
 
   return (
     <Container sx={{ marginBottom: '16px' }}>
@@ -32,14 +54,21 @@ export default function SortItemTop() {
         <Grid item xs={2}>
           <FormControl sx={{ width: '100%' }}>
             <InputLabel labelid="measure-class-label">Class</InputLabel>
-            <Select labelid="measure-class-label" id="my-select">
-              <MenuItem value="Class1">Class1</MenuItem>
-              <MenuItem value="Class2">Class2</MenuItem>
-              <MenuItem value="Class3">Class3</MenuItem>
-              <MenuItem value="Class4">Class4</MenuItem>
-              <MenuItem value="Class5">Class5</MenuItem>
-              <MenuItem value="Class6">Class6</MenuItem>
-              <MenuItem value="Class7">Class7</MenuItem>
+            <Select
+              labelid="measure-class-label"
+              id="my-select"
+              value={currentClass}
+              onChange={handleChangeClass}
+            >
+              {classSettingData.length ? (
+                classSettingData.map((row, index) => (
+                  <MenuItem value={index} key={index}>
+                    {row.className}
+                  </MenuItem>
+                ))
+              ) : (
+                <></>
+              )}
             </Select>
           </FormControl>
         </Grid>
@@ -52,30 +81,21 @@ export default function SortItemTop() {
             <Select
               labelid="measure-selected-item-label"
               id="measure-selected-item"
+              value={currentMeasureItem}
+              onChange={handleChangeMeasureItem}
             >
-              <MenuItem value="Item1">Item 1</MenuItem>
-              <MenuItem value="Item2">Item 2</MenuItem>
-              <MenuItem value="Item3">Item 3</MenuItem>
+              {measureItems.map((row, index) => (
+                <MenuItem value={row} key={index}>
+                  {row}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
         </Grid>
         <Grid item xs={2}>
           <FormControl sx={{ width: '100%' }}>
             <InputLabel labelid="bins-label">Bins</InputLabel>
-            <Select
-              value={value}
-              onChange={handleChange}
-              inputProps={{
-                name: 'number',
-                id: 'number-select',
-              }}
-            >
-              {options.map((option) => (
-                <MenuItem key={option} value={option}>
-                  {option}
-                </MenuItem>
-              ))}
-            </Select>
+            <Input type="number" />
           </FormControl>
         </Grid>
         <Grid item xs={1} sx={{ display: 'flex' }}>

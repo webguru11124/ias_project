@@ -21,6 +21,7 @@ import Draggable from 'react-draggable';
 import store from '@/reducers';
 import { getCSVUrl } from '@/helpers/file';
 import { readRemoteFile } from 'react-papaparse';
+import { MeasureHeader } from '@/constants/filters';
 
 const mapStateToProps = (state) => ({
   showMeasureItemPopup: state.measure.showMeasureItemPopup,
@@ -110,9 +111,18 @@ const MeasureItemDialog = (props) => {
     for (let i = 0; i < classSettingData.length; i++) {
       if (classSettingData[i].selectedItems.length > 0) {
         let data = [];
-        for (let j = 0; j < classSettingData[i].selectedItems.length; j++) {
-          data.push(csvData[classSettingData[i].selectedItems[j]]);
+        for (let k = 1; k < csvData.length - 1; k++) {
+          let itemData = [];
+          for (let j = 0; j < classSettingData[i].selectedItems.length; j++) {
+            itemData.push(
+              csvData[k][
+                MeasureHeader.indexOf(classSettingData[i].selectedItems[j])
+              ],
+            );
+          }
+          data.push(itemData);
         }
+
         results.push({
           name: classSettingData[i].className,
           data,

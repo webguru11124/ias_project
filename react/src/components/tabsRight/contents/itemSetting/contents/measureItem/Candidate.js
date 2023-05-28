@@ -32,17 +32,20 @@ export default function Candidate(props) {
         }}
       >
         <ul className="measure-item-list">
-          {items.map((item, index) => (
-            <li
-              key={index}
-              onClick={() => {
-                selectItem(item);
-              }}
-              className={item == selectedItem ? 'selected' : ''}
-            >
-              {item}
-            </li>
-          ))}
+          {items.map(
+            (item, index) =>
+              item && (
+                <li
+                  key={index}
+                  onClick={() => {
+                    selectItem(item);
+                  }}
+                  className={item == selectedItem ? 'selected' : ''}
+                >
+                  {item}
+                </li>
+              ),
+          )}
         </ul>
       </div>
     </div>

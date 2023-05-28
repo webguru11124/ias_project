@@ -7,13 +7,24 @@ import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import SortItemTop from './contents/sortItem/SortItemTop';
 import SortItemBottom from './contents/sortItem/SortItemBottom';
+import { useSelector } from 'react-redux';
 
 export default function SortAreaDialog(props) {
   const [open] = useState(true);
   const maxDialogWidth = 800;
+  const [currentClass, setCurrentClass] = useState(-1);
+  const [currentMeasureItem, setCurrentMeasureItem] = useState('');
 
   const handleClose = () => {
     props.closeDialog();
+  };
+
+  const onChangeClass = (value) => {
+    setCurrentClass(value);
+  };
+
+  const onChangeMeasureItem = (value) => {
+    setCurrentMeasureItem(value);
   };
 
   return (
@@ -30,8 +41,14 @@ export default function SortAreaDialog(props) {
         </button>
       </div>
       <div style={{ width: maxDialogWidth, margin: '16px 0' }}>
-        <SortItemTop />
-        <SortItemBottom />
+        <SortItemTop
+          onChangeClass={onChangeClass}
+          onChangeMeasure={onChangeMeasureItem}
+        />
+        <SortItemBottom
+          currentClass={currentClass}
+          currentMeasureItem={currentMeasureItem}
+        />
       </div>
       <div className="border-top">
         <DialogActions>

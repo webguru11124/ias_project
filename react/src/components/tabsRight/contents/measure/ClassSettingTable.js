@@ -20,6 +20,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import '@/styles/measure.css';
 import { getCSVUrl } from '@/helpers/file';
 import { readRemoteFile } from 'react-papaparse';
+import { MeasureHeader } from '@/constants/filters';
 
 const channels = ['S', 'B', 'G', 'R', 'C', 'Y', 'M'];
 
@@ -55,10 +56,10 @@ export default function ClassSettingTable() {
   }, [csvResultPath]);
 
   const onAdd = () => {
-    let items = [];
-    for (let i = 1; i < csvData.length - 1; i++) {
-      items.push(i);
-    }
+    // let items = [];
+    // for (let i = 1; i < csvData.length - 1; i++) {
+    //   items.push(i);
+    // }
     let rcId = 0;
     for (let i = 0; i < channelData.length; i++) {
       if (channelData[i].id == channelId) {
@@ -69,7 +70,7 @@ export default function ClassSettingTable() {
       className,
       channelId: rcId,
       parentId,
-      items: items,
+      items: [].concat(MeasureHeader),
       selectedItems: [],
     };
     if (className === '') return;

@@ -215,14 +215,16 @@ const TabTiling = (props) => {
             newContent.push(tempContent);
           });
 
+          newContent[0].objective = -1;
+
           store.dispatch({ type: 'content_addContent', content: newContent });
         } else {
           let newContent = [];
 
           sortedTiles.map((tile) => {
             let tempContent = {};
-            tempContent.z = 0;
-            tempContent.time = 0;
+            tempContent.z = -1;
+            tempContent.time = -1;
             tempContent.dimensionChanged = false;
             tempContent.row = 0;
             tempContent.col = 0;
@@ -319,6 +321,8 @@ const TabTiling = (props) => {
           tempChannels[idx] = 1;
         });
 
+        newContent[0].objective = -1;
+
         store.dispatch({ type: 'content_addContent', content: newContent });
 
         return;
@@ -335,8 +339,8 @@ const TabTiling = (props) => {
         setHoleImageList(sortedTiles);
 
         const tempChannels = [1, 0, 0, 0, 0, 0, 0];
-        const time = 0;
-        const channel = 0;
+        let time = 0;
+        let channel = 0;
 
         if (
           sortedTiles[0].time !== undefined &&
@@ -389,6 +393,7 @@ const TabTiling = (props) => {
           });
 
           newContent[0].channels = tempChannels;
+          newContent[0].objective = -1;
 
           store.dispatch({ type: 'content_addContent', content: newContent });
         }

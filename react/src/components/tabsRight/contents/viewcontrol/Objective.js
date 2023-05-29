@@ -8,6 +8,7 @@ export default function Objective() {
   const [activeButton, setActiveButton] = useState(0); //id
   const objectiveData = useSelector((state) => state.measure.objective_data);
   const [activeId, setActiveId] = useState(objectiveData.id ?? 0); //id
+  const content = useSelector((state) => state.files.content);
 
   const objectives = [
     { id: 0, rate: 4 },
@@ -27,6 +28,15 @@ export default function Objective() {
     });
     setActiveId(item.id);
   };
+
+  useEffect(() => {
+    // console.log(content);
+    if (content) {
+      if (content[0] && content[0].objective !== undefined) {
+        setActiveId(content[0].objective);
+      }
+    }
+  }, [content]);
 
   return (
     <SmallCard title="Objective">

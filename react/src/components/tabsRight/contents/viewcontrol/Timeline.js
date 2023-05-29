@@ -150,8 +150,14 @@ const Timeline = (props) => {
   };
 
   useEffect(() => {
-    if (props.value !== undefined) {
-      setValue(props.value);
+    if (props.content) {
+      if (
+        props.content[0] &&
+        props.content[0].time !== undefined &&
+        props.content[0] === 0
+      ) {
+        setValue(1);
+      }
     }
   }, [props]);
 

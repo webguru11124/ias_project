@@ -25,6 +25,7 @@ export const BoxFilter = [
 ];
 
 export const MeasureHeader = [
+  '',
   'Pixels in Area',
   'X Center of Gravity',
   'Y Center of Gravity',

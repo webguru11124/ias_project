@@ -113,6 +113,7 @@ const MeasureItemDialog = (props) => {
         let data = [];
         for (let k = 1; k < csvData.length - 1; k++) {
           let itemData = [];
+          itemData.push(csvData[k][0]);
           for (let j = 0; j < classSettingData[i].selectedItems.length; j++) {
             itemData.push(
               csvData[k][

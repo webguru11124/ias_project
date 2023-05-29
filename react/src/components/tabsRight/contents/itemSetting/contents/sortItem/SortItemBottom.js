@@ -23,15 +23,15 @@ export default function SortItemBottom(props) {
   useEffect(() => {
     if (props.currentClass != -1 && props.currentMeasureItem) {
       let selectedItems = classSettingData[props.currentClass].selectedItems;
-      let index = selectedItems.indexOf(props.currentMeasureItem);
-      let min = measureData[props.currentClass].data[0][index];
-      let max = measureData[props.currentClass].data[0][index];
+      let index = selectedItems.indexOf(props.currentMeasureItem) + 1;
+      let min = measureData[props.currentClass].data[0][index] * 1;
+      let max = measureData[props.currentClass].data[0][index] * 1;
       for (let i = 1; i < measureData[props.currentClass].data.length; i++) {
-        if (min > measureData[props.currentClass].data[i][index]) {
-          min = measureData[props.currentClass].data[i][index];
+        if (min * 1 > measureData[props.currentClass].data[i][index] * 1) {
+          min = measureData[props.currentClass].data[i][index] * 1;
         }
-        if (max < measureData[props.currentClass].data[i][index]) {
-          max = measureData[props.currentClass].data[i][index];
+        if (max * 1 < measureData[props.currentClass].data[i][index] * 1) {
+          max = measureData[props.currentClass].data[i][index] * 1;
         }
       }
       setMinValue(min);
@@ -45,12 +45,18 @@ export default function SortItemBottom(props) {
       let data = [];
       if (minValue !== '' && maxValue !== '') {
         let selectedItems = classSettingData[props.currentClass].selectedItems;
-        let index = selectedItems.indexOf(props.currentMeasureItem);
+        let index = selectedItems.indexOf(props.currentMeasureItem) + 1;
         for (let i = 0; i < measureData[props.currentClass].data.length; i++) {
-          if (minValue > measureData[props.currentClass].data[i][index]) {
+          if (
+            minValue * 1 >
+            measureData[props.currentClass].data[i][index] * 1
+          ) {
             continue;
           }
-          if (maxValue < measureData[props.currentClass].data[i][index]) {
+          if (
+            maxValue * 1 <
+            measureData[props.currentClass].data[i][index] * 1
+          ) {
             continue;
           }
           data.push(measureData[props.currentClass].data[i]);

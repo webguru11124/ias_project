@@ -137,6 +137,25 @@ const Vessel = (props) => {
     setCurrentVessel(getVesselById(vesselID));
     setCurrentVesselId(vesselID);
 
+    if (seriesCount === 0) {
+      store.dispatch({
+        type: 'vessel_setCurrentSeriesIdx',
+        content: curSeriesIdx,
+      });
+      return;
+    } else {
+      if (direction) {
+        curSeriesIdx = (curSeriesIdx + 1) % seriesCount;
+      } else {
+        curSeriesIdx = (curSeriesIdx + seriesCount - 1) % seriesCount;
+      }
+    }
+
+    store.dispatch({
+      type: 'vessel_setCurrentSeriesIdx',
+      content: curSeriesIdx,
+    });
+
     let curSeriesIdx = current_contents[0].selectedSeriesIdx;
     let seriesCount = current_contents[0].seriesCount;
 
@@ -169,6 +188,10 @@ const Vessel = (props) => {
   useEffect(() => {
     if (props.content && props.content !== []) {
       let current_contents = JSON.parse(JSON.stringify(props.content));
+
+      //console.log(current_contents);
+
+      //console.log(current_contents);
 
       setContents(JSON.parse(JSON.stringify(current_contents)));
 

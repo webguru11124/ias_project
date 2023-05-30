@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Row, Col } from 'react-bootstrap';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -29,10 +29,8 @@ import { DialogActions, ImageList, ImageListItem, Paper } from '@mui/material';
 import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
 import Avivator from '../../../../../avivator/Avivator';
 import { Alignments, Directions, SortOrder } from './constants';
-import { useChannelsStore } from '@/state';
 import { buildPyramid } from '@/api/tiling';
 import { Typography } from 'react-md';
-import useMetadata from '@/hooks/useMetadata';
 import { getMetadataFromDataBase } from '@/api/tiles';
 
 const tilingMenus = [
@@ -54,7 +52,6 @@ const tilingAlignButtons = [
   'By Rows',
 ];
 
-const TAG = 'Tiling : ';
 let stylingTiling = {
   ToggleButtonGroup: { margin: '0 auto', width: '22px', height: '22px' },
 };
@@ -125,15 +122,6 @@ const TabTiling = (props) => {
     const newUrl = url.replace(/\.[^/.]+$/, `.${newExtension}`);
     return newUrl;
   };
-
-  // urls list
-  const urls = useMemo(() => {
-    if (!tiles) return [];
-    const res = tiles
-      .filter((tile) => /tif?f|jpg|jpeg|png|JPG|PNG/.test(tile.path))
-      .map((img) => getOmeTiffUrl(img.url));
-    return res;
-  }, [tiles]);
 
   //Get the MaxRow, MaxCol, and VesselType
   const getVesselType = () => {
@@ -303,8 +291,6 @@ const TabTiling = (props) => {
 
           sortedTiles.map((tile) => {
             let tempContent = {};
-            tempContent.z = -1;
-            tempContent.time = -1;
             tempContent.dimensionChanged = false;
             tempContent.row = 0;
             tempContent.col = 0;
@@ -420,10 +406,9 @@ const TabTiling = (props) => {
     if (
       sortedTiles[0].time !== undefined &&
       sortedTiles[0].channel !== undefined &&
-      sortedTiles[0].z != undefined
+      sortedTiles[0].z !== undefined
     ) {
       time = Number(sortedTiles[0].time.split('p')[1]);
-      channel = Number(sortedTiles[0].channel.split('d')[1]);
 
       sortedTiles.map((image) => {
         const idx = Number(image.channel.split('d')[1]);

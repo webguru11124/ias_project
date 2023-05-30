@@ -14,6 +14,7 @@ export default function SortAreaDialog(props) {
   const maxDialogWidth = 800;
   const [currentClass, setCurrentClass] = useState(-1);
   const [currentMeasureItem, setCurrentMeasureItem] = useState('');
+  const [currentBins, setCurrentBins] = useState(16);
 
   const handleClose = () => {
     props.closeDialog();
@@ -25,6 +26,10 @@ export default function SortAreaDialog(props) {
 
   const onChangeMeasureItem = (value) => {
     setCurrentMeasureItem(value);
+  };
+
+  const onChangeBins = (value) => {
+    setCurrentBins(value);
   };
 
   return (
@@ -44,10 +49,12 @@ export default function SortAreaDialog(props) {
         <SortItemTop
           onChangeClass={onChangeClass}
           onChangeMeasure={onChangeMeasureItem}
+          onChangeBins={onChangeBins}
         />
         <SortItemBottom
           currentClass={currentClass}
           currentMeasureItem={currentMeasureItem}
+          currentBins={currentBins}
         />
       </div>
       <div className="border-top">

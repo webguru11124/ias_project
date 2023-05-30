@@ -25,6 +25,7 @@ export default function SortItemTop(props) {
   const [currentData, setCurrentData] = React.useState({});
   const [currentClass, setCurrentClass] = React.useState(-1);
   const [measureItems, setMeasureItems] = React.useState([]);
+  const [bins, setBins] = React.useState(16);
   const [currentMeasureItem, setCurrentMeasureItem] = React.useState('');
 
   const handleChange = (event) => {
@@ -42,6 +43,11 @@ export default function SortItemTop(props) {
   const handleChangeMeasureItem = (e, newValue) => {
     setCurrentMeasureItem(e.target.value);
     props.onChangeMeasure(e.target.value);
+  };
+
+  const handleBinsChange = (e) => {
+    setBins(e.target.value);
+    props.onChangeBins(e.target.value);
   };
 
   return (
@@ -95,7 +101,7 @@ export default function SortItemTop(props) {
         <Grid item xs={2}>
           <FormControl sx={{ width: '100%' }}>
             <InputLabel labelid="bins-label">Bins</InputLabel>
-            <Input type="number" />
+            <Input type="number" value={bins} onChange={handleBinsChange} />
           </FormControl>
         </Grid>
         <Grid item xs={1} sx={{ display: 'flex' }}>

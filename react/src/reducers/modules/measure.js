@@ -113,7 +113,7 @@ const DEFAULT_PARAMS = {
     title: 'Single',
     area_percentage: 30,
   },
-  objective_data: { id: 0, rate: 4 },
+  objective_data: { id: -1, rate: 'N/A' },
   channel_data: [], //DEFAULT_CHANNEL_DATA,
   image_adjust_data: {
     brightness: [0, 0, 0, 0, 0, 0, 0],

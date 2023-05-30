@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Grid from '@mui/material/Grid';
 import Slider from '@mui/material/Slider';
@@ -18,12 +18,16 @@ import { connect } from 'react-redux';
 
 const mapStateToProps = (state) => ({
   display: state.display,
+  content: state.files.content,
 });
 
 function ZPosition(props) {
   const loader = useLoader();
   const { shape, labels } = loader[0];
   const size = shape[labels.indexOf('z')];
+  const [zvalue, setZvalue] = useState(
+    useViewerStore((store) => store.globalSelection.z),
+  );
 
   const { selections, setPropertiesForChannel } = useChannelsStore(
     (store) => store,
@@ -31,6 +35,21 @@ function ZPosition(props) {
   );
   const globalSelection = useViewerStore((store) => store.globalSelection);
   const zpositionData = useSelector((state) => state.measure.zposition);
+
+  useEffect(() => {
+    if (props.content) {
+      if (
+        props.content[0] &&
+        props.content[0].z !== undefined &&
+        Number(props.content[0].z) === 0
+      ) {
+        useViewerStore.setState({
+          globalSelection: { ...globalSelection, z: 1 },
+        });
+        setZvalue(1);
+      }
+    }
+  }, [props]);
 
   // eslint-disable-next-line
   const changeSelection = useCallback(

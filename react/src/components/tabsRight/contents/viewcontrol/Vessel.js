@@ -8,7 +8,6 @@ import Dishes from './contents/vessels/Dishes';
 import Slides from './contents/vessels/Slides';
 import WellPlates from './contents/vessels/WellPlates';
 import Wafers from './contents/vessels/Wafers';
-import store from '../../../../reducers';
 import {
   mdiChevronLeft,
   mdiChevronRight,
@@ -18,6 +17,7 @@ import {
 import Icon from '@mdi/react';
 import { SelectDialog } from './contents/vessels/SelectDialog';
 import { ExpansionDialog } from './contents/vessels/ExpansionDialog';
+import store from '@/reducers';
 
 const mapStateToProps = (state) => ({
   content: state.files.content,
@@ -25,7 +25,10 @@ const mapStateToProps = (state) => ({
 });
 
 const Vessel = (props) => {
+  const expansionValue = 30;
   const [shape, setShape] = useState('rect'); // ['rect', 'circle']
+  const vessel_data = useSelector((state) => state.measure.vessel_data);
+
   const [currentVesselId, setCurrentVesselId] = useState(1);
   const [currentVessel, setCurrentVessel] = useState(getVesselById(1));
   const [showSelectDialog, setShowSelectDialog] = useState(false);
@@ -86,7 +89,6 @@ const Vessel = (props) => {
       }
     }
 
-
     if (vesselID === -1) {
       // console.log('There is no suitable size in VESSEL!');
       vesselID = 12;
@@ -111,6 +113,7 @@ const Vessel = (props) => {
     let maxRow = 0;
     let maxCol = 1;
     let current_contents = [...contents];
+
     for (let i = 0; i < current_contents.length; i++) {
       if (current_contents[i].row > maxRow) maxRow = current_contents[i].row;
       if (current_contents[i].col > maxCol) maxCol = current_contents[i].col;
@@ -133,6 +136,28 @@ const Vessel = (props) => {
     let vesselID = getCorrectVesselID(seriesStr, maxRow, maxCol);
     setCurrentVessel(getVesselById(vesselID));
     setCurrentVesselId(vesselID);
+
+    let curSeriesIdx = current_contents[0].selectedSeriesIdx;
+    let seriesCount = current_contents[0].seriesCount;
+
+    if (seriesCount === 0) {
+      store.dispatch({
+        type: 'vessel_setCurrentSeriesIdx',
+        content: curSeriesIdx,
+      });
+      return;
+    } else {
+      if (direction) {
+        curSeriesIdx = (curSeriesIdx + 1) % seriesCount;
+      } else {
+        curSeriesIdx = (curSeriesIdx + seriesCount - 1) % seriesCount;
+      }
+    }
+
+    store.dispatch({
+      type: 'vessel_setCurrentSeriesIdx',
+      content: curSeriesIdx,
+    });
   };
   const handleExpansionDialogClose = (percentVal) => {
     store.dispatch({
@@ -140,24 +165,13 @@ const Vessel = (props) => {
       payload: { area_percentage: percentVal },
     });
     setShowExpansionDialog(false);
-
   };
   useEffect(() => {
     if (props.content && props.content !== []) {
       let current_contents = JSON.parse(JSON.stringify(props.content));
 
-      //console.log(current_contents);
-
-
-      //console.log(current_contents);
-
       setContents(JSON.parse(JSON.stringify(current_contents)));
 
-      //console.log("Current Content is ");
-      //console.log(current_contents);
-
-      //console.log("Current Content is ");
-      //console.log(current_contents);
       let current_vessel = {
         id: 12,
         type: 'WellPlate',
@@ -198,14 +212,6 @@ const Vessel = (props) => {
     if (currentVessel) {
       switch (currentVessel.type) {
         case 'Slide':
-          return (
-            <Slides
-              width={width}
-              count={currentVessel.count}
-              showHole={slideSelect}
-              areaPercentage={100}
-            />
-          );
           return (
             <Slides
               width={width}
@@ -291,6 +297,7 @@ const Vessel = (props) => {
         <ExpansionDialog
           currentVessel={currentVesselId}
           open={showExpansionDialog}
+          areaPercentage={expansionValue}
           closeDialog={() => {
             setShowExpansionDialog(false);
           }}

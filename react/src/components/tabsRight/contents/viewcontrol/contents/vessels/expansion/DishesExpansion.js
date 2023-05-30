@@ -1,53 +1,53 @@
 import React, { useEffect, useState } from 'react';
 import {
-  VESSEL_WAFER_RATIO,
-  VESSEL_WAFER_MAX_HEIGHT,
-  VESSEL_WAFER_GAP,
-  VESSEL_WAFER_MAX_SIZE,
+  VESSEL_DISH_MAX_SIZE,
+  VESSEL_DISH_GAP,
+  VESSEL_DISH_RATIO,
+  VESSEL_DISH_MAX_HEIGHT,
 } from '@/constants';
-// import store from "../../../../../../reducers";
-export default function Wafers(props) {
+
+export default function DishesExpansion(props) {
   const areaRatio = props.areaPercentage * 0.01;
 
   var calculateDRect = {};
-  if (props.width * VESSEL_WAFER_RATIO > VESSEL_WAFER_MAX_HEIGHT) {
-    calculateDRect.height = VESSEL_WAFER_MAX_HEIGHT;
-    calculateDRect.width = calculateDRect.height / VESSEL_WAFER_RATIO;
+  if (props.width * VESSEL_DISH_RATIO > VESSEL_DISH_MAX_HEIGHT) {
+    calculateDRect.height = VESSEL_DISH_MAX_HEIGHT;
+    calculateDRect.width = calculateDRect.height / VESSEL_DISH_RATIO;
   } else {
     calculateDRect.width = props.width;
-    calculateDRect.height = props.width * VESSEL_WAFER_RATIO;
+    calculateDRect.height = props.width * VESSEL_DISH_RATIO;
   }
+
+  const max_radius = calculateDRect.height - VESSEL_DISH_GAP;
   const [selected, setSelected] = useState(false);
-  const max_radius = calculateDRect.height - VESSEL_WAFER_GAP;
   const [width, setWidth] = useState(props.width);
   const [size, setSize] = useState(props.size);
   const [rect, setRect] = useState(calculateDRect);
   const [radious, setRadious] = useState(
-    props.size > VESSEL_WAFER_MAX_SIZE
+    props.size > VESSEL_DISH_MAX_SIZE
       ? max_radius
-      : Math.abs(Math.ceil(props.size * max_radius) / VESSEL_WAFER_MAX_SIZE),
+      : Math.abs(Math.ceil(props.size * max_radius) / VESSEL_DISH_MAX_SIZE),
   );
 
   useEffect(() => {
-    //console.log(props);
     if (width !== props.width || size !== props.size) {
-      if (props.width * VESSEL_WAFER_RATIO > VESSEL_WAFER_MAX_HEIGHT) {
-        calculateDRect.height = VESSEL_WAFER_MAX_HEIGHT;
-        calculateDRect.width = calculateDRect.height / VESSEL_WAFER_RATIO;
+      if (props.width * VESSEL_DISH_RATIO > VESSEL_DISH_MAX_HEIGHT) {
+        calculateDRect.height = VESSEL_DISH_MAX_HEIGHT;
+        calculateDRect.width = calculateDRect.height / VESSEL_DISH_RATIO;
       } else {
         calculateDRect.width = props.width;
-        calculateDRect.height = props.width * VESSEL_WAFER_RATIO;
+        calculateDRect.height = props.width * VESSEL_DISH_RATIO;
       }
-      const max_radius = calculateDRect.height - VESSEL_WAFER_GAP;
+
+      const max_radius = calculateDRect.height - VESSEL_DISH_GAP;
+
       setWidth(props.width);
       setSize(props.size);
       setRect(calculateDRect);
       setRadious(
-        props.size > VESSEL_WAFER_MAX_SIZE
+        props.size > VESSEL_DISH_MAX_SIZE
           ? max_radius
-          : Math.abs(
-              Math.ceil(props.size * max_radius) / VESSEL_WAFER_MAX_SIZE,
-            ),
+          : Math.abs(Math.ceil(props.size * max_radius) / VESSEL_DISH_MAX_SIZE),
       );
     }
   }, [props]);
@@ -65,10 +65,7 @@ export default function Wafers(props) {
             zIndex: '100',
             position: 'relative',
           }}
-          className={
-            'border border-dark rounded-circle wafer-box ' +
-            (selected ? 'selected' : '')
-          }
+          className={'border border-dark rounded-circle wafer-box '}
           onClick={() => {
             setSelected(!selected);
           }}
@@ -79,7 +76,7 @@ export default function Wafers(props) {
               width: radious * areaRatio,
               height: radious * areaRatio,
               borderRadius: '50%',
-              backgroundColor: '#00a0e9',
+              backgroundColor: '#e0ffff',
               position: 'absolute',
             }}
           ></div>

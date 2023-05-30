@@ -126,9 +126,31 @@ export default function TabNaming() {
         } else if (key === 'series') {
           //console.log(tempString);
           // console.log(namePattern);
-          result['strSeries'] = tempString;
-          resultContent['strSeries'] = tempString;
+
           const matches = tempString.match(/\d+/);
+
+          const str = objectPerFile.filename;
+          const contentArray = str.split('_');
+          let tempIdx;
+
+          contentArray.map((item, idx) => {
+            if (item[0] === 'p' && idx !== 0) {
+              tempIdx = idx;
+            }
+          });
+
+          let finalResult = contentArray[0];
+
+          for (let i = 1; i < tempIdx; i++) {
+            finalResult = finalResult + '_' + contentArray[i];
+          }
+
+          result['strSeries'] = finalResult;
+          resultContent['strSeries'] = finalResult;
+
+          // result['strSeries'] = tempString;
+          // resultContent['strSeries'] = tempString;
+
           // console.log("Matches");
           if (matches) {
             result[key] = objectPerFile.id;
@@ -140,31 +162,34 @@ export default function TabNaming() {
         } else if (key === 'filename') {
           result[key] = objectPerFile.filename;
           resultContent[key] = objectPerFile.filename;
-        } else if (key === 'z') {
-          if (tempString === 'z') {
-            for (let j = 1; j < 4; j++) {
-              tempString = objectPerFile.filename.substring(
-                namePattern[currentIndex].start + j,
-                namePattern[currentIndex].start + j + 1,
-              );
-              if (tempString === '_') {
-                moveIndex = j + 1;
-                tempString = objectPerFile.filename.substring(
-                  namePattern[currentIndex].start + 1,
-                  namePattern[currentIndex].start + j,
-                );
-                result[key] = parseInt(tempString) + 1;
-                resultContent[key] = objectPerFile.filename.substring(
-                  namePattern[currentIndex].start,
-                  namePattern[currentIndex].start + j,
-                );
-              }
-            }
-          } else {
-            result[key] = convertContentStringToInteger(key, tempString);
-            resultContent[key] = tempString;
-          }
-        } else if (key === 'field') {
+        }
+
+        // else if (key === 'z') {
+        //   if (tempString === 'z') {
+        //     for (let j = 1; j < 4; j++) {
+        //       tempString = objectPerFile.filename.substring(
+        //         namePattern[currentIndex].start + j,
+        //         namePattern[currentIndex].start + j + 1,
+        //       );
+        //       if (tempString === '_') {
+        //         moveIndex = j + 1;
+        //         tempString = objectPerFile.filename.substring(
+        //           namePattern[currentIndex].start + 1,
+        //           namePattern[currentIndex].start + j,
+        //         );
+        //         result[key] = parseInt(tempString) + 1;
+        //         resultContent[key] = objectPerFile.filename.substring(
+        //           namePattern[currentIndex].start,
+        //           namePattern[currentIndex].start + j,
+        //         );
+        //       }
+        //     }
+        //   } else {
+        //     result[key] = convertContentStringToInteger(key, tempString);
+        //     resultContent[key] = tempString;
+        //   }
+        // }
+        else if (key === 'field') {
           const str = objectPerFile.filename;
           const contentArray = str.split('_');
           const content = contentArray[contentArray.length - 1];
@@ -182,6 +207,45 @@ export default function TabNaming() {
 
           result[key] = 'd' + finalResult;
           resultContent[key] = 'd' + finalResult;
+        } else if (key === 'time') {
+          const str = objectPerFile.filename;
+          const contentArray = str.split('_');
+          let finalResult;
+
+          contentArray.map((item, idx) => {
+            if (item[0] === 'p' && idx !== 0) {
+              finalResult = item;
+            }
+          });
+
+          result[key] = finalResult;
+          resultContent[key] = finalResult;
+        } else if (key === 'z') {
+          const str = objectPerFile.filename;
+          const contentArray = str.split('_');
+          let tempIdx;
+
+          contentArray.map((item, idx) => {
+            if (item[0] === 'p' && idx !== 0) {
+              tempIdx = idx;
+            }
+          });
+
+          result[key] = contentArray[tempIdx + 1];
+          resultContent[key] = contentArray[tempIdx + 1];
+        } else if (key === 'row') {
+          const str = objectPerFile.filename;
+          const contentArray = str.split('_');
+          const content = contentArray[contentArray.length - 1];
+
+          result[key] = content[0];
+          resultContent[key] = content[0];
+        } else if (key === 'col') {
+          const str = objectPerFile.filename;
+          const contentArray = str.split('_');
+          const content = contentArray[contentArray.length - 1];
+          result[key] = content.slice(1, 3);
+          resultContent[key] = content.slice(1, 3);
         } else {
           tempString = objectPerFile.filename.substring(
             namePattern[currentIndex].start + moveIndex,

@@ -6,7 +6,7 @@ import {
   VESSEL_WAFER_MAX_SIZE,
 } from '@/constants';
 // import store from "../../../../../../reducers";
-export default function Wafers(props) {
+export default function WafersExpansion(props) {
   const areaRatio = props.areaPercentage * 0.01;
 
   var calculateDRect = {};
@@ -65,10 +65,7 @@ export default function Wafers(props) {
             zIndex: '100',
             position: 'relative',
           }}
-          className={
-            'border border-dark rounded-circle wafer-box ' +
-            (selected ? 'selected' : '')
-          }
+          className={'border border-dark rounded-circle wafer-box '}
           onClick={() => {
             setSelected(!selected);
           }}
@@ -79,7 +76,7 @@ export default function Wafers(props) {
               width: radious * areaRatio,
               height: radious * areaRatio,
               borderRadius: '50%',
-              backgroundColor: '#00a0e9',
+              backgroundColor: '#e0ffff',
               position: 'absolute',
             }}
           ></div>

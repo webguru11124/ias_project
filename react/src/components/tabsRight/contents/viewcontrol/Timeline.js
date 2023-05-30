@@ -65,7 +65,9 @@ const Timeline = (props) => {
   const [value, setValue] = useState(0);
   const [minSlider, setMinSlider] = useState(0);
   const [maxSlider, setMaxSlider] = useState(10);
-  const zposition = useSelector((state) => state.measure.zposition);
+
+  const [selectedTime, setSelectedTime] = useState(-1);
+
   const [selections, setPropertiesForChannel] = useChannelsStore(
     (store) => [store.selections, store.setPropertiesForChannel],
     shallow,
@@ -150,8 +152,19 @@ const Timeline = (props) => {
   };
 
   useEffect(() => {
-    if (props.value !== undefined) {
-      setValue(props.value);
+    if (props.content) {
+      if (props.content[0] && props.content[0].time !== undefined) {
+        const newValue = Number(props.content[0].time.split('p')[1]);
+        if (selectedTime !== newValue) {
+          if (newValue === 0) {
+            SliderChange(1);
+            setSelectedTime(newValue);
+          } else {
+            SliderChange(newValue);
+            setSelectedTime(newValue);
+          }
+        }
+      }
     }
   }, [props]);
 
@@ -221,7 +234,8 @@ const Timeline = (props) => {
               <Icon path={mdiPlay} size={1} />
             </Grid>
             <Grid item xs={6} m>
-              <StepRangeSlider
+              {/* <StepRangeSlider
+                defaultValue = {value}
                 value={value}
                 range={sliderRange}
                 onChange={(value) => {
@@ -229,7 +243,21 @@ const Timeline = (props) => {
                 }}
                 disabled={!isLoading || isImageLoading}
                 className="color-blue"
-              />
+              /> */}
+
+              <p>Time value: {value}</p>
+              <input
+                type="range"
+                onChange={(value) => {
+                  SliderChange(value);
+                }}
+                min={minSlider}
+                max={maxSlider}
+                step={1}
+                value={value}
+                disabled={!isLoading || isImageLoading}
+                className="custom-slider"
+              ></input>
             </Grid>
             <Grid item xs={4}>
               <Input

@@ -165,7 +165,7 @@ export default function SlidesExpansion(props) {
                   style={{
                     width: (slide.width / 4) * 3 * areaRatio,
                     height: slide.height * areaRatio,
-                    backgroundColor: '#e0ffff',
+                    backgroundColor: '#33ffff',
                   }}
                 ></div>
               )}
@@ -199,7 +199,7 @@ export default function SlidesExpansion(props) {
                   style={{
                     width: (slide.width / 4) * 3 * areaRatio,
                     height: slide.height * areaRatio,
-                    backgroundColor: '#e0ffff',
+                    backgroundColor: '#33ffff',
                   }}
                 ></div>
               )}

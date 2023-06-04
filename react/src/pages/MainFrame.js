@@ -56,6 +56,11 @@ import TrainingDialog from '@/components/tabsLeft/contents/dlml/dialog/TrainingD
 import TargetDrawingDialog from '@/components/tabsLeft/contents/dlml/dialog/TargetDrawingDialog';
 import MLPopupDialog from '@/components/tabsLeft/contents/dlml/dialog/MLPopupDialog';
 import { useFlagsStore } from '@/state';
+import AnalysisList from '@/components/tabsRight/contents/report/AnalysisList';
+import VisualImageList from '@/components/tabsRight/contents/report/VisualImageList';
+import VisualLineChart from '@/components/tabsRight/contents/report/VisualLineChart';
+import VisualTable from '@/components/tabsRight/contents/report/VisualTable';
+
 function TabContainer(props) {
   return (
     <Typography component="div" style={{ padding: 0 }}>
@@ -102,6 +107,7 @@ const MainFrame = (props) => {
   const DialogTargetDrawingFlag = useFlagsStore(
     (store) => store.DialogTargetDrawingFlag,
   ); //added by Wang
+  const ReportVisualFlag = useFlagsStore((store) => store.ReportVisualFlag);
   const MLCanvasFlag = useFlagsStore((store) => store.MLCanvasFlag);
 
   const imageViewAreaRef = useRef(null);
@@ -339,74 +345,90 @@ const MainFrame = (props) => {
           >
             {' '}
             {/* Left Panel */}
-            <div className="card border">
-              <Tabs
-                // variant="scrollable"
-                value={leftTabVal}
-                aria-label="tabs example"
-                TabIndicatorProps={{
-                  style: {
-                    flexDirection: 'row-right',
-                    justifyContent: 'flex-start',
-                  },
-                }}
-              >
-                <Tab
-                  className="tab-button"
-                  key={0}
-                  icon={<SchoolIcon />}
-                  aria-label="school"
-                  value={0}
-                  onFocus={() => handleLeftTabChange(0)}
-                />
-                <Tab
-                  className="tab-button"
-                  key={1}
-                  icon={<TuneIcon />}
-                  aria-label="tune"
-                  value={1}
-                  onFocus={() => handleLeftTabChange(1)}
-                />
-                <Tab
-                  className="tab-button"
-                  key={2}
-                  icon={<FilterAltIcon />}
-                  aria-label="filter"
-                  value={2}
-                  onFocus={() => handleLeftTabChange(2)}
-                />
-                <Tab
-                  className="tab-button"
-                  key={3}
-                  icon={<InsertDriveFileIcon />}
-                  aria-label="file"
-                  value={3}
-                  onFocus={() => handleLeftTabChange(3)}
-                />
-              </Tabs>
-              {leftTabVal === 0 && (
-                <TabContainer>
-                  <DLMLTab />
-                </TabContainer>
-              )}
-              {leftTabVal === 1 && (
-                <TabContainer>
-                  <AdjustTab />
-                </TabContainer>
-              )}
-              {leftTabVal === 2 && (
-                <TabContainer>
-                  <FilterTab />
-                </TabContainer>
-              )}
-              {leftTabVal === 3 && (
-                <TabContainer>
-                  <FileTab />
-                </TabContainer>
-              )}
-            </div>
+            {ReportVisualFlag == 0 && (
+              <div className="card border">
+                <Tabs
+                  // variant="scrollable"
+                  value={leftTabVal}
+                  aria-label="tabs example"
+                  TabIndicatorProps={{
+                    style: {
+                      flexDirection: 'row-right',
+                      justifyContent: 'flex-start',
+                    },
+                  }}
+                >
+                  <Tab
+                    className="tab-button"
+                    key={0}
+                    icon={<SchoolIcon />}
+                    aria-label="school"
+                    value={0}
+                    onFocus={() => handleLeftTabChange(0)}
+                  />
+                  <Tab
+                    className="tab-button"
+                    key={1}
+                    icon={<TuneIcon />}
+                    aria-label="tune"
+                    value={1}
+                    onFocus={() => handleLeftTabChange(1)}
+                  />
+                  <Tab
+                    className="tab-button"
+                    key={2}
+                    icon={<FilterAltIcon />}
+                    aria-label="filter"
+                    value={2}
+                    onFocus={() => handleLeftTabChange(2)}
+                  />
+                  <Tab
+                    className="tab-button"
+                    key={3}
+                    icon={<InsertDriveFileIcon />}
+                    aria-label="file"
+                    value={3}
+                    onFocus={() => handleLeftTabChange(3)}
+                  />
+                </Tabs>
+                {leftTabVal === 0 && (
+                  <TabContainer>
+                    <DLMLTab />
+                  </TabContainer>
+                )}
+                {leftTabVal === 1 && (
+                  <TabContainer>
+                    <AdjustTab />
+                  </TabContainer>
+                )}
+                {leftTabVal === 2 && (
+                  <TabContainer>
+                    <FilterTab />
+                  </TabContainer>
+                )}
+                {leftTabVal === 3 && (
+                  <TabContainer>
+                    <FileTab />
+                  </TabContainer>
+                )}
+              </div>
+            )}
+            {ReportVisualFlag == 1 && <AnalysisList />}
           </Col>
-          {currentVesseelCount === 1 && (
+          {ReportVisualFlag == 1 && (
+            <Col xs={8}>
+              <div style={{ height: '100vh' }}>
+                <div className="visual-main-panel-screen">
+                  <VisualImageList />
+                  <VisualLineChart />
+                </div>
+                <div className="visual-amin-panel-table">
+                  <VisualTable rowHeaders caption="Grindcore bands" sortable />
+                </div>
+              </div>
+            </Col>
+          )}
+          {ReportVisualFlag == 0 && currentVesseelCount === 1 && (
             <Col
               xs={8}
               ref={imageViewAreaRef}
@@ -430,7 +452,7 @@ const MainFrame = (props) => {
               {MLCanvasFlag && <MLLabelCanvas />}
             </Col>
           )}
-          {currentVesseelCount === 2 && (
+          {ReportVisualFlag == 0 && currentVesseelCount === 2 && (
             <Col xs={8}>
               {' '}
               {/* Central Panel, Viv Image Viewer */}
@@ -471,7 +493,7 @@ const MainFrame = (props) => {
               </Col>
             </Col>
           )}
-          {currentVesseelCount === 4 && (
+          {ReportVisualFlag == 0 && currentVesseelCount === 4 && (
             <Fragment>
               <Col xs={4} style={{ borderRight: '3px solid black' }}>
                 {' '}

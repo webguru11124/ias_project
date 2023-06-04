@@ -342,3 +342,17 @@ background: #9d9e9e;
 .MuiPaper-root .active svg{
     color: white;
 }
+
+.report-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;  
+}
+
+.report-content-screen {
+    max-Height: 60%;
+    border-bottom: 2px solid #c1c1c1;
+    display: flex;
+    flex-direction: row;
+}

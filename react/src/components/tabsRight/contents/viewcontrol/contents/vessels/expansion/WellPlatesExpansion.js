@@ -307,7 +307,7 @@ const WellPlates = (props) => {
                         style={{
                           width: radious * areaRatio,
                           height: radious * areaRatio,
-                          backgroundColor: '#e0ffff',
+                          backgroundColor: '#33ffff',
                           borderRadius: '50%',
                           position: 'absolute',
                           zIndex: '1',

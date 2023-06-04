@@ -76,7 +76,7 @@ export default function WafersExpansion(props) {
               width: radious * areaRatio,
               height: radious * areaRatio,
               borderRadius: '50%',
-              backgroundColor: '#e0ffff',
+              backgroundColor: '#33ffff',
               position: 'absolute',
             }}
           ></div>

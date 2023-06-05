@@ -19,11 +19,12 @@ import useMetadata from '@/hooks/useMetadata';
 import UTIF from 'utif';
 import { useRef } from 'react';
 import { getImageByUrl } from '@/api/fetch';
+import { handleDeconv2D } from '@/api/filter';
 
 const Dec2dDialog = () => {
   const dialogFlag = useFlagsStore((store) => store.dialogFlag);
-  const imagePathForAvivator = useSelector(
-    (state) => state.files.imagePathForAvivator,
+  const imagePathForOrigin = useSelector(
+    (state) => state.files.imagePathForOrigin,
   );
 
   const [displayImageForCanvas, setDisplayImageForCanvas] = useState('');
@@ -67,14 +68,14 @@ const Dec2dDialog = () => {
   const setROI = () => {};
 
   useEffect(() => {
-    if (imagePathForAvivator && imagePathForAvivator !== null) {
-      const serverUrl = imagePathForAvivator.split('image/download/?path=')[0];
-      const filepath = imagePathForAvivator.split('image/download/?path=')[1];
+    if (imagePathForOrigin && imagePathForOrigin !== null) {
+      const serverUrl = imagePathForOrigin.split('image/download/?path=')[0];
+      const filepath = imagePathForOrigin.split('image/download/?path=')[1];
       const url =
         serverUrl + 'static/' + filepath.split('.ome.tiff')[0] + '.timg';
       setDisplayImageForCanvas(url);
     }
-  }, [imagePathForAvivator]);
+  }, [imagePathForOrigin]);
 
   const handleReset = () => {
     if (
@@ -260,9 +261,30 @@ const Dec2dDialog = () => {
     }
   };
 
-  const action = () => {
+  const handleDeconv = async () => {
     //console.log(startX, startY, endX, endY);
     //console.log(effectiveness);
+
+    const filepath = imagePathForOrigin.split('image/download/?path=')[1];
+    const dictRoiPts = {
+      startX: startX,
+      startY: startY,
+      endX: endX,
+      endY: endY,
+    };
+    const isroi = true;
+    const efftive_value = effectiveness;
+
+    const params = {
+      filename: filepath,
+      dictRoiPts: dictRoiPts,
+      isroi: isroi,
+      effectiveness: efftive_value,
+    };
+
+    const output = await handleDeconv2D(params);
+
+    //console.log(output);
   };
 
   const handleEffectivenessSet = () => {
@@ -367,7 +389,7 @@ const Dec2dDialog = () => {
               variant="contained"
               color="primary"
               size="medium"
-              onClick={action}
+              onClick={handleDeconv}
             >
               Action
             </Button>

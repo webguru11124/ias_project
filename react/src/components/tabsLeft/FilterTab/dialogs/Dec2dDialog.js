@@ -20,12 +20,29 @@ import UTIF from 'utif';
 import { useRef } from 'react';
 import { getImageByUrl } from '@/api/fetch';
 import { handleDeconv2D } from '@/api/filter';
+import store from '@/reducers';
 
 const Dec2dDialog = () => {
   const dialogFlag = useFlagsStore((store) => store.dialogFlag);
   const imagePathForOrigin = useSelector(
     (state) => state.files.imagePathForOrigin,
   );
+
+  const getOmeTiffUrl = (url) => {
+    let tempUrl = url;
+    const ext = url.split('.').pop();
+    if (ext !== 'tiff' && ext !== 'tif') {
+      const newExtension = 'ome.tiff';
+      tempUrl = url.replace(/\.[^/.]+$/, `.${newExtension}`);
+    }
+
+    const serverUrl = imagePathForOrigin.split('image/download')[0];
+    const path = tempUrl.split('static')[1];
+
+    const newUrl = serverUrl + `image/download/?path=${path}`;
+
+    return newUrl;
+  };
 
   const [displayImageForCanvas, setDisplayImageForCanvas] = useState('');
 
@@ -51,7 +68,7 @@ const Dec2dDialog = () => {
   const [endX, setEndX] = useState(0);
   const [endY, setEndY] = useState(0);
 
-  const [effectiveness, setEffectiveness] = useState(50);
+  const [effectiveness, setEffectiveness] = useState(5);
 
   const modalStyle = {
     position: 'absolute',
@@ -159,7 +176,7 @@ const Dec2dDialog = () => {
         draw(e);
       }
 
-      context.lineWidth = 2;
+      context.lineWidth = 3;
 
       let start = {};
 
@@ -234,7 +251,7 @@ const Dec2dDialog = () => {
       const context = canvas.getContext('2d');
       img.src = displayImageForCanvas;
 
-      context.lineWidth = 2;
+      context.lineWidth = 3;
 
       // Set the canvas width and height to match the image
       img.onload = function () {
@@ -283,8 +300,14 @@ const Dec2dDialog = () => {
     };
 
     const output = await handleDeconv2D(params);
+    const imagePathForAvivator = getOmeTiffUrl(output);
 
-    //console.log(output);
+    //console.log(imagePathForAvivator);
+
+    store.dispatch({
+      type: 'set_image_path_for_avivator',
+      content: imagePathForAvivator,
+    });
   };
 
   const handleEffectivenessSet = () => {

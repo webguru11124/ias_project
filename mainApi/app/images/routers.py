@@ -21,6 +21,7 @@ from typing import List
 import json
 import h5py as h5
 from mainApi.app.images.h5.measure import update_h5py_file
+import mainApi.app.images.utils.deconvolution as Deconv
 
 router = APIRouter(prefix="/image", tags=[])
 
@@ -227,10 +228,19 @@ async def processDeconv2D(
     params = json.loads(body_bytes)
 
     filepath = params["filename"]
+    effectiveness = params['effectiveness']
+    isroi = params['isroi']
+    dictRoiPts = params['dictRoiPts']
 
     #print(params)
     print("Start Processing for Deconvolution 2D")
-    
-    return JSONResponse(filepath) 
+
+    abs_path = Deconv.RechardDeconvolution2d(
+        filepath, effectiveness, isroi, dictRoiPts
+    )
+
+
+
+    return JSONResponse(abs_path) 
 
 

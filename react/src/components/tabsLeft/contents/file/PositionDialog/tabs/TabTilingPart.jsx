@@ -32,6 +32,7 @@ import { Alignments, Directions, SortOrder } from './constants';
 import { buildPyramid } from '@/api/tiling';
 import { Typography } from 'react-md';
 import { getMetadataFromDataBase } from '@/api/tiles';
+import { cleanUrl } from '@/helpers/file';
 
 const tilingMenus = [
   'Edit',
@@ -116,10 +117,18 @@ const TabTiling = (props) => {
 
   //Get the image of ome tiff file extension from the original url
   const getOmeTiffUrl = (url) => {
+    let tempUrl = url;
     const ext = url.split('.').pop();
-    if (ext === 'tiff' || ext === 'tif') return url;
-    const newExtension = 'ome.tiff';
-    const newUrl = url.replace(/\.[^/.]+$/, `.${newExtension}`);
+    if (ext !== 'tiff' && ext !== 'tif') {
+      const newExtension = 'ome.tiff';
+      tempUrl = url.replace(/\.[^/.]+$/, `.${newExtension}`);
+    }
+
+    const serverUrl = tempUrl.split('static')[0];
+    const path = tempUrl.split('static')[1];
+
+    const newUrl = serverUrl + `image/download/?path=${path}`;
+
     return newUrl;
   };
 
@@ -532,7 +541,7 @@ const TabTiling = (props) => {
     const filename = tiles[0].url.split('/').pop();
     const resultpath =
       tiles[0].url.replace(filename, '') + 'correction_output.ome.tiff';
-    return resultpath;
+    return getOmeTiffUrl(resultpath);
   };
 
   //Get the Normalize Image Path from the server
@@ -541,7 +550,7 @@ const TabTiling = (props) => {
     const filename = tiles[0].url.split('/').pop();
     const resultpath =
       tiles[0].url.replace(filename, '') + 'normalize_output.ome.tiff';
-    return resultpath;
+    return getOmeTiffUrl(resultpath);
   };
 
   //Get the gamma Image Path from the server
@@ -553,7 +562,7 @@ const TabTiling = (props) => {
       'gamma' +
       gamma.toString() +
       '_output.ome.tiff';
-    return resultpath;
+    return getOmeTiffUrl(resultpath);
   };
 
   //Get the Snap To Edge Image Path from the server
@@ -562,7 +571,7 @@ const TabTiling = (props) => {
     const filename = tiles[0].url.split('/').pop();
     const resultpath =
       tiles[0].url.replace(filename, '') + 'snap_to_edge.ome.tiff';
-    return resultpath;
+    return getOmeTiffUrl(resultpath);
   };
 
   //Get the result image path from the server
@@ -570,7 +579,7 @@ const TabTiling = (props) => {
     //Load an OME_TIFF file
     const filename = tiles[0].url.split('/').pop();
     const resultpath = tiles[0].url.replace(filename, '') + 'result.ome.tiff';
-    return resultpath;
+    return getOmeTiffUrl(resultpath);
   };
 
   //when the tiles loaded, return the sort tiles by field

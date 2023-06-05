@@ -16,7 +16,6 @@ import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useMemo } from 'react';
 import useMetadata from '@/hooks/useMetadata';
-import UserCanvas from '@/components/custom/UserCanvas';
 import UTIF from 'utif';
 import { useRef } from 'react';
 import { getImageByUrl } from '@/api/fetch';
@@ -346,6 +345,7 @@ const Dec2dDialog = () => {
                 onChange={onChangeEffectiveness}
               />
             </Row>
+
             <hr />
             <Row>
               <Button

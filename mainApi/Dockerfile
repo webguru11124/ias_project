@@ -24,6 +24,7 @@ RUN apt install -y openslide-tools && \
     pip install -r /requirements.txt
 
 RUN pip install ashlar
+RUN pip install javabridge
 
 RUN apt-get update && \
     apt-get install -y libopencv-dev

@@ -20,6 +20,9 @@ from typing import List
 import json
 import h5py as h5
 from mainApi.app.images.h5.measure import update_h5py_file
+import tifffile
+import numpy as np
+import bioformats
 
 router = APIRouter(prefix="/image", tags=[])
 
@@ -160,9 +163,10 @@ async def mlIPSProcess(request: Request, current_user: UserModelDB = Depends(get
     "/ml_convert_result",
     response_description="ML Convert Processed images to Ome.Tiff file",
 )
-async def mlConvertResult(request: Request):
+async def mlConvertResult(request: Request, current_user: UserModelDB = Depends(get_current_user)):
     data = await request.form()
     imagePath = data.get("image_path")
+    originalImagePath = '/app/mainApi/app/static/' + str(PyObjectId(current_user.id)) + '/' + data.get("original_image_path")
     fileName = imagePath.split("/")[len(imagePath.split("/")) - 1]
     realName = os.path.splitext(fileName)[0]
     tempPath = tempfile.mkdtemp()
@@ -179,17 +183,44 @@ async def mlConvertResult(request: Request):
     print('=====>', cmd_str)
     subprocess.run(cmd_str, shell=True)
 
-    realPath = os.path.splitext(imagePath)[0] + '_250.jpg'
+    realPath = os.path.splitext(imagePath)[0] + 'a_2.jpg'
     outputFolder = '/app/mainApi/app/static' + tempPath
-    outputPath = outputFolder + '/' + realName + '_250.ome.tiff'
+    outputPath = outputFolder + '/' + realName + 'a_2.ome.tiff'
 
     cmd_str = "sh /app/mainApi/bftools/bfconvert -separate -overwrite '" + realPath + "' '" + outputPath + "'"
     print('=====>', cmd_str)
     subprocess.run(cmd_str, shell=True)
 
+    mergedPath = outputFolder + '/' + realName + '_merged.ome.tiff'
+
+    metadata = bioformats.get_omexml_metadata(originalImagePath)
+    xml = bioformats.OMEXML(metadata)
+    channel_count = xml.image().Pixels.ChannelCount
+
+    single_channel_image = bioformats.load_image(outputPath)
+
+    # Create an empty array with the same shape as the single channel image, but with multiple channels
+    num_channels = channel_count  # Replace with the number of channels you want in the output image
+    multi_channel_image = bioformats.load_image(originalImagePath)
+
+    # Copy the single channel image to each channel of the multi-channel image
+    for i in range(num_channels):
+        multi_channel_image[:, :, i] = single_channel_image
+
+    # Save the multi-channel image as an ome.tiff file
+    bioformats.write_image(mergedPath, multi_channel_image, "uint16",
+                           multi_channel_image.shape[2], multi_channel_image.shape[0],
+                           multi_channel_image.shape[1])
+
+    # image2 = tifffile.imread(outputPath)
+    # image1 = tifffile.imread(originalImagePath)
+    # mergedImage = np.concatenate([image2, image1], 0)
+    # tifffile.imwrite(mergedPath, mergedImage)
+
+
     return JSONResponse({
         "success": "success",
-        "image_path": tempPath + '/' + realName + '_250.ome.tiff',
+        "image_path": tempPath + '/' + realName + '_merged.ome.tiff',
         "image_count_path": tempPath + '/' + realName + 'a_3.ome.tiff',
         "csv_path": csvPath
     })

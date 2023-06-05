@@ -80,6 +80,7 @@ const ICTMethodDialog = () => {
     // console.log('ICT-result:', res);
     _payload = {
       image_path: res.image_path,
+      original_image_path: imgPath,
     };
     res = await api_experiment.MLConvertResult(_payload);
     useFlagsStore.setState({ DialogLoadingFlag: false });

@@ -59,6 +59,7 @@ const LockScreen = () => {
         // console.log('ICT-result:', res);
         _payload = {
           image_path: res.image_path,
+          original_image_path: imgPath,
         };
         res = await api_experiment.MLConvertResult(_payload);
         // console.log('ICT-convert-result:', res);

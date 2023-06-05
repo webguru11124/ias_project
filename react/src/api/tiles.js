@@ -1,5 +1,6 @@
 import { api } from './base';
 import store from '../reducers';
+import mainApiService from '@/services/mainApiService';
 
 const state = store.getState();
 
@@ -76,6 +77,20 @@ export const listTiles = (callback) => {
     .catch(function (error) {
       callback(error, false);
     });
+};
+
+export const getMetadataFromXmlFile = async (filename) => {
+  return await mainApiService.get(
+    'image/tile/get_meta_datas_with_xml',
+    filename,
+  );
+};
+
+export const getMetadataFromDataBase = async (filename) => {
+  return await mainApiService.get(
+    'image/tile/get_meta_data_for_file',
+    filename,
+  );
 };
 
 export const alignTilesApi = (rows, method, callback) => {

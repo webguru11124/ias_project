@@ -7,6 +7,7 @@ const DEFAULT_PARAMS = {
   viewConfigsObj: {},
   object: 0,
   currentVesseelCount: 1,
+  currentVesselSeriesIdx: 0,
 };
 
 const initState = {
@@ -31,6 +32,9 @@ const vessel = (state = initState, action) => {
     case 'vessel_setViewConfigsObj':
       state.viewConfigsObj = action.data;
       break;
+    case 'vessel_setCurrentSeriesIdx':
+      state.currentVesselSeriesIdx = action.content;
+      break;
     case 'INIT_VIEW':
       state.currentVesselType = 'Single-Slide';
       state.channels = [0];
@@ -44,6 +48,7 @@ const vessel = (state = initState, action) => {
       break;
     case 'SET_VESSEL_STATUS_COUNT':
       state.currentVesseelCount = action.count;
+      break;
 
     default:
       break;

@@ -300,10 +300,6 @@ const WellPlates = (props) => {
                     }}
                     className={classnames({
                       'd-flex justify-content-center align-items-center border border-dark rounded-circle cursor-pointer': true,
-                      'hole-blue': activeHoles.includes(holeNumber(r, c)),
-                      'hole-purple':
-                        holeNumber(r, c) === holeClicked &&
-                        activeHoles.includes(holeNumber(r, c)),
                     })}
                   >
                     {props.showHole && (
@@ -311,7 +307,7 @@ const WellPlates = (props) => {
                         style={{
                           width: radious * areaRatio,
                           height: radious * areaRatio,
-                          backgroundColor: '#00a0e9',
+                          backgroundColor: '#33ffff',
                           borderRadius: '50%',
                           position: 'absolute',
                           zIndex: '1',

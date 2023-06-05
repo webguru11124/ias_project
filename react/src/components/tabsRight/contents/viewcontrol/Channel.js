@@ -154,7 +154,7 @@ const Channel = (prop) => {
         });
       }
     }
-  }, [prop]);
+  }, [prop, colors, channelsVisible]);
 
   return (
     <Box px={1}>

@@ -32,7 +32,8 @@ export default function ObjectiveButton({
         ></img>
         <div
           className={
-            id === activeId && id === vessel.object
+            // id === activeId && id === vessel.object // previous code
+            id === activeId // updated by QmQ
               ? 'caption font-weight-bold'
               : 'caption'
           }

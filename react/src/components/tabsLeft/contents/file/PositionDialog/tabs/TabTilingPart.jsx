@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Row, Col } from 'react-bootstrap';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -16,7 +16,7 @@ import Button from '@mui/material/Button';
 import DialogPM from '../../DialogPM';
 import Icon from '@mdi/react';
 import { mdiWeatherSunny } from '@mdi/js';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import Vessel from '../../../../../tabsRight/contents/viewcontrol/Vessel';
 import Objective from '../../../../../tabsRight/contents/viewcontrol/Objective';
 import Channel from '../../../../../tabsRight/contents/viewcontrol/Channel';
@@ -29,9 +29,9 @@ import { DialogActions, ImageList, ImageListItem, Paper } from '@mui/material';
 import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
 import Avivator from '../../../../../avivator/Avivator';
 import { Alignments, Directions, SortOrder } from './constants';
-import { useChannelsStore } from '@/state';
 import { buildPyramid } from '@/api/tiling';
 import { Typography } from 'react-md';
+import { getMetadataFromDataBase } from '@/api/tiles';
 
 const tilingMenus = [
   'Edit',
@@ -52,14 +52,19 @@ const tilingAlignButtons = [
   'By Rows',
 ];
 
-const TAG = 'Tiling : ';
 let stylingTiling = {
   ToggleButtonGroup: { margin: '0 auto', width: '22px', height: '22px' },
 };
 
 const TabTiling = (props) => {
-  const { tiles } = useTilingStore();
+  const allTiles = useTilingStore().tiles;
+
   const [selectedImageFileIndex, setSelectedImageFileIndex] = useState(0);
+
+  // get the series array
+  const [tiles, setTiles] = useState([]);
+  const [tileSeries, setTileSeries] = useState([]);
+  const [currentSeriesIdx, setCurrentSeriesIdx] = useState(0);
 
   //tab left index
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -97,9 +102,20 @@ const TabTiling = (props) => {
   // the editing list corresponding to well hole
   const [holeImageList, setHoleImageList] = useState([]);
 
+  const selectedImage = useSelector((state) => state.selectedImage);
+
+  //Get the *.xml url from the original Image file name
+  const getXmlUrl = (url, filename) => {
+    const realUrl = url.split(filename)[0];
+    const name = filename.split('.')[0];
+
+    const newExtension = '.xml';
+    const newUrl = realUrl + name + newExtension;
+    return newUrl;
+  };
+
   //Get the image of ome tiff file extension from the original url
   const getOmeTiffUrl = (url) => {
-    //console.log(tiles);
     const ext = url.split('.').pop();
     if (ext === 'tiff' || ext === 'tif') return url;
     const newExtension = 'ome.tiff';
@@ -107,19 +123,15 @@ const TabTiling = (props) => {
     return newUrl;
   };
 
-  // urls list
-  const urls = useMemo(
-    () =>
-      tiles
-        .filter((tile) => /tif?f|jpg|jpeg|png|JPG|PNG/.test(tile.path))
-        .map((img) => getOmeTiffUrl(img.url)),
-    [tiles],
-  );
-
   //Get the MaxRow, MaxCol, and VesselType
   const getVesselType = () => {
     let maxRow = 0;
     let maxCol = 0;
+
+    if (!tiles) {
+      setVesselType(1);
+      return;
+    }
 
     tiles.forEach((tile) => {
       let row = tile.row.charCodeAt() - 'A'.charCodeAt();
@@ -176,8 +188,44 @@ const TabTiling = (props) => {
     return;
   };
 
+  const getSeries = (tiles) => {
+    if (!tiles || tiles.length === 0) return [];
+    if (!tiles[0].strSeries) return [];
+
+    const Arr = [];
+    tiles.map((tile) => {
+      Arr.push(tile.strSeries);
+    });
+
+    const tempSet = new Set(Arr);
+    const tempArray = [...tempSet];
+
+    return tempArray;
+  };
+
+  //when the all tiles loaded, need to get series array and  set the current series
+  useEffect(() => {
+    const tempArr = getSeries(allTiles);
+    setTileSeries(tempArr);
+    setCurrentSeriesIdx(0);
+  }, [allTiles]);
+
+  //When the series Idx is changed
+  useEffect(() => {
+    if (!tileSeries || !allTiles) return;
+    const cur_series = tileSeries[currentSeriesIdx];
+    const filteredTiles = allTiles.filter(
+      (tile) => tile.strSeries === cur_series,
+    );
+
+    if (filteredTiles) setTiles(filteredTiles);
+    else setTiles([]);
+  }, [currentSeriesIdx, tileSeries]);
+
   // When the tiles reload, set dim by default 1 * tiles.length()
   useEffect(() => {
+    if (!tiles || tiles.length === 0) return;
+
     if (tiles) {
       setDim([1, tiles.length]);
       if (tiles[0]) {
@@ -217,14 +265,32 @@ const TabTiling = (props) => {
 
           newContent[0].objective = -1;
 
+          //current series
+          newContent[0].selectedSeriesIdx = currentSeriesIdx;
+          newContent[0].seriesCount = tileSeries.length;
+
+          const tempChannels = [1, 0, 0, 0, 0, 0, 0];
+
+          //console.log(newContent);
+
+          let images = getImageListFromCertainTiles(sortedTiles, 0, 1);
+
+          //console.log(images);
+
+          images.map((image) => {
+            const idx = Number(image.channel.split('d')[1]);
+            tempChannels[idx] = 1;
+          });
+          newContent[0].channels = tempChannels;
+
           store.dispatch({ type: 'content_addContent', content: newContent });
+
+          setHoleImageList(images);
         } else {
           let newContent = [];
 
           sortedTiles.map((tile) => {
             let tempContent = {};
-            tempContent.z = -1;
-            tempContent.time = -1;
             tempContent.dimensionChanged = false;
             tempContent.row = 0;
             tempContent.col = 0;
@@ -235,20 +301,59 @@ const TabTiling = (props) => {
           });
 
           store.dispatch({ type: 'content_addContent', content: newContent });
+
+          setHoleImageList(sortedTiles);
         }
       }
-      setHoleImageList(sortedTiles);
     }
   }, [tiles]);
+
+  //when the series is changed in vessel dialog
+  useEffect(() => {
+    const changedSeriesIdx = props.selectedVesselIdx;
+    setCurrentSeriesIdx(changedSeriesIdx);
+  }, [props.selectedVesselIdx]);
 
   //When the holeImageLists is reload
   useEffect(() => {
     if (holeImageList) {
       if (holeImageList[0]) {
         setResultImagePath(getOmeTiffUrl(holeImageList[0].url));
+        handleListContentItemClick(new Event('click'), 0);
       }
     }
   }, [holeImageList]);
+
+  //get the images from tiles, row and col
+  const getImageListFromCertainTiles = (tiles, row, col) => {
+    const lists = [];
+    const tempList = [];
+    //console.log(tiles);
+    if (tiles) {
+      if (tiles.length > 0) {
+        if (
+          tiles[0].row !== undefined &&
+          tiles[0].col !== undefined &&
+          tiles[0].row !== '' &&
+          tiles[0].col !== ''
+        ) {
+          tiles.map((tile) => {
+            tempList.push({
+              row: Number(tile.row.charCodeAt() - 'A'.charCodeAt()),
+              col: Number(tile.col),
+            });
+            if (
+              Number(tile.row.charCodeAt() - 'A'.charCodeAt()) === row &&
+              Number(tile.col) === col
+            ) {
+              lists.push(tile);
+            }
+          });
+        } else return tiles;
+      }
+    }
+    return lists;
+  };
 
   //get the Edit Image List from the row and col
   const getImageList = (row, col) => {
@@ -281,14 +386,92 @@ const TabTiling = (props) => {
     return lists;
   };
 
+  // set the Hole Image List and display
+  // params; row, col
+  const setHoleImages = (row, col) => {
+    const lists = getImageList(row, col);
+
+    const sortedTiles = lists.sort((a, b) =>
+      a.filename.localeCompare(b.filename),
+    );
+
+    if (!sortedTiles || sortedTiles.length === 0) return;
+
+    setHoleImageList(sortedTiles);
+
+    const tempChannels = [1, 0, 0, 0, 0, 0, 0];
+    let time = 0;
+    let channel = 0;
+
+    if (
+      sortedTiles[0].time !== undefined &&
+      sortedTiles[0].channel !== undefined &&
+      sortedTiles[0].z !== undefined
+    ) {
+      time = Number(sortedTiles[0].time.split('p')[1]);
+
+      sortedTiles.map((image) => {
+        const idx = Number(image.channel.split('d')[1]);
+        tempChannels[idx] = 1;
+      });
+    }
+
+    const fullList = tiles.sort((a, b) => a.filename.localeCompare(b.filename));
+
+    if (
+      fullList[0].strSeries !== undefined &&
+      fullList[0].row !== undefined &&
+      fullList[0].channel !== undefined &&
+      fullList[0].strSeries !== '' &&
+      fullList[0].row !== '' &&
+      fullList[0].channel !== ''
+    ) {
+      let newContent = [];
+      let tempContent = {};
+      tempContent.z = sortedTiles[0].z;
+      tempContent.time = time;
+      tempContent.dimensionChanged = sortedTiles[0].dimensionChanged;
+      tempContent.row = row;
+      tempContent.col = col;
+      tempContent.series = sortedTiles[0].strSeries;
+      tempContent.channel = Number(sortedTiles[0].channel.split('d')[1]);
+      newContent.push(tempContent);
+
+      fullList.map((tile) => {
+        let tempContent = {};
+
+        tempContent.z = tile.z;
+        tempContent.time = time;
+        tempContent.dimensionChanged = tile.dimensionChanged;
+        tempContent.row = tile.row.charCodeAt() - 'A'.charCodeAt();
+        tempContent.col = tile.col;
+        tempContent.series = tile.strSeries;
+        tempContent.channel = Number(tile.channel.split('d')[1]);
+        newContent.push(tempContent);
+      });
+
+      newContent[0].channels = tempChannels;
+      newContent[0].objective = -1;
+      //current series
+      newContent[0].selectedSeriesIdx = currentSeriesIdx;
+      newContent[0].seriesCount = tileSeries.length;
+
+      store.dispatch({ type: 'content_addContent', content: newContent });
+    }
+  };
+
   //When the row and col are changed
+  //display the change of the holes in the vessel
   useEffect(() => {
     const hole = props.selectedVesselHole;
+
+    if (!tiles) return;
 
     if (vesselType === 1 || vesselType === 2 || vesselType == 4) {
       const fullList = tiles.sort((a, b) =>
         a.filename.localeCompare(b.filename),
       );
+      if (!fullList || fullList.length === 0) return;
 
       if (
         fullList[0].strSeries !== undefined &&
@@ -314,7 +497,10 @@ const TabTiling = (props) => {
         });
 
         const tempChannels = [1, 0, 0, 0, 0, 0, 0];
-        newContent[0].channels = tempChannels;
+
+        //current series
+        newContent[0].selectedSeriesIdx = currentSeriesIdx;
+        newContent[0].seriesCount = tileSeries.length;
 
         fullList.map((image) => {
           const idx = Number(image.channel.split('d')[1]);
@@ -322,6 +508,7 @@ const TabTiling = (props) => {
         });
 
         newContent[0].objective = -1;
+        newContent[0].channels = tempChannels;
 
         store.dispatch({ type: 'content_addContent', content: newContent });
 
@@ -331,73 +518,7 @@ const TabTiling = (props) => {
 
     if (hole) {
       if (hole.row !== undefined && hole.col !== undefined) {
-        const lists = getImageList(hole.row, hole.col);
-
-        const sortedTiles = lists.sort((a, b) =>
-          a.filename.localeCompare(b.filename),
-        );
-        setHoleImageList(sortedTiles);
-
-        const tempChannels = [1, 0, 0, 0, 0, 0, 0];
-        let time = 0;
-        let channel = 0;
-
-        if (
-          sortedTiles[0].time !== undefined &&
-          sortedTiles[0].channel !== undefined &&
-          sortedTiles[0].z != undefined
-        ) {
-          time = Number(sortedTiles[0].time.split('p')[1]);
-          channel = Number(sortedTiles[0].channel.split('d')[1]);
-
-          sortedTiles.map((image) => {
-            const idx = Number(image.channel.split('d')[1]);
-            tempChannels[idx] = 1;
-          });
-        }
-
-        const fullList = tiles.sort((a, b) =>
-          a.filename.localeCompare(b.filename),
-        );
-
-        if (
-          fullList[0].strSeries !== undefined &&
-          fullList[0].row !== undefined &&
-          fullList[0].channel !== undefined &&
-          fullList[0].strSeries !== '' &&
-          fullList[0].row !== '' &&
-          fullList[0].channel !== ''
-        ) {
-          let newContent = [];
-          let tempContent = {};
-          tempContent.z = sortedTiles[0].z;
-          tempContent.time = time;
-          tempContent.dimensionChanged = sortedTiles[0].dimensionChanged;
-          tempContent.row = hole.row;
-          tempContent.col = hole.col;
-          tempContent.series = sortedTiles[0].strSeries;
-          tempContent.channel = Number(sortedTiles[0].channel.split('d')[1]);
-          newContent.push(tempContent);
-
-          fullList.map((tile) => {
-            let tempContent = {};
-
-            tempContent.z = tile.z;
-            tempContent.time = time;
-            tempContent.dimensionChanged = tile.dimensionChanged;
-            tempContent.row = tile.row.charCodeAt() - 'A'.charCodeAt();
-            tempContent.col = tile.col;
-            tempContent.series = tile.strSeries;
-            tempContent.channel = Number(tile.channel.split('d')[1]);
-            newContent.push(tempContent);
-          });
-
-          newContent[0].channels = tempChannels;
-          newContent[0].objective = -1;
-
-          store.dispatch({ type: 'content_addContent', content: newContent });
-        }
-
+        setHoleImages(hole.row, hole.col);
         //setSelectedImageTime(time);
         //setSelectedImageZ(lists[0].z);
         //setSelectedImageChannel(channels);
@@ -454,6 +575,7 @@ const TabTiling = (props) => {
 
   //when the tiles loaded, return the sort tiles by field
   const sorted = useMemo(() => {
+    if (!tiles || tiles.length === 0) return [];
     if (sortOrder === SortOrder.ascending) {
       if (tiles.length > 0) {
         if (!tiles[0].field) return tiles;
@@ -471,6 +593,7 @@ const TabTiling = (props) => {
   // return tiles aligned in alignment function
   const tilesAligned = useMemo(() => {
     let sortedTiles;
+    if (!tiles || tiles.length === 0) return [];
     if (tiles.length > 1 && tiles[0].field) {
       if (sortOrder === SortOrder.ascending) {
         sortedTiles = sorted.sort(
@@ -545,6 +668,7 @@ const TabTiling = (props) => {
 
   // When the row is changed in alignment part
   const inputTilingRows = (event) => {
+    if (!tiles || tiles.length === 0) return;
     let r = Number(event.target.value);
     if (r <= 0) r = 1;
     setAlignRow(event.target.value === '' ? '' : r);
@@ -563,6 +687,7 @@ const TabTiling = (props) => {
 
   // When the col is changed in alignment part
   const inputTilingCols = (event) => {
+    if (!tiles) return;
     let c = Number(event.target.value);
     if (c <= 0) c = 1;
     setAlignCol(event.target.value === '' ? '' : c);
@@ -697,11 +822,32 @@ const TabTiling = (props) => {
     setInfoMessage('Best Fit Image has been Display.');
   };
 
+  useEffect(() => {
+    //console.log(selectedImage);
+  }, [selectedImage]);
+
   // When the list item of Edting is changed
   const handleListContentItemClick = async (event, index) => {
     if (holeImageList.length > 0) {
       setSelectedImageFileIndex(index);
       setResultImagePath(getOmeTiffUrl(holeImageList[index].url));
+
+      let selectedImage = {};
+      selectedImage.orginalFileName = holeImageList[index].url;
+      selectedImage.url = getOmeTiffUrl(holeImageList[index].url);
+      selectedImage.xmlUrl = getXmlUrl(
+        holeImageList[index].url,
+        holeImageList[index].filename,
+      );
+
+      //const metaData = await getMetadataFromDataBase(holeImageList[index].filename);
+      //console.log(metaData);
+
+      store.dispatch({
+        type: 'set_SelectedImage',
+        content: selectedImage,
+      });
+      //console.log(holeImageList[index].url);
     }
   };
 
@@ -1276,6 +1422,7 @@ const TabTiling = (props) => {
 const mapStateToProps = (state) => ({
   content: state.files.content,
   selectedVesselHole: state.vessel.selectedVesselHole,
+  selectedVesselIdx: state.vessel.currentVesselSeriesIdx,
 });
 
 export default connect(mapStateToProps)(TabTiling);

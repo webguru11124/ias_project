@@ -4,9 +4,11 @@ import experiment from './modules/experiment';
 import files from './modules/files';
 import image from './modules/image';
 import vessel from './modules/vessel';
-import tiling from './modules/tiling';
 import measure from './modules/measure';
+import tiling from './modules/tiling';
 import display from './modules/displayReducer';
+import metaData from './modules/metaData';
+import selectedImage from './modules/selectedImage';
 
 const reducer = combineReducers({
   auth: auth,
@@ -17,6 +19,8 @@ const reducer = combineReducers({
   tiling: tiling,
   measure: measure,
   display: display,
+  metaData: metaData,
+  selectedImage: selectedImage,
 });
 
 const store = createStore(reducer);

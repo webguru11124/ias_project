@@ -177,15 +177,18 @@ def Deconvolution2DByChannel(img,effectiveness):
     for offset in [0, 1]:
         kernel[tuple((np.array(kernel.shape) - offset) // 2)] = 1
     kernel = ndimage.gaussian_filter(kernel, sigma=1.)
+
+
+    psf = np.ones((1, 1)) / 1
     
     # Convolve the original image with our fake PSF
-    data = signal.fftconvolve(img, kernel, mode='same')
+    #data = signal.fftconvolve(img, kernel, mode='same')
 
     # Run the deconvolution process and note that deconvolution initialization is best kept separate from 
     # execution since the "initialize" operation corresponds to creating a TensorFlow graph, which is a 
     # relatively expensive operation and should not be repeated across multiple executions
-    algo = fd_restoration.RichardsonLucyDeconvolver(data.ndim).initialize()
-    res = algo.run(fd_data.Acquisition(data=data, kernel=kernel), niter=effectiveness).data
+    algo = fd_restoration.RichardsonLucyDeconvolver(img.ndim).initialize()
+    res = algo.run(fd_data.Acquisition(data=img, kernel=psf), niter=effectiveness).data
 
     max_v = np.max(res)
     res = res * 255 / max_v

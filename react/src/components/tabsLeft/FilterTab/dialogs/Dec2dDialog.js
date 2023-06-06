@@ -2,7 +2,6 @@ import * as React from 'react';
 import { Col, Row } from 'react-bootstrap';
 import Button from '@mui/material/Button';
 import ListSubheader from '@mui/material/ListSubheader';
-import Slider from '@mui/material/Slider';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
@@ -10,19 +9,14 @@ import { useFlagsStore } from '@/state';
 import Draggable from 'react-draggable';
 import Paper from '@mui/material/Paper';
 import { useState } from 'react';
-import { Backdrop, Box, Fade, Modal, TextField } from '@mui/material';
-import Avivator from '@/components/avivator/Avivator';
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { useMemo } from 'react';
-import useMetadata from '@/hooks/useMetadata';
-import UTIF from 'utif';
 import { useRef } from 'react';
-import { getImageByUrl } from '@/api/fetch';
 import { handleDeconv2D } from '@/api/filter';
 import store from '@/reducers';
+import { Snackbar } from 'react-md';
 
-const Dec2dDialog = () => {
+const Dec2dDialog = (prop) => {
   const dialogFlag = useFlagsStore((store) => store.dialogFlag);
   const imagePathForOrigin = useSelector(
     (state) => state.files.imagePathForOrigin,
@@ -55,20 +49,13 @@ const Dec2dDialog = () => {
   // Variables for modal dialog for ROI selection
   // Modal Dialog
   const [open, setOpen] = useState(false);
-  const handleModalOpen = () => setOpen(true);
-  const handleModalClose = () => setOpen(false);
-
-  // let startX = 0;
-  // let startY = 0;
-  // let endX = 100;
-  // let endY = 100;
 
   const [startX, setStartX] = useState(0);
   const [startY, setStartY] = useState(0);
   const [endX, setEndX] = useState(0);
   const [endY, setEndY] = useState(0);
 
-  const [effectiveness, setEffectiveness] = useState(5);
+  //const [effectiveness, setEffectiveness] = useState(5);
 
   const modalStyle = {
     position: 'absolute',
@@ -81,8 +68,6 @@ const Dec2dDialog = () => {
     boxShadow: 24,
     p: 4,
   };
-
-  const setROI = () => {};
 
   useEffect(() => {
     if (imagePathForOrigin && imagePathForOrigin !== null) {
@@ -102,6 +87,15 @@ const Dec2dDialog = () => {
     ) {
       displayImage(displayImageForCanvas);
     }
+  };
+
+  const handleWholeROISet = () => {
+    setStartX(0);
+    setStartY(0);
+    setEndX(100);
+    setEndY(100);
+
+    drawImageWithColor('red');
   };
 
   useEffect(() => {
@@ -176,7 +170,7 @@ const Dec2dDialog = () => {
         draw(e);
       }
 
-      context.lineWidth = 3;
+      context.lineWidth = 1;
 
       let start = {};
 
@@ -217,12 +211,12 @@ const Dec2dDialog = () => {
     };
   };
 
-  const onChangeEffectiveness = (e) => {
-    const spinbox = document.getElementById('spinbox');
-    setEffectiveness(e.target.value);
-  };
+  // const onChangeEffectiveness = (e) => {
+  //   const spinbox = document.getElementById('spinbox');
+  //   setEffectiveness(e.target.value);
+  // };
 
-  useEffect(() => {}, [effectiveness]);
+  //useEffect(() => {}, [effectiveness]);
 
   const handleROISet = () => {
     drawImageWithColor('red');
@@ -251,7 +245,7 @@ const Dec2dDialog = () => {
       const context = canvas.getContext('2d');
       img.src = displayImageForCanvas;
 
-      context.lineWidth = 3;
+      context.lineWidth = 1;
 
       // Set the canvas width and height to match the image
       img.onload = function () {
@@ -290,7 +284,7 @@ const Dec2dDialog = () => {
       endY: endY,
     };
     const isroi = true;
-    const efftive_value = effectiveness;
+    const efftive_value = prop.effectiveness || 5;
 
     const params = {
       filename: filepath,
@@ -315,9 +309,9 @@ const Dec2dDialog = () => {
     close();
   };
 
-  const handleEffectivenessSet = () => {
-    drawImageWithColor('red');
-  };
+  // const handleEffectivenessSet = () => {
+  //   drawImageWithColor('red');
+  // };
 
   function PaperComponent(props) {
     return (
@@ -349,17 +343,56 @@ const Dec2dDialog = () => {
           </button>
         </div>
         <div
-          className="d-flex justify-content-around mx-5 my-2"
-          style={{ width: 450 }}
+          className="d-flex mx-auto my-2"
+          style={{
+            width: 470,
+            display: '`flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
         >
-          <Col className="pa-0">
-            <div>
-              <ListSubheader>Selected ROI</ListSubheader>
-              {/* <img src = {displayImageForCanvas} alt = "Image for ROI selection"/> */}
-              <canvas id="canvas"></canvas>
+          <Col>
+            <div
+              style={{
+                width: 430,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '3px',
+              }}
+            >
+              <h3 style={{ fontFamily: 'monospace' }}>Selected ROI</h3>
             </div>
-            <hr />
-            <div>
+
+            <div
+              style={{
+                width: 430,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <canvas
+                id="canvas"
+                style={{
+                  width: 430,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '3px',
+                }}
+              ></canvas>
+              <hr />
+            </div>
+            <div
+              style={{
+                width: 430,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '3px',
+              }}
+            >
               <Button
                 className=""
                 variant="contained"
@@ -374,13 +407,22 @@ const Dec2dDialog = () => {
                 variant="contained"
                 color="primary"
                 size="small"
+                onClick={handleWholeROISet}
+              >
+                Set All
+              </Button>
+              <Button
+                className=""
+                variant="contained"
+                color="warning"
+                size="small"
                 onClick={handleReset}
               >
                 Reset
               </Button>
             </div>
-          </Col>
-          <Col className="pa-0 ml-10">
+
+            {/* <Col className="pa-0 ml-10">
             <Row>
               <ListSubheader>Effectiveness</ListSubheader>
             </Row>
@@ -408,8 +450,10 @@ const Dec2dDialog = () => {
                 Set
               </Button>
             </Row>
+          </Col> */}
           </Col>
         </div>
+
         <div className="border-top mt-2">
           <DialogActions>
             <Button

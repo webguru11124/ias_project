@@ -188,7 +188,7 @@ def Deconvolution2DByChannel(img,effectiveness):
     # execution since the "initialize" operation corresponds to creating a TensorFlow graph, which is a 
     # relatively expensive operation and should not be repeated across multiple executions
     algo = fd_restoration.RichardsonLucyDeconvolver(img.ndim).initialize()
-    res = algo.run(fd_data.Acquisition(data=img, kernel=psf), niter=effectiveness).data
+    res = algo.run(fd_data.Acquisition(data=img, kernel=kernel), niter=effectiveness).data
 
     max_v = np.max(res)
     res = res * 255 / max_v

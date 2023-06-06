@@ -70,7 +70,11 @@ const Dec2dDialog = (prop) => {
   };
 
   useEffect(() => {
-    if (imagePathForOrigin && imagePathForOrigin !== null) {
+    if (
+      imagePathForOrigin &&
+      imagePathForOrigin !== null &&
+      imagePathForOrigin.length === 1
+    ) {
       const serverUrl = imagePathForOrigin.split('image/download/?path=')[0];
       const filepath = imagePathForOrigin.split('image/download/?path=')[1];
       const url =
@@ -287,8 +291,8 @@ const Dec2dDialog = (prop) => {
     const efftive_value = prop.effectiveness || 5;
 
     const params = {
-      filename: filepath,
       dictRoiPts: dictRoiPts,
+      filename: filepath,
       isroi: isroi,
       effectiveness: efftive_value,
     };

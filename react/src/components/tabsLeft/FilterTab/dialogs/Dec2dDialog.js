@@ -302,12 +302,17 @@ const Dec2dDialog = () => {
     const output = await handleDeconv2D(params);
     const imagePathForAvivator = getOmeTiffUrl(output);
 
-    //console.log(imagePathForAvivator);
-
     store.dispatch({
       type: 'set_image_path_for_avivator',
       content: imagePathForAvivator,
     });
+
+    store.dispatch({
+      type: 'set_image_path_for_result',
+      content: imagePathForAvivator,
+    });
+
+    close();
   };
 
   const handleEffectivenessSet = () => {

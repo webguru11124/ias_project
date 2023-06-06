@@ -235,7 +235,7 @@ async def processDeconv2D(
     #print(params)
     print("Start Processing for Deconvolution 2D")
 
-    abs_path = Deconv.RechardDeconvolution2d(
+    abs_path = await Deconv.FlowDecDeconvolution2D(
         filepath, effectiveness, isroi, dictRoiPts
     )
 

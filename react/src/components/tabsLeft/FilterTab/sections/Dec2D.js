@@ -8,7 +8,8 @@ import { useFlagsStore } from '@/state';
 export default function Dec2D() {
   const dialogFlag = useFlagsStore((store) => store.dialogFlag);
 
-  const select2 = () => {};
+  const handleSetDeconv2D = () => {};
+
   const show2Ddialog = () => {
     useFlagsStore.setState({ dialogFlag: true });
   };
@@ -27,7 +28,10 @@ export default function Dec2D() {
           ></Icon>
           2DGo
         </button>
-        <button className="btn btn-light btn-sm w-50" onClick={select2}>
+        <button
+          className="btn btn-light btn-sm w-50"
+          onClick={handleSetDeconv2D}
+        >
           <Icon
             size={0.8}
             horizontal

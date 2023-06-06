@@ -164,6 +164,8 @@ const Timeline = (props) => {
             setSelectedTime(newValue);
           }
         }
+      } else {
+        SliderChange(0);
       }
     }
   }, [props]);

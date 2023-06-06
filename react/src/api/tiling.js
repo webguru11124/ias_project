@@ -62,3 +62,7 @@ export const bestFitTiledImage = async () => {
 export const snapToEdge = async () => {
   return await mainApiService.post('/image/tile/result_tile_snap_to_edge');
 };
+
+export const handleDeconv2D = async (params) => {
+  return await mainApiService.post('/image/deconvol2D', params);
+};

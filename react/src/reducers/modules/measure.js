@@ -106,6 +106,7 @@ const DEFAULT_PARAMS = {
   method_info: '',
   showMLPopup: false,
   showMeasureItemPopup: false,
+  showICTMethodDialog: false,
   // view Data
   vessel_data: {
     id: 1,
@@ -219,6 +220,11 @@ const measure = (state = initState, action) => {
       return {
         ...state,
         showMeasureItemPopup: action.payload,
+      };
+    case 'UPDATE_ICT_METHOD_DIALOG_STATUS':
+      return {
+        ...state,
+        showICTMethodDialog: action.payload,
       };
     case 'UPDATE_ML_MEASURE_PARAMS':
       return {

@@ -39,7 +39,11 @@ const LockScreen = () => {
     if (isMLAdvance) {
       useFlagsStore.setState({ IsMLAdvance: false });
       if (selectedMethod === 'cyto') {
-        useFlagsStore.setState({ MLDialogICTSelectFlag: true });
+        // useFlagsStore.setState({ MLDialogICTSelectFlag: true });
+        store.dispatch({
+          type: 'UPDATE_ICT_METHOD_DIALOG_STATUS',
+          payload: true,
+        });
       } else if (selectedMethod === 'ipscAdvance') {
         useFlagsStore.setState({ DialogLoadingFlag: true });
         let fullPath = state.files.imagePathForAvivator;

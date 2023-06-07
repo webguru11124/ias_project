@@ -23,6 +23,8 @@ from mainApi.app.images.h5.measure import update_h5py_file
 import tifffile
 import numpy as np
 import bioformats
+from PIL import Image
+import javabridge as jv
 
 router = APIRouter(prefix="/image", tags=[])
 
@@ -179,9 +181,9 @@ async def mlConvertResult(request: Request, current_user: UserModelDB = Depends(
     if not os.path.exists(outputFolder):
         os.makedirs(outputFolder)
 
-    cmd_str = "sh /app/mainApi/bftools/bfconvert -separate -overwrite '" + realPath + "' '" + outputPath + "'"
-    print('=====>', cmd_str)
-    subprocess.run(cmd_str, shell=True)
+    # cmd_str = "sh /app/mainApi/bftools/bfconvert -separate -overwrite '" + realPath + "' '" + outputPath + "'"
+    # print('=====>', cmd_str)
+    # subprocess.run(cmd_str, shell=True)
 
     realPath = os.path.splitext(imagePath)[0] + 'a_2.jpg'
     outputFolder = '/app/mainApi/app/static' + tempPath
@@ -191,37 +193,48 @@ async def mlConvertResult(request: Request, current_user: UserModelDB = Depends(
     print('=====>', cmd_str)
     subprocess.run(cmd_str, shell=True)
 
-    mergedPath = outputFolder + '/' + realName + '_merged.ome.tiff'
+    # mergedPath = outputFolder + '/' + realName + '_merged.ome.tiff'
+    #
+    # # Load the OME-TIFF file
+    # ome_tiff = tifffile.imread(originalImagePath)
+    #
+    # # Get the number of channels
+    # num_channels = ome_tiff.shape[0]
+    # input_files = [outputFolder + '/' + 'output.tiff']
+    #
+    # print("===>origin channels:", num_channels)
+    #
+    # # Loop over each channel and save as a separate TIFF file
+    # for i in range(num_channels):
+    #     # Get the image data for this channel
+    #     channel_data = ome_tiff[i]
+    #
+    #     # Save the channel data as a TIFF file
+    #     tifffile.imsave(outputFolder + '/' + f'channel_{i}.tiff', channel_data)
+    #     input_files.append(outputFolder + '/' + f'channel_{i}.tiff')
+    #
+    # # Load the JPEG file
+    # img = Image.open(realPath)
+    #
+    # # Convert the image to grayscale
+    # gray_img = img.convert('L')
+    #
+    # # Save the grayscale image as a TIFF file
+    # gray_img.save(outputFolder + '/' + 'output.tiff')
+    #
+    # my_string = ' '.join(input_files)
+    # cmd_str = f'python /app/mainApi/ml_lib/pyramid_assemble.py {my_string} {mergedPath} --pixel-size 1'
+    # print('=====>', cmd_str)
+    # subprocess.run(cmd_str, shell=True)
 
-    metadata = bioformats.get_omexml_metadata(originalImagePath)
-    xml = bioformats.OMEXML(metadata)
-    channel_count = xml.image().Pixels.ChannelCount
-
-    single_channel_image = bioformats.load_image(outputPath)
-
-    # Create an empty array with the same shape as the single channel image, but with multiple channels
-    num_channels = channel_count  # Replace with the number of channels you want in the output image
-    multi_channel_image = bioformats.load_image(originalImagePath)
-
-    # Copy the single channel image to each channel of the multi-channel image
-    for i in range(num_channels):
-        multi_channel_image[:, :, i] = single_channel_image
-
-    # Save the multi-channel image as an ome.tiff file
-    bioformats.write_image(mergedPath, multi_channel_image, "uint16",
-                           multi_channel_image.shape[2], multi_channel_image.shape[0],
-                           multi_channel_image.shape[1])
-
-    # image2 = tifffile.imread(outputPath)
-    # image1 = tifffile.imread(originalImagePath)
-    # mergedImage = np.concatenate([image2, image1], 0)
-    # tifffile.imwrite(mergedPath, mergedImage)
-
+    # metadata = bioformats.get_omexml_metadata('/app/mainApi/app/static/6461894c49dbc4f3496599ba/1/my_test/at3_1m4_01.ome.tiff')
+    # xml = bioformats.OMEXML(metadata)
+    # print("ome-xml:", xml)
 
     return JSONResponse({
         "success": "success",
-        "image_path": tempPath + '/' + realName + '_merged.ome.tiff',
-        "image_count_path": tempPath + '/' + realName + 'a_3.ome.tiff',
+        "image_path": tempPath + '/' + realName + 'a_2.ome.tiff',
+        # "image_count_path": tempPath + '/' + realName + 'a_3.ome.tiff',
         "csv_path": csvPath
     })
 

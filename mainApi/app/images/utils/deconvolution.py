@@ -11,6 +11,9 @@ from skimage.util import crop
 import os
 import os.path as osp
 from mainApi.config import STATIC_PATH
+import time
+from mainApi.app.images.utils.asyncio import shell
+
 #import histomicstk as htk
 # Deconvolution 3D
 def RechardDeconvolution3d(file_name, effectiveness, isroi, dictRoiPts, gamma=0.2):
@@ -25,10 +28,13 @@ def RechardDeconvolution3d(file_name, effectiveness, isroi, dictRoiPts, gamma=0.
     data_path = osp.join(STATIC_PATH, fName)            
     originImg = io.imread(data_path)
 
-    startX = round(dictRoiPts['startX'])
-    startY = round(dictRoiPts['startY'])
-    endX = round(dictRoiPts['endX'])
-    endY = round(dictRoiPts['endY'])
+    width = originImg.shape[1]
+    height = originImg.shape[0]
+    
+    startX = round(dictRoiPts['startX'] * width / 100)
+    startY = round(dictRoiPts['startY'] * height / 100)
+    endX = round(dictRoiPts['endX'] * width / 100)
+    endY = round(dictRoiPts['endY'] * height / 100)
     # crop image
     if isroi:
         actual = originImg[:, startY:endY, startX:endX]
@@ -43,6 +49,8 @@ def RechardDeconvolution3d(file_name, effectiveness, isroi, dictRoiPts, gamma=0.
     # Run the deconvolution process and note that deconvolution initialization is best kept separate from 
     # execution since the "initialize" operation corresponds to creating a TensorFlow graph, which is a 
     # relatively expensive operation and should not be repeated across multiple executions
+    timestamp = str(int(time.time()))
+
     algo = fd_restoration.RichardsonLucyDeconvolver(actual.ndim).initialize()
     res = algo.run(fd_data.Acquisition(data=actual, kernel=kernel), niter=effectiveness).data
     outFileName = str(fName).split(".")[0] + "_deconvol3d" + ext
@@ -71,16 +79,32 @@ def RechardDeconvolution2d(file_name, effectiveness, isroi, dictRoiPts):
     endX = round(dictRoiPts['endX'])
     endY = round(dictRoiPts['endY'])
 
+
+    width = originImg.shape[1]
+    height = originImg.shape[0]
+    
+    startX = round(dictRoiPts['startX'] * width / 100)
+    startY = round(dictRoiPts['startY'] * height / 100)
+    endX = round(dictRoiPts['endX'] * width / 100)
+    endY = round(dictRoiPts['endY'] * height / 100)
+
+
     if isroi:
         img = originImg[startY:endY, startX:endX]
     else:
         img = originImg
-    
-    img = sk_color.rgb2gray(img)
 
-    outFileName = str(file_name).split(".")[0] + "_deconvol2d" + ext    
+    
+    img = sk_color.rgb2gray(img) * 255
+   
+
+    timestamp = str(int(time.time()))
+
+    outFileName = str(file_name).split(".")[0] + "_deconvol2d" + timestamp + ext    
     output_path = str(STATIC_PATH) + "/" + str(outFileName)
-    psf = np.ones((5, 5)) / 25
+
+    
+    psf = np.ones((3, 3)) / 9
            
     # Wrap image and PSF in "Acqusition" instance, which aids in doing comparisons and running
     # operations on all data associated with a data acquisition
@@ -88,16 +112,19 @@ def RechardDeconvolution2d(file_name, effectiveness, isroi, dictRoiPts):
 
     # Run deconvolution using default arguments (will default to adding no padding to image
     # as its dimensions are already powers of 2)
-    img_decon = fd_restoration.richardson_lucy(acquisition, niter=effectiveness)
+    img_decon = fd_restoration.richardson_lucy(acquisition, niter=effectiveness) 
+    img_decon = img_decon.astype(int)
 
     if isroi:        
         originImg[startY:endY, startX:endX] = sk_color.gray2rgb(img_decon)
         deconved_img = originImg
     else:
         deconved_img = img_decon 
+    
+    
 
-    for f in os.listdir(STATIC_PATH):
-        os.remove(os.path.join(STATIC_PATH, f))
+    #for f in os.listdir(STATIC_PATH):
+    #    os.remove(os.path.join(STATIC_PATH, f))
     io.imsave(output_path, deconved_img)
 
     return output_path
@@ -140,3 +167,99 @@ def SupervisedColorDeconvolution(file_name, effectiveness, isroi, dictRoiPts):
     io.imsave(output_path, deconved_img)
 
     return output_path
+
+
+def Deconvolution2DByChannel(img,effectiveness):
+
+    img = img / 255.0
+    # Create a gaussian kernel that will be used to blur the original acquisition
+    kernel = np.zeros_like(img)
+    for offset in [0, 1]:
+        kernel[tuple((np.array(kernel.shape) - offset) // 2)] = 1
+    kernel = ndimage.gaussian_filter(kernel, sigma=1.)
+
+
+    psf = np.ones((1, 1)) / 1
+    
+    # Convolve the original image with our fake PSF
+    #data = signal.fftconvolve(img, kernel, mode='same')
+
+    # Run the deconvolution process and note that deconvolution initialization is best kept separate from 
+    # execution since the "initialize" operation corresponds to creating a TensorFlow graph, which is a 
+    # relatively expensive operation and should not be repeated across multiple executions
+    algo = fd_restoration.RichardsonLucyDeconvolver(img.ndim).initialize()
+    res = algo.run(fd_data.Acquisition(data=img, kernel=psf), niter=effectiveness).data
+
+    max_v = np.max(res)
+    res = res * 255 / max_v
+    res = res.astype(int)
+
+    return res
+
+
+
+
+async def FlowDecDeconvolution2D(file_name, effectiveness, isroi, dictRoiPts):
+
+    ext = osp.splitext(file_name)[-1].lower()
+    data_path = osp.join(STATIC_PATH, file_name) 
+    originImg = io.imread(data_path)
+
+    startX = round(dictRoiPts['startX'])
+    startY = round(dictRoiPts['startY'])
+    endX = round(dictRoiPts['endX'])
+    endY = round(dictRoiPts['endY'])
+
+    print("*" * 30)
+    print("The shape of Original Image is :")
+    print(originImg.shape)
+    print("*" * 30)
+
+
+    width = originImg.shape[1]
+    height = originImg.shape[0]
+    
+    startX = round(dictRoiPts['startX'] * width / 100)
+    startY = round(dictRoiPts['startY'] * height / 100)
+    endX = round(dictRoiPts['endX'] * width / 100)
+    endY = round(dictRoiPts['endY'] * height / 100)
+
+
+    if isroi:
+        img = originImg[startY:endY, startX:endX]
+    else:
+        img = originImg
+
+    timestamp = str(int(time.time()))
+    outFileName = str(file_name).split(".")[0] + "_deconvol2d" + timestamp + ext    
+    output_path = str(STATIC_PATH) + "/" + str(outFileName)
+    
+    tempImageList = []
+
+    for i in range(img.shape[2]):
+        channel_Img = img[:,:,i]
+        deconv_channel_img = Deconvolution2DByChannel(channel_Img,effectiveness)
+        tempImageList.append(deconv_channel_img)
+
+    mergedDeconv2DImg = np.dstack(tempImageList)
+    
+    #print(mergedDeconv2DImg)
+
+    if isroi:        
+        originImg[startY:endY, startX:endX] = mergedDeconv2DImg
+        deconved_img = originImg
+    else:
+        deconved_img = img_decon 
+    
+    
+    #for f in os.listdir(STATIC_PATH):
+    #    os.remove(os.path.join(STATIC_PATH, f))
+    io.imsave(output_path, deconved_img)
+
+    omeTiffFile = str(file_name).split(".")[0] + "_deconvol2d" + timestamp + ".ome.tiff"
+    omePath = str(STATIC_PATH) + "/" + str(omeTiffFile)    
+    bf_cmd = f"sh /app/mainApi/bftools/bfconvert -separate -overwrite '{output_path}' '{omePath}'"
+    await shell(bf_cmd)  
+
+
+    return omePath

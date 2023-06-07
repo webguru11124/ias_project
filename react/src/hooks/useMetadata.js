@@ -24,9 +24,6 @@ export default function useMetadata(urls, onLoading = () => void 0) {
         }),
       );
 
-      //console.log("Tiffs");
-      //console.log(tiffs);
-
       const metadata = tiffs.map((data) =>
         data.length ? data[0].metadata : data.metadata,
       );

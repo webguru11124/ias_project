@@ -6,7 +6,8 @@ from fastapi import (
     Request,
     Response,
     Depends,
-    Form
+    Form,
+    status
 )
 from fastapi.responses import JSONResponse, FileResponse
 from mainApi.app.images.sub_routers.tile.routers import router as tile_router
@@ -25,6 +26,7 @@ import numpy as np
 import bioformats
 from PIL import Image
 import javabridge as jv
+import mainApi.app.images.utils.deconvolution as Deconv
 
 router = APIRouter(prefix="/image", tags=[])
 
@@ -274,3 +276,34 @@ async def update_measure_data(
     #     print(json.loads(value))
     #     print('=======>', key)
     return res
+
+
+
+@router.post(
+    "/deconv2D",
+    response_description="Deconvolution 2D",
+    status_code=status.HTTP_200_OK,
+)
+async def processDeconv2D(
+    request: Request,
+):
+    body_bytes = await request.body()
+    params = json.loads(body_bytes)
+
+    filepath = params["filename"]
+    effectiveness = params['effectiveness']
+    isroi = params['isroi']
+    dictRoiPts = params['dictRoiPts']
+
+    #print(params)
+    print("Start Processing for Deconvolution 2D")
+
+    abs_path = await Deconv.FlowDecDeconvolution2D(
+        filepath, effectiveness, isroi, dictRoiPts
+    )
+
+
+
+    return JSONResponse(abs_path) 
+
+

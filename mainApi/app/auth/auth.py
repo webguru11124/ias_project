@@ -77,6 +77,7 @@ def generate_qr_code_svg(data: str) -> str:
     return svg.to_string()
 
 
+
 async def get_current_user(db: AsyncIOMotorDatabase = Depends(get_database),
                            token: str = Depends(oauth2_scheme)) -> UserModelDB:
     credentials_exception = HTTPException(
@@ -222,6 +223,8 @@ async def login_swagger(form_data: OAuth2PasswordRequestForm, db: AsyncIOMotorCl
         access_token=access_token,
         token_type="Bearer"
     )
+
+    print(reply)
     return reply
 
 
@@ -246,6 +249,15 @@ def verify_password(plain_password, hashed_password):
     print('hashed_password', hashed_password)
     print('pwd_conte', pwd_context.verify(plain_password, hashed_password))
     return pwd_context.verify(plain_password, hashed_password)
+
+
+def verify_otp_secret(user : UserModelDB or None, otp_code) -> bool:
+    if user is None:
+        return False    
+    totp = pyotp.TOTP(user.otp_secret)
+    if not totp.verify(otp_code):
+        return False
+    return True
 
 
 def authenticate_email_password(user: UserModelDB or None, password, otp_code) -> bool:
@@ -293,3 +305,22 @@ def create_access_token(user_id: str, expires_delta: Optional[timedelta] = None)
     claims.update({"exp": expire})
     encode_jwt = jwt.encode(claims=claims, key=SECRET_KEY, algorithm=ALGORITHM)
     return encode_jwt
+
+
+
+async def suspend_login(email: str, db: AsyncIOMotorClient, otp_code: str):
+    user: UserModelDB = await get_user_by_email(email, db)
+    is_user = verify_otp_secret(user,otp_code)
+    
+    if is_user == True :
+        updated_user = await db["users"].find_one_and_update(
+            {'_id': user.id},
+            {"$set": {'is_active': "false"}},
+            return_document=ReturnDocument.AFTER
+        )
+        print(updated_user)
+
+
+
+
+

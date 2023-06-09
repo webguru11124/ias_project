@@ -302,8 +302,35 @@ async def processDeconv2D(
         filepath, effectiveness, isroi, dictRoiPts
     )
 
-
-
     return JSONResponse(abs_path) 
 
 
+@router.post(
+    "/deconv3D",
+    response_description="Deconvolution 3D",
+    status_code=status.HTTP_200_OK,
+)
+async def processDeconv3D(
+    request: Request,
+    current_user: UserModelDB = Depends(get_current_user)
+):
+
+    userid = str(PyObjectId(current_user.id))
+
+    body_bytes = await request.body()
+    params = json.loads(body_bytes)
+
+    filenames = params["filenames"]
+    effectiveness = params['effectiveness']
+    isroi = params['isroi']
+    dictRoiPts = params['dictRoiPts']
+
+    #print(params)
+    print("Start Processing for Deconvolution 3D")
+
+    abs_path = await Deconv.FlowDecDeconvolution3D(
+       userid, filenames, effectiveness, isroi, dictRoiPts
+    )
+
+
+    return JSONResponse(abs_path) 

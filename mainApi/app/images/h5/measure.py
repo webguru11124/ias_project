@@ -1,6 +1,9 @@
 import h5py
 import json
 import datetime
+import tempfile
+import os
+from mainApi.config import STATIC_PATH
 
 # with h5py.File('test004.hdf5', 'w') as f:
 #     print('call me 1')
@@ -40,9 +43,16 @@ def update_h5py_file(data, keyList):
     # Convert to string
     date_time_str = now.strftime('%Y-%m-%d %H:%M:%S')
 
+    tempPath = tempfile.mkdtemp()
+    OUT_PUT_FOLDER = tempPath.split("/")[len(tempPath.split("/")) - 1]
+    OUT_PUT_PATH = 'mainApi/app/static/measure_out/' + OUT_PUT_FOLDER
+
+    if not os.path.exists(OUT_PUT_PATH):
+        os.makedirs(OUT_PUT_PATH)
+
     print('update h5py file')
     # print(data)
-    with h5py.File('measure_result.hdf5', 'w') as f:
+    with h5py.File(OUT_PUT_PATH + '/measure_result.hdf5', 'w') as f:
         o_group = f.create_group('Original_Group')
         m_group = f.create_group('Measured_Group')
         # second-class groups

@@ -14,6 +14,8 @@ import {
 } from '@mdi/js';
 import MultilineTextBox from '@/components/custom/MultiLineText';
 import store from '@/reducers';
+import BasicDialog from '@/components/tabsLeft/contents/dlml/dialog/BasicDialog';
+import ICTMethodDialog from '@/components/tabsLeft/contents/dlml/dialog/ICTMethoadDialog';
 
 const defaultLabelList = [
   {
@@ -62,10 +64,11 @@ export default function FirstPage() {
     setInformation(
       'We use the Machine learning to analyse the image\n It highlihgts the cells',
     );
-    store.dispatch({
-      type: 'UPDATE_ML_POPUP_STATUS',
-      payload: true,
-    });
+    // store.dispatch({
+    //   type: 'UPDATE_ML_POPUP_STATUS',
+    //   payload: true,
+    // });
+    useFlagsStore.setState({ DialogBasicFlag: true });
   };
   const onClick5 = () => {
     liveUpdate();
@@ -108,6 +111,8 @@ export default function FirstPage() {
           />
         </SmallCard>
       </div>
+      {<BasicDialog isMLAdvance={true} />}
+      {<ICTMethodDialog />}
     </>
   );
 }

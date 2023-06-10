@@ -170,7 +170,7 @@ const DEFAULT_VIEWER_STATE = {
   use3d: false,
   useLens: false,
   useColormap: false,
-  globalSelection: { z: 0, t: 0 },
+  globalSelection: { z: 1, t: 1 },
   channelOptions: [],
   metadata: null,
   viewState: { zoom: 1 },

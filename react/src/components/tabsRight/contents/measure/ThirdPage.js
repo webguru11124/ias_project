@@ -12,6 +12,7 @@ import {
 import SortAreaDialog from '../itemSetting/SortAreaDialog';
 import ClassSettingTable from './ClassSettingTable';
 import * as api_measure from '@/api/measure';
+import store from '@/reducers';
 
 export default function ClassSettingPage() {
   const [showMeasureItemDialog, setShowMeasureItemDialog] = useState(false);
@@ -43,14 +44,7 @@ export default function ClassSettingPage() {
         </Box>
       </SmallCard>
       <SmallCard title="Measure Contents">
-        {showMeasureItemDialog && (
-          <MeasureItemDialog
-            open={showMeasureItemDialog}
-            closeDialog={() => {
-              setShowMeasureItemDialog(false);
-            }}
-          />
-        )}
+        <MeasureItemDialog />
         {showSortAreaDialog && (
           <SortAreaDialog
             open={showSortAreaDialog}
@@ -62,7 +56,12 @@ export default function ClassSettingPage() {
         <Button
           className="btn btn-light btn-sm"
           style={{ width: '49%' }}
-          onClick={() => setShowMeasureItemDialog(true)}
+          onClick={() => {
+            store.dispatch({
+              type: 'UPDATE_MEASURE_ITEM_POPUP_STATUS',
+              payload: true,
+            });
+          }}
         >
           Measure item
         </Button>

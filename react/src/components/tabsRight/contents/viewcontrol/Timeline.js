@@ -202,6 +202,7 @@ const Timeline = (props) => {
       setMaxSlider(size);
       setIsLoading(true);
       if (size > 0) {
+        setValue(1);
         let ranges = [];
         for (let i = 0; i < size; i++) {
           ranges.push({

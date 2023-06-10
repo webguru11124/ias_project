@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "react-image": "^4.1.0",
+    "react-papaparse": "^4.1.0",
     "react-tiff": "^0.0.8",
     "react-zoom-pan-pinch": "^3.0.7",
     "tiff": "^5.0.3",

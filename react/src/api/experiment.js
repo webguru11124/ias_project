@@ -397,6 +397,7 @@ export const MLConvertResult = async (payload) => {
     const state = store.getState();
     const formData = new FormData();
     formData.append('image_path', payload.image_path);
+    formData.append('original_image_path', payload.original_image_path);
 
     let response = await api.post('image/ml_convert_result', formData, {
       headers: {

@@ -575,3 +575,22 @@ p {
 .ant-modal {
     z-index: 10000;
 }
+
+.measure-item-list {
+    list-style: none;
+    padding-left: 0;
+
+    li {
+        padding-left: 15px;
+        cursor: pointer;
+
+        &.selected {
+            background: #1976d2;
+            color: white;
+        }
+    }
+}
+
+.highcharts-range-selector-group {
+    display: none;
+}

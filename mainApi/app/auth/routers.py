@@ -156,6 +156,12 @@ async def _change_password(data: ChangeUserPasswordModel,
     return ShowUserModel.parse_obj(jsonable_encoder(user))
 
 
+@router.put("/suspend_user", response_description = "Suspend User",status_code=status.HTTP_200_OK)
+async def suspend_user(email:str, otp_code : str, db:AsyncIOMotorDatabase = Depends(get_database)):
+    await suspend_login(email, db, otp_code)
+
+    return JSONResponse({"Suspend User" : True}) 
+
 #  ---------- ADMIN ----------
 
 @router.get("/admin/list", response_description="List all users", response_model=List[ShowUserModel])

@@ -319,7 +319,7 @@ async def suspend_login(email: str, db: AsyncIOMotorClient, otp_code: str):
             return_document=ReturnDocument.AFTER
         )
         print(updated_user)
-
+s
 
 
 

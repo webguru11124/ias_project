@@ -188,7 +188,7 @@ def Deconvolution2DByChannel(img,effectiveness):
     # execution since the "initialize" operation corresponds to creating a TensorFlow graph, which is a 
     # relatively expensive operation and should not be repeated across multiple executions
     algo = fd_restoration.RichardsonLucyDeconvolver(img.ndim).initialize()
-    res = algo.run(fd_data.Acquisition(data=img, kernel=psf), niter=effectiveness).data
+    res = algo.run(fd_data.Acquisition(data=img, kernel=kernel), niter=effectiveness).data
 
     max_v = np.max(res)
     res = res * 255 / max_v
@@ -211,8 +211,8 @@ async def FlowDecDeconvolution2D(file_name, effectiveness, isroi, dictRoiPts):
     endY = round(dictRoiPts['endY'])
 
     print("*" * 30)
-    print("The shape of Original Image is :")
-    print(originImg.shape)
+    print("The Original Image is :")
+    print(originImg)
     print("*" * 30)
 
 
@@ -248,14 +248,12 @@ async def FlowDecDeconvolution2D(file_name, effectiveness, isroi, dictRoiPts):
     else :
          result_image = Deconvolution2DByChannel(img,effectiveness)
 
-
-   #print(mergedDeconv2DImg)
-
     if isroi:        
         originImg[startY:endY, startX:endX] = result_image
         deconved_img = originImg
     else:
         deconved_img = img_decon 
+    
 
     io.imsave(output_path, deconved_img)
 
@@ -284,6 +282,7 @@ async def FlowDecDeconvolution3D(userid, filenames, effectiveness, isroi, dictRo
 
         data_path = osp.join(STATIC_PATH, userid, file_name) 
         originImg = io.imread(data_path)
+        
         
         startX = round(dictRoiPts['startX'])
         startY = round(dictRoiPts['startY'])
@@ -322,6 +321,7 @@ async def FlowDecDeconvolution3D(userid, filenames, effectiveness, isroi, dictRo
             result_image = Deconvolution2DByChannel(img,effectiveness)
 
 
+
         if isroi:        
             originImg[startY:endY, startX:endX] = result_image
             deconved_img = originImg
@@ -340,7 +340,3 @@ async def FlowDecDeconvolution3D(userid, filenames, effectiveness, isroi, dictRo
     
     return converted_filenames
        
-
-
-
-

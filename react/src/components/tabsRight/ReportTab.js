@@ -14,7 +14,7 @@ import {
   mdiEyeOutline,
   mdiTable,
 } from '@mdi/js';
-
+// import fs from 'fs';
 // const dampleData = [{firstName}];
 
 export default function ReportTab() {
@@ -23,11 +23,27 @@ export default function ReportTab() {
 
   const onClick1 = () => {};
   const onClick2 = () => {};
-  const onClick3 = () => {};
   const onClick4 = () => {};
   const handleClickVisual = () => {
     // useFlagsStore.setState({ DialogVisualFlag: true });
     useFlagsStore.setState({ ReportVisualFlag: true });
+  };
+
+  const downloadCSV = async () => {
+    // Download CSV file
+    const response = await fetch('./1.csv');
+    const csvData = await response.text();
+    // Create new directory if it doesn't exist
+    // const dirName = './';
+    // if (!fs.existsSync(dirName)) {
+    //   fs.mkdirSync(dirName);
+    // }
+
+    // Write CSV data to file in new directory
+    const fileName = `./.csv`;
+    // fs.writeFileSync(fileName, csvData);
+
+    // console.log(`File saved successfully in ${dirName}`);
   };
 
   useEffect(() => {
@@ -43,7 +59,11 @@ export default function ReportTab() {
       <SmallCard title="Save & Export">
         <CustomButton icon={mdiCloudOutline} label="Cloud" click={onClick1} />
         <CustomButton icon={mdiFileExcel} label="Excel" click={onClick2} />
-        <CustomButton icon={mdiFileExcelOutline} label="CSV" click={onClick3} />
+        <CustomButton
+          icon={mdiFileExcelOutline}
+          label="CSV"
+          click={downloadCSV}
+        />
         <CustomButton icon={mdiFile} label="hdf5" click={onClick4} />
       </SmallCard>
       {/* {DialogVisualFlag && <VisualDialog />} */}

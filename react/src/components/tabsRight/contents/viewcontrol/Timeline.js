@@ -28,6 +28,7 @@ import debounce from 'lodash/debounce';
 import { getMultiSelectionStats, range } from '@/helpers/avivator';
 import { unstable_batchedUpdates } from 'react-dom';
 import shallow from 'zustand/shallow';
+import { Slider } from '@mui/material';
 
 const Input = styled(TextField)`
   width: 50px;
@@ -64,7 +65,11 @@ const Timeline = (props) => {
   ]);
   const [value, setValue] = useState(0);
   const [minSlider, setMinSlider] = useState(0);
-  const [maxSlider, setMaxSlider] = useState(10);
+  const [maxSlider, setMaxSlider] = useState(1);
+
+  const imagePathForOrigin = useSelector(
+    (state) => state.files.imagePathForOrigin,
+  );
 
   const [selectedTime, setSelectedTime] = useState(-1);
 
@@ -170,6 +175,17 @@ const Timeline = (props) => {
     }
   }, [props]);
 
+  useEffect(() => {
+    if (
+      imagePathForOrigin &&
+      imagePathForOrigin !== null &&
+      imagePathForOrigin !== ''
+    ) {
+      SliderChange(1);
+      setSelectedTime(1);
+    }
+  }, [imagePathForOrigin]);
+
   const onSetting = () => {};
   // const onPlay = () => {
   // }
@@ -248,8 +264,7 @@ const Timeline = (props) => {
                 className="color-blue"
               /> */}
 
-              <p>Time value: {value}</p>
-              <input
+              {/* <input
                 type="range"
                 onChange={(value) => {
                   SliderChange(value);
@@ -260,10 +275,24 @@ const Timeline = (props) => {
                 value={value}
                 disabled={!isLoading || isImageLoading}
                 className="custom-slider"
-              ></input>
+              ></input> */}
+
+              <Slider
+                value={value}
+                defaultValue={value}
+                disabled={!isLoading || isImageLoading}
+                valueLabelDisplay="on"
+                // onChange={(value) => {
+                //   SliderChange(value);
+                // }}
+                min={minSlider}
+                max={maxSlider}
+                orientation="horizontal"
+              />
             </Grid>
             <Grid item xs={4}>
-              <Input
+              <p>{value}</p>
+              {/* <Input
                 className="pa-0 ma-0 ml-2 no-underline"
                 value={value}
                 size="small"
@@ -279,14 +308,16 @@ const Timeline = (props) => {
                   disableUnderline: true,
                   disabled: true,
                 }}
-              />
+              /> */}
             </Grid>
           </Grid>
           <div
             className="d-flex justify-center pa-0 ma-0"
             style={{ marginTop: '-28px' }}
           >
-            <Col md={4}>
+            <Col md={4}></Col>
+
+            {/* <Col md={4}>
               <Input
                 value={minSlider}
                 size="small"
@@ -300,8 +331,8 @@ const Timeline = (props) => {
                   value: minSlider,
                 }}
               />
-            </Col>
-            <Col md={4}>
+            </Col> */}
+            {/* <Col md={4}>
               <Input
                 value={maxSlider}
                 size="small"
@@ -314,7 +345,7 @@ const Timeline = (props) => {
                   disableUnderline: true,
                 }}
               />
-            </Col>
+            </Col> */}
           </div>
         </Container>
       </div>

@@ -38,6 +38,10 @@ const Vessel = (props) => {
 
   const [slideSelect, setSlideSelect] = useState(false);
 
+  const imagePathForOrigin = useSelector(
+    (state) => state.files.imagePathForOrigin,
+  );
+
   // updated by QmQ
   useEffect(() => {
     store.dispatch({
@@ -224,8 +228,18 @@ const Vessel = (props) => {
           setSlideSelect(true);
         }
       }
+    } else {
+      if (
+        imagePathForOrigin &&
+        imagePathForOrigin !== null &&
+        imagePathForOrigin !== ''
+      ) {
+        setCurrentVessel(getVesselById(1));
+        setCurrentVesselId(1);
+        setSlideSelect(true);
+      }
     }
-  }, [props.content]);
+  }, [props.content, imagePathForOrigin]);
 
   if (currentVessel == null) {
     return <></>;

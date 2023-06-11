@@ -156,14 +156,20 @@ const Channel = (prop) => {
           }
         });
       }
-    }
-
-    if (
+    } else if (
       imagePathForOrigin &&
       imagePathForOrigin !== null &&
       imagePathForOrigin !== ''
     ) {
-      channels[0].visible = true;
+      channels.map((channel, id) => {
+        if (id === 0) {
+          channel.visible = true;
+          channel.disabled = false;
+        } else {
+          channel.visible = false;
+          channel.disabled = true;
+        }
+      });
     }
   }, [prop, colors, channelsVisible]);
 

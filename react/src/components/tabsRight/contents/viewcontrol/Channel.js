@@ -34,6 +34,9 @@ const Channel = (prop) => {
   const loader = useLoader();
   const metadata = useMetadata();
   const { labels } = loader[0];
+  const imagePathForOrigin = useSelector(
+    (state) => state.files.imagePathForOrigin,
+  );
 
   const {
     channelsVisible,
@@ -153,6 +156,14 @@ const Channel = (prop) => {
           }
         });
       }
+    }
+
+    if (
+      imagePathForOrigin &&
+      imagePathForOrigin !== null &&
+      imagePathForOrigin !== ''
+    ) {
+      channels[0].visible = true;
     }
   }, [prop, colors, channelsVisible]);
 

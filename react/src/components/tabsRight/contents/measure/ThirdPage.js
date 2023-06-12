@@ -39,7 +39,11 @@ export default function ClassSettingPage() {
       type: 'set_image_path_for_avivator',
       content: imagePathForResult,
     });
-    setShowSortAreaDialog(true);
+    // setShowSortAreaDialog(true);
+    store.dispatch({
+      type: 'UPDATE_SORT_AREA_DIALOG_STATUS',
+      payload: true,
+    });
   };
 
   return (
@@ -59,14 +63,7 @@ export default function ClassSettingPage() {
       </SmallCard>
       <SmallCard title="Measure Contents">
         <MeasureItemDialog />
-        {showSortAreaDialog && (
-          <SortAreaDialog
-            open={showSortAreaDialog}
-            closeDialog={() => {
-              setShowSortAreaDialog(false);
-            }}
-          />
-        )}
+        <SortAreaDialog />
         <Button
           className="btn btn-light btn-sm"
           style={{ width: '49%' }}

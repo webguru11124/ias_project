@@ -594,3 +594,7 @@ p {
 .highcharts-range-selector-group {
     display: none;
 }
+
+.MuiPopover-root {
+    z-index: 100000 !important;
+}

@@ -409,7 +409,7 @@ const TabTiling = (props) => {
     setHoleImageList(sortedTiles);
 
     const tempChannels = [1, 0, 0, 0, 0, 0, 0];
-    let time = 0;
+    let time = 'p00';
     let channel = 0;
 
     if (
@@ -417,7 +417,7 @@ const TabTiling = (props) => {
       sortedTiles[0].channel !== undefined &&
       sortedTiles[0].z !== undefined
     ) {
-      time = Number(sortedTiles[0].time.split('p')[1]);
+      time = sortedTiles[0].time;
 
       sortedTiles.map((image) => {
         const idx = Number(image.channel.split('d')[1]);
@@ -450,7 +450,7 @@ const TabTiling = (props) => {
         let tempContent = {};
 
         tempContent.z = tile.z;
-        tempContent.time = time;
+        tempContent.time = tile.time;
         tempContent.dimensionChanged = tile.dimensionChanged;
         tempContent.row = tile.row.charCodeAt() - 'A'.charCodeAt();
         tempContent.col = tile.col;
@@ -496,7 +496,7 @@ const TabTiling = (props) => {
           let tempContent = {};
 
           tempContent.z = tile.z;
-          tempContent.time = Number(tile.time.split('p')[1]);
+          tempContent.time = tile.time;
           tempContent.dimensionChanged = tile.dimensionChanged;
           tempContent.row = tile.row.charCodeAt() - 'A'.charCodeAt();
           tempContent.col = tile.col;
@@ -1378,8 +1378,44 @@ const TabTiling = (props) => {
               </Paper>
             )}
 
-            {(selectedIndex === 0 ||
-              selectedIndex === 2 ||
+            {selectedIndex === 0 && (
+              <Paper
+                variant="outlined"
+                sx={{ height: '800px', width: '600px' }}
+              >
+                <TransformWrapper minScale={0.2}>
+                  <TransformComponent
+                    wrapperStyle={{ height: '800px', width: '600px' }}
+                  >
+                    <ImageList
+                      cols={1}
+                      sx={{
+                        mb: 0,
+                        pointerEvents: 'none',
+                        userSelect: 'none',
+                        height: '100%',
+                        width: '100%',
+                      }}
+                    >
+                      {holeImageList.map(({ _id, thumbnail, filename }) => (
+                        <>
+                          <p style={{ fontFamily: 'monospace' }}>{filename}</p>
+                          <ImageListItem key={_id}>
+                            <img
+                              src={thumbnail}
+                              alt={filename}
+                              style={{ width: 200, height: 'auto' }}
+                            />
+                          </ImageListItem>
+                        </>
+                      ))}
+                    </ImageList>
+                  </TransformComponent>
+                </TransformWrapper>
+              </Paper>
+            )}
+
+            {(selectedIndex === 2 ||
               selectedIndex === 3 ||
               selectedIndex === 4) && (
               <Avivator type={'tiling'} source={resultImagePath} />

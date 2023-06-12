@@ -330,7 +330,7 @@ const TabTiling = (props) => {
     const res = [];
     lists.map((item) => {
       const url = item.url.split('/static/')[0];
-      if (item.ashlar_path != '') {
+      if (item.ashlar_path !== '' && item.ashlar_path !== undefined) {
         const path = item.ashlar_path.split('/static/')[1];
 
         const filename = path.split('.')[0] + '.timg';
@@ -577,47 +577,58 @@ const TabTiling = (props) => {
   //Get the Correction Image Path from the server
   const getCorrectionImagePath = () => {
     //Load an OME_TIFF file
-    const filename = tiles[0].url.split('/').pop();
+    const filename = alignImages[0].filename.split('.')[0] + '.timg';
     const resultpath =
-      tiles[0].url.replace(filename, '') + 'correction_output.ome.tiff';
+      alignImages[0].thumbnail.replace(filename, '') +
+      'correction_output.ome.tiff';
+
     return getOmeTiffUrl(resultpath);
   };
 
   //Get the Normalize Image Path from the server
   const getNormalizeImagePath = () => {
     //Load an OME_TIFF file
-    const filename = tiles[0].url.split('/').pop();
+
+    const filename = alignImages[0].filename.split('.')[0] + '.timg';
     const resultpath =
-      tiles[0].url.replace(filename, '') + 'normalize_output.ome.tiff';
+      alignImages[0].thumbnail.replace(filename, '') +
+      'normalize_output.ome.tiff';
+
     return getOmeTiffUrl(resultpath);
   };
 
   //Get the gamma Image Path from the server
   const getGammaImagePath = (gamma) => {
     //Load an OME_TIFF file
-    const filename = tiles[0].url.split('/').pop();
+    const filename = alignImages[0].filename.split('.')[0] + '.timg';
     const resultpath =
-      tiles[0].url.replace(filename, '') +
+      alignImages[0].thumbnail.replace(filename, '') +
       'gamma' +
       gamma.toString() +
       '_output.ome.tiff';
+
     return getOmeTiffUrl(resultpath);
   };
 
   //Get the Snap To Edge Image Path from the server
   const getSnapToEdgeImagePath = () => {
     //Load an OME_TIFF file
-    const filename = tiles[0].url.split('/').pop();
+    const filename = alignImages[0].filename.split('.')[0] + '.timg';
     const resultpath =
-      tiles[0].url.replace(filename, '') + 'snap_to_edge.ome.tiff';
+      alignImages[0].thumbnail.replace(filename, '') + 'snap_to_edge.ome.tiff';
     return getOmeTiffUrl(resultpath);
   };
 
   //Get the result image path from the server
   const getResultPath = () => {
     //Load an OME_TIFF file
-    const filename = tiles[0].url.split('/').pop();
-    const resultpath = tiles[0].url.replace(filename, '') + 'result.ome.tiff';
+    const filename = alignImages[0].filename.split('.')[0] + '.timg';
+
+    const resultpath =
+      alignImages[0].thumbnail.replace(filename, '') + 'result.ome.tiff';
+
+    //console.log(resultpath);
+
     return getOmeTiffUrl(resultpath);
   };
 
@@ -712,7 +723,7 @@ const TabTiling = (props) => {
       }
     });
     return result;
-  }, [sorted, align, dir, dim, sortOrder]);
+  }, [sorted, align, dir, dim, sortOrder, alignImages]);
 
   // When the row is changed in alignment part
   const inputTilingRows = (event) => {
@@ -883,21 +894,33 @@ const TabTiling = (props) => {
   };
 
   const onClickedBuildButton = async () => {
-    const ashlarParams = {
-      width: dim[1],
-      height: dim[0],
-      layout: align,
-      direction: dir,
-    };
+    if (alignImages && alignImages.length > 0) {
+      const filepath = alignImages[0].thumbnail.split('/static/')[1];
+      const filename = alignImages[0].filename.split('.')[0];
+      const dir_name = filepath.split(filename)[0].trim();
 
-    setInfoMessage('Build Started');
-    const output = await buildPyramid(ashlarParams);
-    const outputUrl = getResultPath();
-    setFinalResultImagePath(outputUrl);
-    //setResultImagePath(outputUrl);
-    setInfoMessage(
-      'Build Finished. You can see the result Image in result page.',
-    );
+      const ashlarParams = {
+        width: alignCol,
+        height: alignRow,
+        layout: align,
+        direction: dir,
+        dirname: dir_name,
+      };
+
+      setInfoMessage('Build Started');
+      const output = await buildPyramid(ashlarParams);
+
+      //console.log(output);
+
+      const outputUrl = getResultPath();
+      setFinalResultImagePath(outputUrl);
+      setResultImagePath(outputUrl);
+      setInfoMessage(
+        'Build Finished. You can see the result Image in result page.',
+      );
+    } else {
+      setInfoMessage('There is no image to merge, please check the images.');
+    }
   };
 
   //When the list item clicked in left tab in the Tiling Part

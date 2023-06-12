@@ -132,7 +132,7 @@ async def get_tiles(
 
 
 def getDirName(dir,series,row, col):
-    dir_name =  str(series) + "_" + str(row) + "_" + str(col)
+    dir_name =  str(series).replace(" ","") + "_" + str(row) + "_" + str(col)
     new_path = f"{CURRENT_STATIC}/{dir}/{dir_name}"
     new_rel_path = new_path.rsplit("/static/", 1)[1]
     new_abs_path = os.path.join(STATIC_PATH, new_rel_path)
@@ -180,6 +180,7 @@ async def update_tiles_meta_info(
         col = meta_info["col"]
         ashlar_path = ""
         
+
         if not name in  check_arr:
             merge_arr = []
             check_arr.append(name)
@@ -201,6 +202,8 @@ async def update_tiles_meta_info(
             ext = meta_info["filename"].rsplit(".", 1)[1]
             file_name = f"tile_image_series{str(series).rjust(5, '0')}.{ext}"
             
+
+            
             if(len(merge_arr) == 2):
                 merge_arr.append(merge_arr[0])
             
@@ -210,6 +213,10 @@ async def update_tiles_meta_info(
 
             save_file_path = os.path.join(new_abs_dir_path,file_name)
             cv2.imwrite(save_file_path,res_image)
+
+
+
+
 
             ashlar_path = save_file_path
 
@@ -457,14 +464,19 @@ async def build_pyramid(
         {"user_id": user.id}
     )
     rel_path = tile["path"].rsplit('/static/', 1)[1]
-    rel_dir = rel_path.rsplit("/", 1)[0]
+    #rel_dir = rel_path.rsplit("/", 1)[0]
+
+    #print(rel_dir)
+    rel_dir = ashlar_params["dirname"] 
     tiles_dir = os.path.join(STATIC_PATH, rel_dir)
+
+
     ext = tile["filename"].rsplit(".", 1)[1]
     output_filename = "ashlar_output.ome.tiff"
     output_path = os.path.join(STATIC_PATH, rel_dir, output_filename)
     output_rel_path = os.path.join(CURRENT_STATIC, rel_dir, output_filename)
 
-
+    
     ashlar_cmd = f'ashlar --output {output_path} "fileseries|{tiles_dir}|pattern=tile_image_series{{series}}.{ext}|overlap=0.1|width={ashlar_params["width"]}|height={ashlar_params["height"]}|layout={ashlar_params["layout"]}"'
     await shell(ashlar_cmd)
 

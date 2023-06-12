@@ -57,18 +57,12 @@ export default function ClassSettingItemAddRow(props) {
           onChange={(e) => setChannelId(e.target.value)}
         >
           <option value={-1}></option>
-          {channelList.length > 0 &&
-            channelList.map((ch) => {
-              // console.log('channel List====>', ch)
-              if (ch.id >= 0) return <option value={ch.id}>{ch.symbol}</option>;
-            })}
-          {/* // <option value={0}>S</option>
-          // <option value={1}>B</option>
-          // <option value={2}>G</option>
-          // <option value={3}>R</option>
-          // <option value={4}>C</option>
-          // <option value={5}>Y</option>
-          // <option value={6}>M</option> */}
+          {/*{channelList.length > 0 &&*/}
+          {/*  channelList.map((ch) => {*/}
+          {/*    // console.log('channel List====>', ch)*/}
+          {/*    if (ch.id >= 0) return <option value={ch.id}>{ch.symbol}</option>;*/}
+          {/*  })}*/}
+          <option value={0}>S</option>
         </Select>
       </TableCell>
       <TableCell
@@ -86,18 +80,12 @@ export default function ClassSettingItemAddRow(props) {
           onChange={(e) => setParentId(e.target.value)}
         >
           <option value={-1}>None</option>
-          {channelList.length > 0 &&
-            channelList.map((ch) => {
-              // console.log('channel List====>', ch)
-              if (ch.id >= 0) return <option value={ch.id}>{ch.symbol}</option>;
-            })}
-          {/* <option value={0}>S</option>
-          <option value={1}>B</option>
-          <option value={2}>G</option>
-          <option value={3}>R</option>
-          <option value={4}>C</option>
-          <option value={5}>Y</option>
-          <option value={6}>M</option> */}
+          {/*{channelList.length > 0 &&*/}
+          {/*  channelList.map((ch) => {*/}
+          {/*    // console.log('channel List====>', ch)*/}
+          {/*    if (ch.id >= 0) return <option value={ch.id}>{ch.symbol}</option>;*/}
+          {/*  })}*/}
+          <option value={0}>S</option>
         </Select>
       </TableCell>
     </TableRow>

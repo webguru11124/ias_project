@@ -8,6 +8,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import SortItemTop from './contents/sortItem/SortItemTop';
 import SortItemBottom from './contents/sortItem/SortItemBottom';
 import { useSelector } from 'react-redux';
+import store from '@/reducers';
 
 export default function SortAreaDialog(props) {
   const [open] = useState(true);
@@ -15,8 +16,18 @@ export default function SortAreaDialog(props) {
   const [currentClass, setCurrentClass] = useState(-1);
   const [currentMeasureItem, setCurrentMeasureItem] = useState('');
   const [currentBins, setCurrentBins] = useState(16);
+  const imagePathForOrigin = useSelector(
+    (state) => state.files.imagePathForOrigin,
+  );
+  const imagePathForResult = useSelector(
+    (state) => state.files.imagePathForResult,
+  );
 
   const handleClose = () => {
+    store.dispatch({
+      type: 'set_image_path_for_avivator',
+      content: imagePathForOrigin,
+    });
     props.closeDialog();
   };
 

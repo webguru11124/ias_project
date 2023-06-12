@@ -35,6 +35,9 @@ function ZPosition(props) {
   );
   const globalSelection = useViewerStore((store) => store.globalSelection);
   const zpositionData = useSelector((state) => state.measure.zposition);
+  const imagePathForOrigin = useSelector(
+    (state) => state.files.imagePathForOrigin,
+  );
 
   useEffect(() => {
     if (props.content) {
@@ -50,6 +53,23 @@ function ZPosition(props) {
       }
     }
   }, [props]);
+  useEffect(() => {
+    if (
+      imagePathForOrigin &&
+      imagePathForOrigin !== null &&
+      imagePathForOrigin !== ''
+    ) {
+      useViewerStore.setState({
+        globalSelection: { ...globalSelection, z: 1 },
+      });
+      setZvalue(1);
+    } else {
+      useViewerStore.setState({
+        globalSelection: { ...globalSelection, z: 0 },
+      });
+      setZvalue(0);
+    }
+  }, [imagePathForOrigin]);
 
   // eslint-disable-next-line
   const changeSelection = useCallback(
@@ -109,7 +129,7 @@ function ZPosition(props) {
       </Grid>
       <Grid item xs={12} sx={{ px: 1, pt: 1 }}>
         <Slider
-          value={globalSelection.z}
+          value={zvalue}
           defaultValue={1}
           onChange={(event, newValue) => {
             useViewerStore.setState({
@@ -122,13 +142,14 @@ function ZPosition(props) {
               changeSelection(event, newValue);
             }
           }}
-          valueLabelDisplay="auto"
+          valueLabelDisplay="on"
           onChangeCommitted={changeSelection}
           marks={range(size).map((val) => ({ value: val }))}
           min={0}
           max={size}
           orientation="horizontal"
         />
+        <p>{zvalue}</p>
       </Grid>
     </Grid>
   );

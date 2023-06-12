@@ -34,6 +34,9 @@ const Channel = (prop) => {
   const loader = useLoader();
   const metadata = useMetadata();
   const { labels } = loader[0];
+  const imagePathForOrigin = useSelector(
+    (state) => state.files.imagePathForOrigin,
+  );
 
   const {
     channelsVisible,
@@ -153,6 +156,20 @@ const Channel = (prop) => {
           }
         });
       }
+    } else if (
+      imagePathForOrigin &&
+      imagePathForOrigin !== null &&
+      imagePathForOrigin !== ''
+    ) {
+      channels.map((channel, id) => {
+        if (id === 0) {
+          channel.visible = true;
+          channel.disabled = false;
+        } else {
+          channel.visible = false;
+          channel.disabled = true;
+        }
+      });
     }
   }, [prop, colors, channelsVisible]);
 

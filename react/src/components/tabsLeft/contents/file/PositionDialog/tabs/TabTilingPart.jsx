@@ -840,23 +840,6 @@ const TabTiling = (props) => {
     if (holeImageList.length > 0) {
       setSelectedImageFileIndex(index);
       setResultImagePath(getOmeTiffUrl(holeImageList[index].url));
-
-      let selectedImage = {};
-      selectedImage.orginalFileName = holeImageList[index].url;
-      selectedImage.url = getOmeTiffUrl(holeImageList[index].url);
-      selectedImage.xmlUrl = getXmlUrl(
-        holeImageList[index].url,
-        holeImageList[index].filename,
-      );
-
-      //const metaData = await getMetadataFromDataBase(holeImageList[index].filename);
-      //console.log(metaData);
-
-      store.dispatch({
-        type: 'set_SelectedImage',
-        content: selectedImage,
-      });
-      //console.log(holeImageList[index].url);
     }
   };
 

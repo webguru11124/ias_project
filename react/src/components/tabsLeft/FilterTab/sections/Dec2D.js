@@ -155,7 +155,7 @@ export default function Dec2D() {
       <>
         <Snackbar
           open={openSnackBar}
-          autoHideDuration={2000}
+          autoHideDuration={1000}
           onClose={handleCloseSnackBar}
           message="2D Deconvolution Parameters successfully setted"
         />

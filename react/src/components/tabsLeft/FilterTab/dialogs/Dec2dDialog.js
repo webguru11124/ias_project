@@ -1,7 +1,6 @@
 import * as React from 'react';
-import { Col, Row } from 'react-bootstrap';
+import { Col } from 'react-bootstrap';
 import Button from '@mui/material/Button';
-import ListSubheader from '@mui/material/ListSubheader';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
@@ -12,15 +11,28 @@ import { useState } from 'react';
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useRef } from 'react';
-import { handleDeconv2D } from '@/api/filter';
+import { processDeconv2D } from '@/api/filter';
 import store from '@/reducers';
-import { Snackbar } from 'react-md';
 
 const Dec2dDialog = (prop) => {
   const dialogFlag = useFlagsStore((store) => store.dialogFlag);
   const imagePathForOrigin = useSelector(
     (state) => state.files.imagePathForOrigin,
   );
+
+  useEffect(() => {
+    if (
+      imagePathForOrigin &&
+      imagePathForOrigin !== null &&
+      Array.isArray(imagePathForOrigin) === false
+    ) {
+      const serverUrl = imagePathForOrigin.split('image/download/?path=')[0];
+      const filepath = imagePathForOrigin.split('image/download/?path=')[1];
+      const url =
+        serverUrl + 'static/' + filepath.split('.ome.tiff')[0] + '.timg';
+      setDisplayImageForCanvas(url);
+    }
+  }, [imagePathForOrigin]);
 
   const getOmeTiffUrl = (url) => {
     let tempUrl = url;
@@ -69,16 +81,6 @@ const Dec2dDialog = (prop) => {
     p: 4,
   };
 
-  useEffect(() => {
-    if (imagePathForOrigin && imagePathForOrigin !== null) {
-      const serverUrl = imagePathForOrigin.split('image/download/?path=')[0];
-      const filepath = imagePathForOrigin.split('image/download/?path=')[1];
-      const url =
-        serverUrl + 'static/' + filepath.split('.ome.tiff')[0] + '.timg';
-      setDisplayImageForCanvas(url);
-    }
-  }, [imagePathForOrigin]);
-
   const handleReset = () => {
     if (
       displayImageForCanvas &&
@@ -123,8 +125,8 @@ const Dec2dDialog = (prop) => {
       canvas.height = img.height * 2;
 
       // Draw the image on the canvas
-      context.drawImage(img, 0, 0, img.width * 2, img.height * 2);
 
+      context.drawImage(img, 0, 0, img.width * 2, img.height * 2);
       let drawing = false;
 
       function startDrawing(e) {
@@ -211,13 +213,6 @@ const Dec2dDialog = (prop) => {
     };
   };
 
-  // const onChangeEffectiveness = (e) => {
-  //   const spinbox = document.getElementById('spinbox');
-  //   setEffectiveness(e.target.value);
-  // };
-
-  //useEffect(() => {}, [effectiveness]);
-
   const handleROISet = () => {
     drawImageWithColor('red');
   };
@@ -273,9 +268,6 @@ const Dec2dDialog = (prop) => {
   };
 
   const handleDeconv = async () => {
-    //console.log(startX, startY, endX, endY);
-    //console.log(effectiveness);
-
     const filepath = imagePathForOrigin.split('image/download/?path=')[1];
     const dictRoiPts = {
       startX: startX,
@@ -287,13 +279,13 @@ const Dec2dDialog = (prop) => {
     const efftive_value = prop.effectiveness || 5;
 
     const params = {
-      filename: filepath,
       dictRoiPts: dictRoiPts,
+      filename: filepath,
       isroi: isroi,
       effectiveness: efftive_value,
     };
 
-    const output = await handleDeconv2D(params);
+    const output = await processDeconv2D(params);
     const imagePathForAvivator = getOmeTiffUrl(output);
 
     store.dispatch({

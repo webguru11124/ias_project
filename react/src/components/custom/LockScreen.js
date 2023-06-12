@@ -39,7 +39,11 @@ const LockScreen = () => {
     if (isMLAdvance) {
       useFlagsStore.setState({ IsMLAdvance: false });
       if (selectedMethod === 'cyto') {
-        useFlagsStore.setState({ MLDialogICTSelectFlag: true });
+        // useFlagsStore.setState({ MLDialogICTSelectFlag: true });
+        store.dispatch({
+          type: 'UPDATE_ICT_METHOD_DIALOG_STATUS',
+          payload: true,
+        });
       } else if (selectedMethod === 'ipscAdvance') {
         useFlagsStore.setState({ DialogLoadingFlag: true });
         let fullPath = state.files.imagePathForAvivator;
@@ -59,6 +63,7 @@ const LockScreen = () => {
         // console.log('ICT-result:', res);
         _payload = {
           image_path: res.image_path,
+          original_image_path: imgPath,
         };
         res = await api_experiment.MLConvertResult(_payload);
         // console.log('ICT-convert-result:', res);

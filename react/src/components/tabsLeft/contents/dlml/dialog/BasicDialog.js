@@ -146,7 +146,7 @@ const BasicDialog = (props) => {
                           methodName={isMLAdvance ? 'ipscAdvance' : 'tissuenet'}
                         />
                         <div className="label-text text-center">
-                          {isMLAdvance ? 'iPS-TR' : 'TissueNet'}
+                          {isMLAdvance ? 'TissueNet' : 'TissueNet'}
                         </div>
                       </div>
                     </div>

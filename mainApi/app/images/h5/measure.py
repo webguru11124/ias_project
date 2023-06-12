@@ -1,6 +1,12 @@
 import h5py
 import json
 import datetime
+import tempfile
+import os
+from mainApi.config import STATIC_PATH
+
+import numpy as np
+from PIL import Image
 
 # with h5py.File('test004.hdf5', 'w') as f:
 #     print('call me 1')
@@ -40,9 +46,16 @@ def update_h5py_file(data, keyList):
     # Convert to string
     date_time_str = now.strftime('%Y-%m-%d %H:%M:%S')
 
+    tempPath = tempfile.mkdtemp()
+    OUT_PUT_FOLDER = tempPath.split("/")[len(tempPath.split("/")) - 1]
+    OUT_PUT_PATH = 'mainApi/app/static/measure_out/' + OUT_PUT_FOLDER
+
+    if not os.path.exists(OUT_PUT_PATH):
+        os.makedirs(OUT_PUT_PATH)
+
     print('update h5py file')
     # print(data)
-    with h5py.File('measure_result.hdf5', 'w') as f:
+    with h5py.File(OUT_PUT_PATH + '/measure_result.hdf5', 'w') as f:
         o_group = f.create_group('Original_Group')
         m_group = f.create_group('Measured_Group')
         # second-class groups
@@ -68,5 +81,12 @@ def update_h5py_file(data, keyList):
         m_account_setting_group.attrs['Data_Measurement_End_Date_Time'] = date_time_str
         m_account_setting_group.attrs['Data_Measurement_Time'] = 3600
         m_account_setting_group.attrs['Number_of_Series_Measured'] = 1
+        folder_path = '../../static/646ddc2728d47b2fdc1f1bc5/bb/'
+        # read the image into a numpy array
+        for filename in os.listdir(folder_path):
+            img = np.array(Image.open(os.path.join(folder_path,filename)))
+
+            # create a new dataset for storing the image
+            dset = f.create_dataset(filename, data=img)
     f.close()
     return {"status": "success", "msg": "successfully updated", "file_path": "measure_result.hdf5"}

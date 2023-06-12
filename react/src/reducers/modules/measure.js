@@ -105,6 +105,8 @@ const DEFAULT_PARAMS = {
   object_method: '',
   method_info: '',
   showMLPopup: false,
+  showMeasureItemPopup: false,
+  showICTMethodDialog: false,
   // view Data
   vessel_data: {
     id: 1,
@@ -124,6 +126,8 @@ const DEFAULT_PARAMS = {
   timeline: null,
   class_setting_data: [],
   ml_measure_params: {},
+  csvData: [],
+  ml_measure_data: [],
 };
 
 const initState = {
@@ -184,6 +188,21 @@ const measure = (state = initState, action) => {
         ...state,
         class_setting_data: _added_class_setting_data,
       };
+    case 'SET_MEASURE_CLASS_SETTING':
+      return {
+        ...state,
+        class_setting_data: action.payload,
+      };
+    case 'SET_MEASURE_CSV_DATA':
+      return {
+        ...state,
+        csvData: action.payload,
+      };
+    case 'SET_ML_MEASURE_DATA':
+      return {
+        ...state,
+        ml_measure_data: action.payload,
+      };
     case 'DELETE_MEASURE_CLASS_SETTING':
       let _deleted_class_setting_data = state.class_setting_data.filter(
         (it) => it.className !== action.payload.className,
@@ -196,6 +215,16 @@ const measure = (state = initState, action) => {
       return {
         ...state,
         showMLPopup: action.payload,
+      };
+    case 'UPDATE_MEASURE_ITEM_POPUP_STATUS':
+      return {
+        ...state,
+        showMeasureItemPopup: action.payload,
+      };
+    case 'UPDATE_ICT_METHOD_DIALOG_STATUS':
+      return {
+        ...state,
+        showICTMethodDialog: action.payload,
       };
     case 'UPDATE_ML_MEASURE_PARAMS':
       return {

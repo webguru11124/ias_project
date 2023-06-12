@@ -188,7 +188,7 @@ def Deconvolution2DByChannel(img,effectiveness):
     # execution since the "initialize" operation corresponds to creating a TensorFlow graph, which is a 
     # relatively expensive operation and should not be repeated across multiple executions
     algo = fd_restoration.RichardsonLucyDeconvolver(img.ndim).initialize()
-    res = algo.run(fd_data.Acquisition(data=img, kernel=psf), niter=effectiveness).data
+    res = algo.run(fd_data.Acquisition(data=img, kernel=kernel), niter=effectiveness).data
 
     max_v = np.max(res)
     res = res * 255 / max_v
@@ -211,8 +211,8 @@ async def FlowDecDeconvolution2D(file_name, effectiveness, isroi, dictRoiPts):
     endY = round(dictRoiPts['endY'])
 
     print("*" * 30)
-    print("The shape of Original Image is :")
-    print(originImg.shape)
+    print("The Original Image is :")
+    print(originImg)
     print("*" * 30)
 
 
@@ -235,25 +235,26 @@ async def FlowDecDeconvolution2D(file_name, effectiveness, isroi, dictRoiPts):
     output_path = str(STATIC_PATH) + "/" + str(outFileName)
     
     tempImageList = []
+    result_image = originImg
 
-    for i in range(img.shape[2]):
-        channel_Img = img[:,:,i]
-        deconv_channel_img = Deconvolution2DByChannel(channel_Img,effectiveness)
-        tempImageList.append(deconv_channel_img)
-
-    mergedDeconv2DImg = np.dstack(tempImageList)
+    if(len(img.shape) >= 3):
+        for i in range(img.shape[2]):
+            channel_Img = img[:,:,i]
+            deconv_channel_img = Deconvolution2DByChannel(channel_Img,effectiveness)
+            tempImageList.append(deconv_channel_img)
+            mergedDeconv2DImg = np.dstack(tempImageList)
+            result_image = mergedDeconv2DImg
     
-    #print(mergedDeconv2DImg)
+    else :
+         result_image = Deconvolution2DByChannel(img,effectiveness)
 
     if isroi:        
-        originImg[startY:endY, startX:endX] = mergedDeconv2DImg
+        originImg[startY:endY, startX:endX] = result_image
         deconved_img = originImg
     else:
         deconved_img = img_decon 
     
-    
-    #for f in os.listdir(STATIC_PATH):
-    #    os.remove(os.path.join(STATIC_PATH, f))
+
     io.imsave(output_path, deconved_img)
 
     omeTiffFile = str(file_name).split(".")[0] + "_deconvol2d" + timestamp + ".ome.tiff"
@@ -263,3 +264,79 @@ async def FlowDecDeconvolution2D(file_name, effectiveness, isroi, dictRoiPts):
 
 
     return omePath
+
+
+
+
+
+
+
+
+
+
+async def FlowDecDeconvolution3D(userid, filenames, effectiveness, isroi, dictRoiPts):
+
+    converted_filenames = []
+    for file_name in filenames:
+        ext = osp.splitext(file_name)[-1].lower()
+
+        data_path = osp.join(STATIC_PATH, userid, file_name) 
+        originImg = io.imread(data_path)
+        
+        
+        startX = round(dictRoiPts['startX'])
+        startY = round(dictRoiPts['startY'])
+        endX = round(dictRoiPts['endX'])
+        endY = round(dictRoiPts['endY'])
+
+        width = originImg.shape[1]
+        height = originImg.shape[0]
+        
+        startX = round(dictRoiPts['startX'] * width / 100)
+        startY = round(dictRoiPts['startY'] * height / 100)
+        endX = round(dictRoiPts['endX'] * width / 100)
+        endY = round(dictRoiPts['endY'] * height / 100)
+
+        if isroi:
+            img = originImg[startY:endY, startX:endX]
+        else:
+            img = originImg
+
+        timestamp = str(int(time.time()))
+        outFileName = str(file_name).split(".")[0] + "_deconvol3d_" + timestamp + ext    
+        output_path = osp.join(STATIC_PATH, userid, outFileName) 
+        
+        tempImageList = []
+        result_image = originImg
+
+        if(len(img.shape) >= 3):
+            for i in range(img.shape[2]):
+                channel_Img = img[:,:,i]
+                deconv_channel_img = Deconvolution2DByChannel(channel_Img,effectiveness)
+                tempImageList.append(deconv_channel_img)
+                mergedDeconv2DImg = np.dstack(tempImageList)
+                result_image = mergedDeconv2DImg
+        
+        else :
+            result_image = Deconvolution2DByChannel(img,effectiveness)
+
+
+
+        if isroi:        
+            originImg[startY:endY, startX:endX] = result_image
+            deconved_img = originImg
+        else:
+            deconved_img = img_decon 
+        
+
+        io.imsave(output_path, deconved_img)
+
+        omeTiffFile = str(file_name).split(".")[0] + "_deconvol3d_effectiveness_" + str(effectiveness) + "_" + (timestamp) + ".ome.tiff"
+        omePath =  osp.join(STATIC_PATH, userid, omeTiffFile)  
+        bf_cmd = f"sh /app/mainApi/bftools/bfconvert -separate -overwrite '{output_path}' '{omePath}'"
+        await shell(bf_cmd)  
+
+        converted_filenames.append(omeTiffFile)
+    
+    return converted_filenames
+       

@@ -293,3 +293,21 @@ def create_access_token(user_id: str, expires_delta: Optional[timedelta] = None)
     claims.update({"exp": expire})
     encode_jwt = jwt.encode(claims=claims, key=SECRET_KEY, algorithm=ALGORITHM)
     return encode_jwt
+
+
+
+async def suspend_login(email: str, db: AsyncIOMotorClient, otp_code: str):
+    user: UserModelDB = await get_user_by_email(email, db)
+    is_user = verify_otp_secret(user,otp_code)
+    
+    if is_user == True :
+        updated_user = await db["users"].find_one_and_update(
+            {'_id': user.id},
+            {"$set": {'is_active': "false"}},
+            return_document=ReturnDocument.AFTER
+        )
+        print(updated_user)
+
+
+
+

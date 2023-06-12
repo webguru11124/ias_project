@@ -17,6 +17,7 @@ from mainApi.app.images.utils.convert import get_metadata
 from cellpose import plot, utils
 from .asyncio import shell
 from .convert import convert_bmp_to_ome_format
+import cv2
 
 async def add_experiment(
     experiment_name: str,
@@ -123,6 +124,12 @@ async def add_experiment_with_folders(
         if index == len(files):
             # save tiling flag
             folders.append({"folder": folderName, "files": files_in_folder, "tiling": tiling})
+        
+
+        print("*" * 30)
+        print("/add_experiment_with_folders")
+        print("Convert Started")
+        print("*" * 30)
 
         async with aiofiles.open(new_folder_path, "wb") as f:
             content_folder = await each_file_folder.read()
@@ -134,12 +141,16 @@ async def add_experiment_with_folders(
 
                 input_pre = os.path.splitext(input)[0]
 
-                if input.lower().endswith((".tiff", ".tif")):
-                    output = os.path.abspath(f'{folder}/{pre}.png')
-                    bfconv_cmd = f"sh /app/mainApi/bftools/bfconvert -overwrite '{input}' '{output}'"
-                    await shell(bfconv_cmd)
+                if input.lower().endswith((".tiff", ".tif",".TIFF",".TIF")):
+                    output = os.path.abspath(f'{folder}/{pre}.png')                
+                    # Load the image
+                    org_img = cv2.imread(input, -1)
+                    if org_img.dtype == 'uint16' :
+                        img_scaled = cv2.normalize(org_img, dst=None, alpha=0, beta=65535, norm_type=cv2.NORM_MINMAX)
+                        cv2.imwrite(output,img_scaled)
+                    else :
+                        cv2.imwrite(output,org_img)
                     input = output
-
 
                 # save thumbnail image for tiling layout and previewing images
                 try:
@@ -149,7 +160,7 @@ async def add_experiment_with_folders(
                 except:
                     pass
 
-
+                '''
                 #Convert bmp file to ome.tiff
                 if input.lower().endswith((".bmp")):
                     
@@ -158,7 +169,13 @@ async def add_experiment_with_folders(
                     tt = os.path.abspath(f'{folder}/{pre}.png')
                     bfconv_cmd = f"sh /app/mainApi/bftools/bfconvert -overwrite '{input}' '{tt}'"
                     await shell(bfconv_cmd)
+                '''
 
+                output = os.path.abspath(f'{folder}/{pre}.ome.tiff')
+                bfconv_cmd = f"sh /app/mainApi/bftools/bfconvert -overwrite '{input}' '{output}'"
+                await shell(bfconv_cmd)
+
+                '''
                 else :
                     img = Image.open(input)
                     output1 = os.path.abspath(f'{folder}/{pre}_gray.tiff')
@@ -174,6 +191,7 @@ async def add_experiment_with_folders(
                     # await shell(bfconv_cmd)
                     cmd_str = f'python /app/mainApi/ml_lib/pyramid_assemble.py {output1} {output} --pixel-size 1'
                     subprocess.run(cmd_str, shell=True)
+                '''
 
 
                

@@ -68,8 +68,13 @@ async def add_image_tiles(
 
         else:
             img = Image.open(file_path)
+
+            print(img)
+            
             img.thumbnail([100, 100])
             img.save(f"{pre}.timg", "png")
+
+            
 
         tile = {
             "user_id": current_user.id,

@@ -130,6 +130,16 @@ async def get_tiles(
     return JSONResponse(tiles)
 
 
+
+def getDirName(dir,series,row, col):
+    dir_name =  str(series) + "_" + str(row) + "_" + str(col)
+    new_path = f"{CURRENT_STATIC}/{dir}/{dir_name}"
+    new_rel_path = new_path.rsplit("/static/", 1)[1]
+    new_abs_path = os.path.join(STATIC_PATH, new_rel_path)
+
+    return new_abs_path
+
+
 @router.post(
     "/delete_tiles",
     response_description="Delete Tiles",
@@ -157,22 +167,67 @@ async def update_tiles_meta_info(
 
     for meta_info in data["tiles_meta_info"]:
         dir = meta_info["path"].rsplit("/", 1)[0]
-        ext = meta_info["filename"].rsplit(".", 1)[1]
-        new_path = f"{CURRENT_STATIC}/{dir}/tile_image_series{str(meta_info['series']).rjust(5, '0')}.{ext}"
-        old_rel_path = meta_info["path"].rsplit("/static/", 1)[1]
-        new_rel_path = new_path.rsplit("/static/", 1)[1]
-        
-       
-        old_abs_path = os.path.join(STATIC_PATH, old_rel_path)
-        new_abs_path = os.path.join(STATIC_PATH, new_rel_path)
+        new_abs_dir_path = getDirName( dir, meta_info["strSeries"],meta_info["row"],meta_info["col"])
 
-        shutil.copy(old_abs_path, new_abs_path)
+        if not os.path.exists(new_abs_dir_path):
+            os.makedirs(new_abs_dir_path)
+    
+    check_arr = []
+    for meta_info in data["tiles_meta_info"]:
+        name = str(meta_info["row"]) + str(meta_info["col"]) + str(meta_info["field"])
+        series = meta_info["field"].split("f")[1]
+        row = meta_info["row"]
+        col = meta_info["col"]
+        ashlar_path = ""
+        
+        if not name in  check_arr:
+            merge_arr = []
+            check_arr.append(name)
+            for meta in data["tiles_meta_info"]:
+                if meta["row"] == row and meta["col"] == col and meta["field"] == meta_info["field"]:
+                    old_rel_path = meta["path"].rsplit("/static/", 1)[1]
+                    old_abs_path = os.path.join(STATIC_PATH, old_rel_path)
+
+                    #Merge the images by field
+
+                    image = cv2.imread(old_abs_path,-1)
+                    if image.dtype == 'uint16' :
+                        image = cv2.normalize(image, dst=None, alpha=0, beta=65535, norm_type=cv2.NORM_MINMAX)
+                    merge_arr.append(image)
+
+            dir = meta_info["path"].rsplit("/", 1)[0]
+            new_abs_dir_path = getDirName( dir, meta_info["strSeries"],meta_info["row"],meta_info["col"])
+            series = meta_info["field"].split("f")[1]
+            ext = meta_info["filename"].rsplit(".", 1)[1]
+            file_name = f"tile_image_series{str(series).rjust(5, '0')}.{ext}"
+            
+            if(len(merge_arr) == 2):
+                merge_arr.append(merge_arr[0])
+            
+            res_image = cv2.merge(merge_arr)
+            
+        
+
+            save_file_path = os.path.join(new_abs_dir_path,file_name)
+            cv2.imwrite(save_file_path,res_image)
+
+            ashlar_path = save_file_path
+
+            input_pre = os.path.splitext(ashlar_path)[0]
+            try :
+                img = Image.open(ashlar_path)
+                img.thumbnail([100, 100])
+                img.save(input_pre + '.timg', 'png')
+            except :
+                pass
+
+
 
         await db["tile-image-cache"].update_one(
             {"_id": ObjectId(meta_info["_id"])},
             {
                 "$set": {
-                    "series": int(meta_info["series"]),
+                    "series": int(series),
                     "field" : meta_info["field"],
                     "strSeries" : meta_info["strSeries"],
                     "row" : meta_info["row"],
@@ -180,10 +235,25 @@ async def update_tiles_meta_info(
                     "time" : meta_info["time"],
                     "z" : meta_info["z"],
                     "channel" : meta_info["channel"],
-                    "ashlar_path": new_abs_path
+                    "ashlar_path": ashlar_path
                 }
             },
         )
+
+        #dir = meta_info["path"].rsplit("/", 1)[0]
+        #ext = meta_info["filename"].rsplit(".", 1)[1]
+
+        # new_path = f"{CURRENT_STATIC}/{dir}/tile_image_series{str(meta_info['series']).rjust(5, '0')}.{ext}"
+        # old_rel_path = meta_info["path"].rsplit("/static/", 1)[1]
+        # new_rel_path = new_path.rsplit("/static/", 1)[1]
+        
+       
+        # old_abs_path = os.path.join(STATIC_PATH, old_rel_path)
+        # new_abs_path = os.path.join(STATIC_PATH, new_rel_path)
+
+        # shutil.copy(old_abs_path, new_abs_path)
+
+        
 
 @router.post(
     "/create_tiles",

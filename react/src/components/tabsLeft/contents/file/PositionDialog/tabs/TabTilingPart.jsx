@@ -83,6 +83,7 @@ const TabTiling = (props) => {
   const [dim, setDim] = useState();
   const [sortOrder, setSortOrder] = useState(SortOrder.ascending);
   const [alignment, setAlignment] = useState('align');
+  const [alignImages, setAlignImages] = useState([]);
 
   //parameters in bonding
   const [selectBondRadioIdx, setSelectBondRadioIdx] = useState('0');
@@ -323,12 +324,52 @@ const TabTiling = (props) => {
     setCurrentSeriesIdx(changedSeriesIdx);
   }, [props.selectedVesselIdx]);
 
+  //get the image lists for alignment
+  const getAlignImageList = (lists) => {
+    if (lists.length == 0) return [];
+
+    const arr = [];
+    const res = [];
+    lists.map((item) => {
+      const url = item.url.split('/static/')[0];
+      if (item.ashlar_path != '') {
+        const path = item.ashlar_path.split('/static/')[1];
+
+        const filename = path.split('.')[0] + '.timg';
+        const ext = path.split('.')[1];
+        const fullpath = url + '/static/' + filename;
+
+        const series = item.field.split('f')[1];
+        const newFileName =
+          'tile_image_series' + series.toString().padStart(5, '0') + '.' + ext;
+
+        if (!arr.includes(fullpath)) {
+          arr.push(fullpath);
+          const new_item = {
+            thumbnail: fullpath,
+            _id: item._id,
+            field: item.field,
+            row: item.row,
+            col: item.col,
+            filename: newFileName,
+          };
+          res.push(new_item);
+        }
+      }
+    });
+
+    return res;
+  };
+
   //When the holeImageLists is reload
   useEffect(() => {
     if (holeImageList) {
       if (holeImageList[0]) {
         setResultImagePath(getOmeTiffUrl(holeImageList[0].url));
         handleListContentItemClick(new Event('click'), 0);
+
+        const alignImageList = getAlignImageList(holeImageList);
+        setAlignImages(alignImageList);
       }
     }
   }, [holeImageList]);
@@ -528,9 +569,6 @@ const TabTiling = (props) => {
     if (hole) {
       if (hole.row !== undefined && hole.col !== undefined) {
         setHoleImages(hole.row, hole.col);
-        //setSelectedImageTime(time);
-        //setSelectedImageZ(lists[0].z);
-        //setSelectedImageChannel(channels);
       }
     }
   }, [props.selectedVesselHole]);
@@ -1363,7 +1401,7 @@ const TabTiling = (props) => {
                         width: '100%',
                       }}
                     >
-                      {tilesAligned.map(({ _id, thumbnail, filename }) => (
+                      {alignImages.map(({ _id, thumbnail, filename }) => (
                         <ImageListItem key={_id}>
                           <img
                             src={thumbnail}

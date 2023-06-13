@@ -7,7 +7,6 @@ import MLMethodSelectDialog from './dialog/MLMethodSelectDialog';
 import MLMethodAddDialog from './dialog/MLMethodAddDialog';
 import { mdiUpdate } from '@mdi/js';
 import BasicDialog from '@/components/tabsLeft/contents/dlml/dialog/BasicDialog';
-import ICTMethodDialog from '@/components/tabsLeft/contents/dlml/dialog/ICTMethoadDialog';
 
 export default function MLMethodSelection() {
   const showMLDialogMethodSelect = () => {
@@ -50,7 +49,6 @@ export default function MLMethodSelection() {
       {<MLMethodAddDialog />}
       {<MLMethodSelectDialog />}
       {<BasicDialog isMLAdvance={true} />}
-      {<ICTMethodDialog />}
     </SmallCard>
   );
 }

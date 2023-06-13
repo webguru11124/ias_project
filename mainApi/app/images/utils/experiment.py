@@ -177,21 +177,22 @@ async def add_experiment_with_folders(
 
                 '''
                 else :
-                    img = Image.open(input)
-                    output1 = os.path.abspath(f'{folder}/{pre}_gray.tiff')
-                    gray_img = img.convert('L')
-                    gray_img.save(output1)
+                    # img = Image.open(input)
+                    # output1 = os.path.abspath(f'{folder}/{pre}_gray.tiff')
+                    # gray_img = img.convert('L')
+                    # gray_img.save(output1)
                     output = os.path.abspath(f'{folder}/{pre}.ome.tiff')
-                    # convert_bmp_to_ome_format(output1, output)
-                    # tt = os.path.abspath(f'{folder}/{pre}.png')
-                    # bfconv_cmd = f"sh /app/mainApi/bftools/bfconvert -overwrite '{output1}' '{tt}'"
-                    # await shell(bfconv_cmd)
+
+                    # cmd_str = f'python /app/mainApi/ml_lib/pyramid_assemble.py {output1} {output} --pixel-size 1'
+                    # subprocess.run(cmd_str, shell=True)
+
+                    bfconv_cmd = f"sh /app/mainApi/bftools/bfconvert -separate -overwrite '{input}' '{output}'"
+                    await shell(bfconv_cmd)
 
                     # bfconv_cmd = f"sh /app/mainApi/bftools/bfconvert -separate -overwrite '{output1}' '{output}'"
                     # await shell(bfconv_cmd)
                     cmd_str = f'python /app/mainApi/ml_lib/pyramid_assemble.py {output1} {output} --pixel-size 1'
                     subprocess.run(cmd_str, shell=True)
-                '''
 
 
                

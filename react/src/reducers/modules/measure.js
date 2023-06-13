@@ -107,6 +107,7 @@ const DEFAULT_PARAMS = {
   showMLPopup: false,
   showMeasureItemPopup: false,
   showICTMethodDialog: false,
+  showSortAreaDialog: false,
   // view Data
   vessel_data: {
     id: 1,
@@ -225,6 +226,11 @@ const measure = (state = initState, action) => {
       return {
         ...state,
         showICTMethodDialog: action.payload,
+      };
+    case 'UPDATE_SORT_AREA_DIALOG_STATUS':
+      return {
+        ...state,
+        showSortAreaDialog: action.payload,
       };
     case 'UPDATE_ML_MEASURE_PARAMS':
       return {

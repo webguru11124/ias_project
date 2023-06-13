@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Divider from '@mui/material/Divider';
 import Pagination from '@mui/material/Pagination';
 import TabItem from '../custom/TabItem';
@@ -6,13 +6,24 @@ import FirstPage from './contents/measure/FirstPage';
 import SecondPage from './contents/measure/SecondPage';
 import ThirdPage from './contents/measure/ThirdPage';
 import FourthPage from './contents/measure/FourthPage';
+import { connect } from 'react-redux';
 // import FifthPage from "./contents/measure/FifthPage";
 
-export default function MeasureTab() {
+const mapStateToProps = (state) => ({
+  showICTMethodDialog: state.measure.showICTMethodDialog,
+});
+
+const MeasureTab = (props) => {
   const [page, setPage] = useState(1);
+  const [popupVisible, setPopupVisible] = useState(false);
   const handleChange = (event, value) => {
+    if (popupVisible) return false;
     setPage(value);
   };
+
+  useEffect(() => {
+    setPopupVisible(props.showICTMethodDialog);
+  }, [props]);
   return (
     <>
       <TabItem title="Measure">
@@ -41,4 +52,6 @@ export default function MeasureTab() {
       </TabItem>
     </>
   );
-}
+};
+
+export default connect(mapStateToProps)(MeasureTab);

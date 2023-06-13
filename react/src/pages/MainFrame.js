@@ -60,6 +60,7 @@ import AnalysisList from '@/components/tabsRight/contents/report/AnalysisList';
 import VisualImageList from '@/components/tabsRight/contents/report/VisualImageList';
 import VisualLineChart from '@/components/tabsRight/contents/report/VisualLineChart';
 import VisualTable from '@/components/tabsRight/contents/report/VisualTable';
+import ICTMethodDialog from '@/components/tabsLeft/contents/dlml/dialog/ICTMethoadDialog';
 
 function TabContainer(props) {
   return (
@@ -655,6 +656,7 @@ const MainFrame = (props) => {
       {DialogTargetDrawingFlag && <TargetDrawingDialog />}
       {/* <FooterContent /> */}
       <MLPopupDialog />
+      {<ICTMethodDialog />}
     </>
   );
 };

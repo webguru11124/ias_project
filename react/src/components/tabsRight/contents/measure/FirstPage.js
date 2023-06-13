@@ -15,7 +15,6 @@ import {
 import MultilineTextBox from '@/components/custom/MultiLineText';
 import store from '@/reducers';
 import BasicDialog from '@/components/tabsLeft/contents/dlml/dialog/BasicDialog';
-import ICTMethodDialog from '@/components/tabsLeft/contents/dlml/dialog/ICTMethoadDialog';
 
 const defaultLabelList = [
   {
@@ -112,7 +111,6 @@ export default function FirstPage() {
         </SmallCard>
       </div>
       {<BasicDialog isMLAdvance={true} />}
-      {<ICTMethodDialog />}
     </>
   );
 }

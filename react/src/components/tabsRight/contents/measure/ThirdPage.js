@@ -18,6 +18,12 @@ export default function ClassSettingPage() {
   const [showMeasureItemDialog, setShowMeasureItemDialog] = useState(false);
   const [showSortAreaDialog, setShowSortAreaDialog] = useState(false);
   const measureData = useSelector((state) => state.measure);
+  const imagePathForOrigin = useSelector(
+    (state) => state.files.imagePathForOrigin,
+  );
+  const imagePathForResult = useSelector(
+    (state) => state.files.imagePathForResult,
+  );
 
   const handleGo = async () => {
     let res = await api_measure.uploadMeasureData(measureData);
@@ -27,6 +33,18 @@ export default function ClassSettingPage() {
     let res = await api_measure.uploadMeasureData(measureData);
   };
   const handleCancel = () => {};
+
+  const openSortArea = () => {
+    store.dispatch({
+      type: 'set_image_path_for_avivator',
+      content: imagePathForResult,
+    });
+    // setShowSortAreaDialog(true);
+    store.dispatch({
+      type: 'UPDATE_SORT_AREA_DIALOG_STATUS',
+      payload: true,
+    });
+  };
 
   return (
     <>
@@ -45,14 +63,7 @@ export default function ClassSettingPage() {
       </SmallCard>
       <SmallCard title="Measure Contents">
         <MeasureItemDialog />
-        {showSortAreaDialog && (
-          <SortAreaDialog
-            open={showSortAreaDialog}
-            closeDialog={() => {
-              setShowSortAreaDialog(false);
-            }}
-          />
-        )}
+        <SortAreaDialog />
         <Button
           className="btn btn-light btn-sm"
           style={{ width: '49%' }}
@@ -68,7 +79,9 @@ export default function ClassSettingPage() {
         <Button
           className="btn btn-light btn-sm"
           style={{ width: '49%' }}
-          onClick={() => setShowSortAreaDialog(true)}
+          onClick={() => {
+            openSortArea();
+          }}
         >
           Sort area
         </Button>

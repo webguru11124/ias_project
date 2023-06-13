@@ -378,6 +378,7 @@ const TabTiling = (props) => {
     const [col, row] = calculateSuitableDim(res.length);
     setAlignCol(col);
     setAlignRow(row);
+    setDim([row, col]);
 
     return res;
   };
@@ -386,9 +387,6 @@ const TabTiling = (props) => {
   useEffect(() => {
     if (holeImageList) {
       if (holeImageList[0]) {
-        //setResultImagePath(getOmeTiffUrl(holeImageList[0].url));
-        //handleListContentItemClick(new Event('click'), 0);
-
         const alignImageList = getAlignImageList(holeImageList);
         setAlignImages(alignImageList);
       }
@@ -645,7 +643,7 @@ const TabTiling = (props) => {
     const filename = alignImages[0].filename.split('.')[0] + '.timg';
 
     const resultpath =
-      alignImages[0].thumbnail.replace(filename, '') + 'result.ome.tiff';
+      alignImages[0].thumbnail.replace(filename, '') + 'ashlar_output.ome.tiff';
 
     //console.log(resultpath);
 
@@ -800,8 +798,6 @@ const TabTiling = (props) => {
     setAlignGapX(event.target.value === '' ? '' : Number(event.target.value));
   };
 
-  // const handleAlignViewClicked = () => {};
-
   //When the alignment Image buttons are clicked
   const handleAlignment = (event) => {
     const v = event.target.name;
@@ -825,17 +821,31 @@ const TabTiling = (props) => {
   };
 
   const SnapToEdge = () => {
-    setInfoMessage('Activate Snap To Edge Function');
-    setResultImagePath(getSnapToEdgeImagePath());
-    setFinalResultImagePath(getSnapToEdgeImagePath());
-    setInfoMessage('Snap To Edge function finished.');
+    if (alignImages && alignImages.length > 0) {
+      setInfoMessage('Snap To Edge started.');
+
+      let path = getSnapToEdgeImagePath();
+
+      store.dispatch({ type: 'set_image_path_for_avivator', content: path });
+      store.dispatch({ type: 'set_image_path_for_result', content: path });
+      setInfoMessage('Snap To Edge finished.');
+    } else {
+      setInfoMessage('There is no image to process0, please check the images.');
+    }
   };
 
   const PatternMatching = () => {
-    setInfoMessage('Pattern Matching Function started');
-    setResultImagePath(getSnapToEdgeImagePath());
-    setFinalResultImagePath(getSnapToEdgeImagePath());
-    setInfoMessage('Pattern matching finished.');
+    if (alignImages && alignImages.length > 0) {
+      setInfoMessage('Pattern Matching Function started');
+
+      let path = getResultPath();
+
+      store.dispatch({ type: 'set_image_path_for_avivator', content: path });
+      store.dispatch({ type: 'set_image_path_for_result', content: path });
+      setInfoMessage('Pattern matching finished.');
+    } else {
+      setInfoMessage('There is no image to process0, please check the images.');
+    }
   };
   const autoPatternMatching = () => {};
 
@@ -863,17 +873,33 @@ const TabTiling = (props) => {
     }
   };
 
-  const normalizeImgLuminance = () => {
-    setInfoMessage('Normalize started.');
-    setResultImagePath(getNormalizeImagePath());
-    setFinalResultImagePath(getNormalizeImagePath());
-    setInfoMessage('Normalizing Image finished.');
+  const normalizeImgLuminance = async () => {
+    if (alignImages && alignImages.length > 0) {
+      setInfoMessage('Normalize started.');
+
+      let path = getNormalizeImagePath();
+
+      store.dispatch({ type: 'set_image_path_for_avivator', content: path });
+      store.dispatch({ type: 'set_image_path_for_result', content: path });
+      setInfoMessage('Normalizing Image finished.');
+    } else {
+      setInfoMessage(
+        'There is no image to normalize, please check the images.',
+      );
+    }
   };
-  const correctLighting = () => {
-    setInfoMessage('Correction started.');
-    setResultImagePath(getCorrectionImagePath());
-    setFinalResultImagePath(getCorrectionImagePath());
-    setInfoMessage('Correction Image finished.');
+  const correctLighting = async () => {
+    if (alignImages && alignImages.length > 0) {
+      setInfoMessage('Correction started.');
+
+      let path = getCorrectionImagePath();
+
+      store.dispatch({ type: 'set_image_path_for_avivator', content: path });
+      store.dispatch({ type: 'set_image_path_for_result', content: path });
+      setInfoMessage('Correction Image finished.');
+    } else {
+      setInfoMessage('There is no image to correct, please check the images.');
+    }
   };
   const decreaseImgLuminance = () => {
     setGamma(gamma - 1);
@@ -884,12 +910,19 @@ const TabTiling = (props) => {
     handleChangeLuminance(gamma + 1);
   };
 
-  const handleChangeLuminance = (gamma) => {
-    setResultImagePath(getGammaImagePath(gamma));
-    setFinalResultImagePath(getGammaImagePath(gamma));
-    setInfoMessage(
-      'Brighten Image by Gamma.Gamma Value : ' + (gamma / 10).toString(),
-    );
+  const handleChangeLuminance = async (gamma) => {
+    if (alignImages && alignImages.length > 0) {
+      setInfoMessage('Correction started.');
+
+      let path = getGammaImagePath(gamma);
+
+      store.dispatch({ type: 'set_image_path_for_avivator', content: path });
+      store.dispatch({ type: 'set_image_path_for_result', content: path });
+
+      setInfoMessage(
+        'Brighten Image by Gamma.Gamma Value : ' + (gamma / 10).toString(),
+      );
+    }
   };
 
   const resetImgLuminance = () => {
@@ -901,18 +934,7 @@ const TabTiling = (props) => {
     setInfoMessage('Best Fit Image has been Display.');
   };
 
-  useEffect(() => {
-    //console.log(selectedImage);
-  }, [selectedImage]);
-
-  // When the list item of Edting is changed
-  const handleListContentItemClick = async (event, index) => {
-    // if (holeImageList.length > 0) {
-    //   setSelectedImageFileIndex(index);
-    //   //setResultImagePath(getOmeTiffUrl(holeImageList[index].url));
-    // }
-  };
-
+  //Build Merging Images in Alignment Part
   const onClickedBuildButton = async () => {
     if (alignImages && alignImages.length > 0) {
       const filepath = alignImages[0].thumbnail.split('/static/')[1];
@@ -931,11 +953,11 @@ const TabTiling = (props) => {
       setInfoMessage('Build Started');
       const output = await buildPyramid(ashlarParams);
 
-      //console.log(output);
+      let path = getResultPath();
 
-      const outputUrl = getResultPath();
-      setFinalResultImagePath(outputUrl);
-      setResultImagePath(outputUrl);
+      store.dispatch({ type: 'set_image_path_for_avivator', content: path });
+      store.dispatch({ type: 'set_image_path_for_result', content: path });
+
       setInfoMessage(
         'Build Finished. You can see the result Image in result page.',
       );
@@ -1001,9 +1023,6 @@ const TabTiling = (props) => {
                               }}
                               className="border"
                               key={idx}
-                              onClick={(event) =>
-                                handleListContentItemClick(event, idx)
-                              }
                             >
                               <p className="label-text margin-0">
                                 {item.filename}
@@ -1019,9 +1038,6 @@ const TabTiling = (props) => {
                               }}
                               className="border"
                               key={idx}
-                              onClick={(event) =>
-                                handleListContentItemClick(event, idx)
-                              }
                             >
                               <p className="label-text margin-0">
                                 {item.filename}
@@ -1535,12 +1551,8 @@ const TabTiling = (props) => {
 
             {(selectedIndex === 2 ||
               selectedIndex === 3 ||
-              selectedIndex === 4) && (
-              <Avivator type={'tiling'} source={resultImagePath} />
-            )}
-            {selectedIndex === 5 && (
-              <Avivator type={'tiling'} source={finalResultImagePath} />
-            )}
+              selectedIndex === 4 ||
+              selectedIndex == 5) && <Avivator />}
           </div>
         </Col>
         <Col

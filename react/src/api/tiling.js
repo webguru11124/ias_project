@@ -43,12 +43,15 @@ export const buildPyramid = async (params) => {
   return await mainApiService.post('/image/tile/build_pyramid', params);
 };
 
-export const normalizeTiledImage = async () => {
-  return await mainApiService.post('/image/tile/result_tile_normalize');
+export const normalizeTiledImage = async (params) => {
+  return await mainApiService.post('/image/tile/result_tile_normalize', params);
 };
 
-export const correctionTiledImage = async () => {
-  return await mainApiService.post('/image/tile/result_tile_correction');
+export const correctionTiledImage = async (params) => {
+  return await mainApiService.post(
+    '/image/tile/result_tile_correction',
+    params,
+  );
 };
 
 export const gammaTiledImage = async (params) => {

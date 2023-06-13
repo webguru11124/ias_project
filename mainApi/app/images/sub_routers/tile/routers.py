@@ -303,23 +303,41 @@ async def normalizeImage(rel_dir):
     output_path = os.path.join(STATIC_PATH, rel_dir, output_filename)
     output_rel_path = os.path.join('/static/', rel_dir, output_filename)
 
-    jpg_output_filename = "normalize_output.jpg"
-    jpg_output_path = os.path.join(STATIC_PATH, rel_dir, jpg_output_filename)
 
     #Read the image
     img = bf.load_image(input_path)
+    img = np.array(img)
     metadata = bf.get_omexml_metadata(input_path)
-    
-    
-    cv2.normalize(img, img, 0, 255, cv2.NORM_MINMAX)
-    cv2.imwrite(jpg_output_path, img)
+
+
+     # Split the image into color channels
+    channels = cv2.split(img)
+
+    # Calculate the shading correction factor for each channel
+    merged_img = []
+    for channel in channels:
+        cv2.normalize(channel, channel, 0, 65535, cv2.NORM_MINMAX)
+        merged_img.append(channel)
+
+
+    # Merge the corrected channels into a single image
+    merged = cv2.merge(merged_img)
+
+    dir = os.path.join(STATIC_PATH, rel_dir)
+    temp_ome_path = os.path.join(dir, "result.ome.tiff")
+
+
+    if os.path.exists(temp_ome_path):
+            os.remove(temp_ome_path)
+
     pixel_type = bf.omexml.PT_UINT8
+    bf.write_image(temp_ome_path,merged, pixel_type)
 
-    bf_cmd = f"sh /app/mainApi/bftools/bfconvert -separate -overwrite '{jpg_output_path}' '{output_path}'"
-    await shell(bf_cmd)     
+    bfconv_cmd = f"sh /app/mainApi/bftools/bfconvert -separate -overwrite '{temp_ome_path}' '{output_path}'"
+    await shell(bfconv_cmd)
 
 
-def correctionImage(rel_dir):
+async def correctionImage(rel_dir):
     input_filename = "ashlar_output.ome.tiff"
     input_path = os.path.join(STATIC_PATH, rel_dir, input_filename)
 
@@ -354,13 +372,22 @@ def correctionImage(rel_dir):
     # Merge the corrected channels into a single image
     corrected = cv2.merge(corrected)
 
-    pixel_type = bf.omexml.PT_UINT16
-    if os.path.exists(output_path):
-         os.remove(output_path)
-    bf.write_image(output_path, corrected, pixel_type)
+
+    dir = os.path.join(STATIC_PATH, rel_dir)
+    temp_ome_path = os.path.join(dir, "result.ome.tiff")
 
 
-def gammaImage(rel_dir):
+    if os.path.exists(temp_ome_path):
+            os.remove(temp_ome_path)
+
+    pixel_type = bf.omexml.PT_UINT8
+    bf.write_image(temp_ome_path,corrected, pixel_type)
+
+    bfconv_cmd = f"sh /app/mainApi/bftools/bfconvert -separate -overwrite '{temp_ome_path}' '{output_path}'"
+    await shell(bfconv_cmd)
+
+
+async def gammaImage(rel_dir):
 
     for i in range(8,13):
         gamma = i / 10.0
@@ -382,13 +409,23 @@ def gammaImage(rel_dir):
         # apply gamma correction using the lookup table
         final_image =  cv2.LUT(image, table)
 
-        # Write the image
 
-        if os.path.exists(output_path):
-            os.remove(output_path)
+        dir = os.path.join(STATIC_PATH, rel_dir)
+        temp_ome_path = os.path.join(dir, "result.ome.tiff")
+
+    
+        if os.path.exists(temp_ome_path):
+                os.remove(temp_ome_path)
 
         pixel_type = bf.omexml.PT_UINT8
-        bf.write_image(output_path,final_image, pixel_type)
+        bf.write_image(temp_ome_path,final_image, pixel_type)
+
+        bfconv_cmd = f"sh /app/mainApi/bftools/bfconvert -separate -overwrite '{temp_ome_path}' '{output_path}'"
+        await shell(bfconv_cmd)
+
+
+
+
 
 async def snapToEdge(rel_dir):
     tiles_dir = os.path.join(STATIC_PATH, rel_dir)
@@ -505,7 +542,6 @@ async def merge_Image(dir,rows,cols,align,direction,sortOrder,ext):
                         chunks[i].append(temp[i][j])
 
 
-    print(chunks)
     finalArr = []
     # Iterate over each row
     for row in chunks:
@@ -527,20 +563,29 @@ async def merge_Image(dir,rows,cols,align,direction,sortOrder,ext):
     result = cv2.vconcat(row_images)
 
 
-    result_path = os.path.join(dir, "result_merge.tiff")
+    temp_path = os.path.join(dir, "result.png")
+    cv2.imwrite(temp_path,result)
+
     output_filename = "ashlar_output.ome.tiff"
     output_filePath = os.path.join(dir, output_filename)
-
-
-
-    cv2.imwrite( result_path,result)
-
-    bf_cmd = f"sh /app/mainApi/bftools/bfconvert -separate -overwrite '{result_path}' '{output_filePath}'"
-    await shell(bf_cmd)
+    
+    temp_ome_path = os.path.join(dir, "result.ome.tiff")
 
     
+    if os.path.exists(temp_ome_path):
+            os.remove(temp_ome_path)
+
+    pixel_type = bf.omexml.PT_UINT8
+    bf.write_image(temp_ome_path, result, pixel_type)
+
+    bfconv_cmd = f"sh /app/mainApi/bftools/bfconvert -separate -overwrite '{temp_ome_path}' '{output_filePath}'"
+    await shell(bfconv_cmd)
 
 
+
+
+
+    
 
 
 @router.post(
@@ -586,12 +631,12 @@ async def build_pyramid(
 
     result_path = os.path.join(STATIC_PATH, rel_dir, TILING_RESULT_IMAGE_FILE_NAME)
     
-    if os.path.exists(result_path):
-         os.remove(result_path)
-    shutil.copy(output_path, result_path)
+    # if os.path.exists(result_path):
+    #      os.remove(result_path)
+    # shutil.copy(output_path, result_path)
 
-    correctionImage(rel_dir)
-    gammaImage(rel_dir)
+    await correctionImage(rel_dir)
+    await gammaImage(rel_dir)
     await normalizeImage(rel_dir)
     await snapToEdge(rel_dir)
 
@@ -617,7 +662,7 @@ async def result_tile_normalize(
         {"user_id": user.id}
     )
     rel_path = tile["path"].rsplit('/static/', 1)[1]
-    rel_dir = rel_path.rsplit("/", 1)[0]
+    rel_dir = params["dirname"] 
     tiles_dir = os.path.join(STATIC_PATH, rel_dir)
  
     input_filename = "ashlar_output.ome.tiff"
@@ -627,38 +672,8 @@ async def result_tile_normalize(
     output_path = os.path.join(STATIC_PATH, rel_dir, output_filename)
     output_rel_path = os.path.join('/static/', rel_dir, output_filename)
 
-    jpg_output_filename = "normalize_output.jpg"
-    jpg_output_path = os.path.join(STATIC_PATH, rel_dir, jpg_output_filename)
-
-    #Read the image
-    img = bf.load_image(input_path)
-    metadata = bf.get_omexml_metadata(input_path)
+    await normalizeImage(rel_dir)
     
-    #img = np.array(img)
-    #print(img.shape)
-    #Calculate the shading correction factor by dividing the image by its Gaussian Blurred version
-    #blurred = cv2.GaussianBlur(img, (0, 0), sigmaX=50, sigmaY=50)
-    #shading = img.astype(np.float32) / blurred.astype(np.float32)
-    
-    cv2.normalize(img, img, 0, 255, cv2.NORM_MINMAX)
-    cv2.imwrite(jpg_output_path, img)
-    pixel_type = bf.omexml.PT_UINT8
-
-
-    # if os.path.exists(output_path):
-    #      os.remove(output_path)
-    # bf.write_image( output_path, img, pixel_type)
-    #tifftools.write_tiff(tff, os.path.join(current_user_path + "/", newImageName))
-
-    bf_cmd = f"sh /app/mainApi/bftools/bfconvert -separate -overwrite '{jpg_output_path}' '{output_path}'"
-    await shell(bf_cmd)
-   
-    result_path = os.path.join(STATIC_PATH, rel_dir, TILING_RESULT_IMAGE_FILE_NAME)
-    
-    if os.path.exists(result_path):
-         os.remove(result_path)
-    shutil.copy(output_path, result_path)
-
     return JSONResponse(output_rel_path)
 
 
@@ -685,7 +700,7 @@ async def result_tile_correct(
         {"user_id": user.id}
     )
     rel_path = tile["path"].rsplit('/static/', 1)[1]
-    rel_dir = rel_path.rsplit("/", 1)[0]
+    rel_dir = params["dirname"] 
     tiles_dir = os.path.join(STATIC_PATH, rel_dir)
  
     input_filename = "ashlar_output.ome.tiff"

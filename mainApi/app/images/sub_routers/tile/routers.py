@@ -204,18 +204,19 @@ async def update_tiles_meta_info(
             
 
             
+
             if(len(merge_arr) == 2):
+                merge_arr.append(merge_arr[0])
+            
+            if(len(merge_arr) == 1):
+                merge_arr.append(merge_arr[0])
                 merge_arr.append(merge_arr[0])
             
             res_image = cv2.merge(merge_arr)
             
         
-
             save_file_path = os.path.join(new_abs_dir_path,file_name)
             cv2.imwrite(save_file_path,res_image)
-
-
-
 
 
             ashlar_path = save_file_path

@@ -106,6 +106,9 @@ const TabTiling = (props) => {
 
   const selectedImage = useSelector((state) => state.selectedImage);
 
+  //the parameter for the editing
+  const [displayEditingEnabled, setDisplayEditingEnabled] = useState(false);
+
   /*
   //Get the *.xml url from the original Image file name
   const getXmlUrl = (url, filename) => {
@@ -213,6 +216,21 @@ const TabTiling = (props) => {
     const tempArray = [...tempSet];
 
     return tempArray;
+  };
+
+  //calculate the suitable col and row number
+  const calculateSuitableDim = (size) => {
+    let col = 1;
+    let row = size;
+
+    for (let i = 1; i * i <= size; i++) {
+      if (size % i === 0) {
+        col = i;
+        row = size / i;
+      }
+    }
+
+    return [col, row];
   };
 
   //when the all tiles loaded, need to get series array and  set the current series
@@ -356,9 +374,10 @@ const TabTiling = (props) => {
       }
     });
 
-    setAlignCol(1);
-    setAlignRow(res.length);
-
+    const [col, row] = calculateSuitableDim(res.length);
+    setAlignCol(col);
+    setAlignRow(row);
+    setDisplayEditingEnabled(true);
     return res;
   };
 
@@ -733,7 +752,7 @@ const TabTiling = (props) => {
     setAlignRow(event.target.value === '' ? '' : r);
     if (alignImages) {
       if (alignImages.length < r) {
-        setAlignRow(tiles.length);
+        setAlignRow(alignImages.length);
         setAlignCol(1);
         setDim([alignImages.length, 1]);
       } else {
@@ -1404,7 +1423,7 @@ const TabTiling = (props) => {
         >
           {/*  Tiling Preview  */}
           <div style={{ flexDirection: 'column' }}>
-            {selectedIndex === 0 && (
+            {selectedIndex === 0 && displayEditingEnabled === false && (
               <Paper
                 variant="outlined"
                 sx={{ height: '800px', width: '600px' }}
@@ -1434,6 +1453,41 @@ const TabTiling = (props) => {
                             />
                           </ImageListItem>
                         </>
+                      ))}
+                    </ImageList>
+                  </TransformComponent>
+                </TransformWrapper>
+              </Paper>
+            )}
+            {selectedIndex === 0 && displayEditingEnabled === true && (
+              <Paper
+                variant="outlined"
+                sx={{ height: '800px', width: '600px' }}
+              >
+                <TransformWrapper minScale={0.2}>
+                  <TransformComponent
+                    wrapperStyle={{ height: '800px', width: '600px' }}
+                  >
+                    <ImageList
+                      cols={alignCol}
+                      gap={alignGapX}
+                      padding={alignBorder}
+                      sx={{
+                        mb: 0,
+                        pointerEvents: 'none',
+                        userSelect: 'none',
+                        height: '100%',
+                        width: '100%',
+                      }}
+                    >
+                      {alignedImageList.map(({ _id, thumbnail, filename }) => (
+                        <ImageListItem key={_id}>
+                          <img
+                            src={thumbnail}
+                            alt={filename}
+                            style={{ width: 100, height: 'auto' }}
+                          />
+                        </ImageListItem>
                       ))}
                     </ImageList>
                   </TransformComponent>

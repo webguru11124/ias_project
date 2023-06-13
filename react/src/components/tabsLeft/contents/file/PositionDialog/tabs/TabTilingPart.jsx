@@ -349,6 +349,7 @@ const TabTiling = (props) => {
     lists.map((item) => {
       const url = item.url.split('/static/')[0];
       if (item.ashlar_path !== '' && item.ashlar_path !== undefined) {
+        if (!displayEditingEnabled) setDisplayEditingEnabled(true);
         const path = item.ashlar_path.split('/static/')[1];
 
         const filename = path.split('.')[0] + '.timg';
@@ -377,7 +378,7 @@ const TabTiling = (props) => {
     const [col, row] = calculateSuitableDim(res.length);
     setAlignCol(col);
     setAlignRow(row);
-    setDisplayEditingEnabled(true);
+
     return res;
   };
 
@@ -385,8 +386,8 @@ const TabTiling = (props) => {
   useEffect(() => {
     if (holeImageList) {
       if (holeImageList[0]) {
-        setResultImagePath(getOmeTiffUrl(holeImageList[0].url));
-        handleListContentItemClick(new Event('click'), 0);
+        //setResultImagePath(getOmeTiffUrl(holeImageList[0].url));
+        //handleListContentItemClick(new Event('click'), 0);
 
         const alignImageList = getAlignImageList(holeImageList);
         setAlignImages(alignImageList);
@@ -906,10 +907,10 @@ const TabTiling = (props) => {
 
   // When the list item of Edting is changed
   const handleListContentItemClick = async (event, index) => {
-    if (holeImageList.length > 0) {
-      setSelectedImageFileIndex(index);
-      setResultImagePath(getOmeTiffUrl(holeImageList[index].url));
-    }
+    // if (holeImageList.length > 0) {
+    //   setSelectedImageFileIndex(index);
+    //   //setResultImagePath(getOmeTiffUrl(holeImageList[index].url));
+    // }
   };
 
   const onClickedBuildButton = async () => {
@@ -924,6 +925,7 @@ const TabTiling = (props) => {
         layout: align,
         direction: dir,
         dirname: dir_name,
+        sortOrder: sortOrder === SortOrder.ascending,
       };
 
       setInfoMessage('Build Started');

@@ -31,8 +31,8 @@ import Avivator from '../../../../../avivator/Avivator';
 import { Alignments, Directions, SortOrder } from './constants';
 import { buildPyramid } from '@/api/tiling';
 import { Typography } from 'react-md';
-import { getMetadataFromDataBase } from '@/api/tiles';
-import { cleanUrl } from '@/helpers/file';
+//import { getMetadataFromDataBase } from '@/api/tiles';
+//import { cleanUrl } from '@/helpers/file';
 
 const tilingMenus = [
   'Edit',
@@ -83,6 +83,7 @@ const TabTiling = (props) => {
   const [dim, setDim] = useState();
   const [sortOrder, setSortOrder] = useState(SortOrder.ascending);
   const [alignment, setAlignment] = useState('align');
+  const [alignImages, setAlignImages] = useState([]);
 
   //parameters in bonding
   const [selectBondRadioIdx, setSelectBondRadioIdx] = useState('0');
@@ -105,6 +106,10 @@ const TabTiling = (props) => {
 
   const selectedImage = useSelector((state) => state.selectedImage);
 
+  //the parameter for the editing
+  const [displayEditingEnabled, setDisplayEditingEnabled] = useState(false);
+
+  /*
   //Get the *.xml url from the original Image file name
   const getXmlUrl = (url, filename) => {
     const realUrl = url.split(filename)[0];
@@ -114,6 +119,7 @@ const TabTiling = (props) => {
     const newUrl = realUrl + name + newExtension;
     return newUrl;
   };
+  */
 
   //Get the image of ome tiff file extension from the original url
   const getOmeTiffUrl = (url) => {
@@ -212,6 +218,21 @@ const TabTiling = (props) => {
     return tempArray;
   };
 
+  //calculate the suitable col and row number
+  const calculateSuitableDim = (size) => {
+    let col = 1;
+    let row = size;
+
+    for (let i = 1; i * i <= size; i++) {
+      if (size % i === 0) {
+        col = i;
+        row = size / i;
+      }
+    }
+
+    return [col, row];
+  };
+
   //when the all tiles loaded, need to get series array and  set the current series
   useEffect(() => {
     const tempArr = getSeries(allTiles);
@@ -236,10 +257,6 @@ const TabTiling = (props) => {
     if (!tiles || tiles.length === 0) return;
 
     if (tiles) {
-      setDim([1, tiles.length]);
-      if (tiles[0]) {
-        setResultImagePath(getOmeTiffUrl(tiles[0].url));
-      }
       setInfoMessage(`${tiles.length} images are loaded.`);
 
       const sortedTiles = tiles.sort((a, b) =>
@@ -323,12 +340,57 @@ const TabTiling = (props) => {
     setCurrentSeriesIdx(changedSeriesIdx);
   }, [props.selectedVesselIdx]);
 
+  //get the image lists for alignment
+  const getAlignImageList = (lists) => {
+    if (lists.length == 0) return [];
+
+    const arr = [];
+    const res = [];
+    lists.map((item) => {
+      const url = item.url.split('/static/')[0];
+      if (item.ashlar_path !== '' && item.ashlar_path !== undefined) {
+        if (!displayEditingEnabled) setDisplayEditingEnabled(true);
+        const path = item.ashlar_path.split('/static/')[1];
+
+        const filename = path.split('.')[0] + '.timg';
+        const ext = path.split('.')[1];
+        const fullpath = url + '/static/' + filename;
+
+        const series = item.field.split('f')[1];
+        const newFileName =
+          'tile_image_series' + series.toString().padStart(5, '0') + '.' + ext;
+
+        if (!arr.includes(fullpath)) {
+          arr.push(fullpath);
+          const new_item = {
+            thumbnail: fullpath,
+            _id: item._id,
+            field: item.field,
+            row: item.row,
+            col: item.col,
+            filename: newFileName,
+          };
+          res.push(new_item);
+        }
+      }
+    });
+
+    const [col, row] = calculateSuitableDim(res.length);
+    setAlignCol(col);
+    setAlignRow(row);
+
+    return res;
+  };
+
   //When the holeImageLists is reload
   useEffect(() => {
     if (holeImageList) {
       if (holeImageList[0]) {
-        setResultImagePath(getOmeTiffUrl(holeImageList[0].url));
-        handleListContentItemClick(new Event('click'), 0);
+        //setResultImagePath(getOmeTiffUrl(holeImageList[0].url));
+        //handleListContentItemClick(new Event('click'), 0);
+
+        const alignImageList = getAlignImageList(holeImageList);
+        setAlignImages(alignImageList);
       }
     }
   }, [holeImageList]);
@@ -409,7 +471,7 @@ const TabTiling = (props) => {
     setHoleImageList(sortedTiles);
 
     const tempChannels = [1, 0, 0, 0, 0, 0, 0];
-    let time = 0;
+    let time = 'p00';
     let channel = 0;
 
     if (
@@ -417,7 +479,7 @@ const TabTiling = (props) => {
       sortedTiles[0].channel !== undefined &&
       sortedTiles[0].z !== undefined
     ) {
-      time = Number(sortedTiles[0].time.split('p')[1]);
+      time = sortedTiles[0].time;
 
       sortedTiles.map((image) => {
         const idx = Number(image.channel.split('d')[1]);
@@ -450,7 +512,7 @@ const TabTiling = (props) => {
         let tempContent = {};
 
         tempContent.z = tile.z;
-        tempContent.time = time;
+        tempContent.time = tile.time;
         tempContent.dimensionChanged = tile.dimensionChanged;
         tempContent.row = tile.row.charCodeAt() - 'A'.charCodeAt();
         tempContent.col = tile.col;
@@ -496,7 +558,7 @@ const TabTiling = (props) => {
           let tempContent = {};
 
           tempContent.z = tile.z;
-          tempContent.time = Number(tile.time.split('p')[1]);
+          tempContent.time = tile.time;
           tempContent.dimensionChanged = tile.dimensionChanged;
           tempContent.row = tile.row.charCodeAt() - 'A'.charCodeAt();
           tempContent.col = tile.col;
@@ -528,9 +590,6 @@ const TabTiling = (props) => {
     if (hole) {
       if (hole.row !== undefined && hole.col !== undefined) {
         setHoleImages(hole.row, hole.col);
-        //setSelectedImageTime(time);
-        //setSelectedImageZ(lists[0].z);
-        //setSelectedImageChannel(channels);
       }
     }
   }, [props.selectedVesselHole]);
@@ -538,47 +597,58 @@ const TabTiling = (props) => {
   //Get the Correction Image Path from the server
   const getCorrectionImagePath = () => {
     //Load an OME_TIFF file
-    const filename = tiles[0].url.split('/').pop();
+    const filename = alignImages[0].filename.split('.')[0] + '.timg';
     const resultpath =
-      tiles[0].url.replace(filename, '') + 'correction_output.ome.tiff';
+      alignImages[0].thumbnail.replace(filename, '') +
+      'correction_output.ome.tiff';
+
     return getOmeTiffUrl(resultpath);
   };
 
   //Get the Normalize Image Path from the server
   const getNormalizeImagePath = () => {
     //Load an OME_TIFF file
-    const filename = tiles[0].url.split('/').pop();
+
+    const filename = alignImages[0].filename.split('.')[0] + '.timg';
     const resultpath =
-      tiles[0].url.replace(filename, '') + 'normalize_output.ome.tiff';
+      alignImages[0].thumbnail.replace(filename, '') +
+      'normalize_output.ome.tiff';
+
     return getOmeTiffUrl(resultpath);
   };
 
   //Get the gamma Image Path from the server
   const getGammaImagePath = (gamma) => {
     //Load an OME_TIFF file
-    const filename = tiles[0].url.split('/').pop();
+    const filename = alignImages[0].filename.split('.')[0] + '.timg';
     const resultpath =
-      tiles[0].url.replace(filename, '') +
+      alignImages[0].thumbnail.replace(filename, '') +
       'gamma' +
       gamma.toString() +
       '_output.ome.tiff';
+
     return getOmeTiffUrl(resultpath);
   };
 
   //Get the Snap To Edge Image Path from the server
   const getSnapToEdgeImagePath = () => {
     //Load an OME_TIFF file
-    const filename = tiles[0].url.split('/').pop();
+    const filename = alignImages[0].filename.split('.')[0] + '.timg';
     const resultpath =
-      tiles[0].url.replace(filename, '') + 'snap_to_edge.ome.tiff';
+      alignImages[0].thumbnail.replace(filename, '') + 'snap_to_edge.ome.tiff';
     return getOmeTiffUrl(resultpath);
   };
 
   //Get the result image path from the server
   const getResultPath = () => {
     //Load an OME_TIFF file
-    const filename = tiles[0].url.split('/').pop();
-    const resultpath = tiles[0].url.replace(filename, '') + 'result.ome.tiff';
+    const filename = alignImages[0].filename.split('.')[0] + '.timg';
+
+    const resultpath =
+      alignImages[0].thumbnail.replace(filename, '') + 'result.ome.tiff';
+
+    //console.log(resultpath);
+
     return getOmeTiffUrl(resultpath);
   };
 
@@ -600,26 +670,26 @@ const TabTiling = (props) => {
   }, [tiles]);
 
   // return tiles aligned in alignment function
-  const tilesAligned = useMemo(() => {
+  const alignedImageList = useMemo(() => {
     let sortedTiles;
-    if (!tiles || tiles.length === 0) return [];
-    if (tiles.length > 1 && tiles[0].field) {
+    if (!alignImages || alignImages.length === 0) return [];
+    if (alignImages.length > 1 && alignImages[0].field) {
       if (sortOrder === SortOrder.ascending) {
-        sortedTiles = sorted.sort(
+        sortedTiles = alignImages.sort(
           (a, b) =>
             Number(a.field.split('f')[1]) - Number(b.field.split('f')[1]),
         );
       } else
-        sortedTiles = sorted.sort(
+        sortedTiles = alignImages.sort(
           (a, b) =>
             Number(b.field.split('f')[1]) - Number(a.field.split('f')[1]),
         );
-    } else sortedTiles = sorted;
+    } else sortedTiles = alignImages;
 
     //console.log(sortedTiles);
 
     if (!dim) {
-      return sortedTiles;
+      return alignImages;
     }
 
     //console.log(sortedTiles);
@@ -673,21 +743,21 @@ const TabTiling = (props) => {
       }
     });
     return result;
-  }, [sorted, align, dir, dim, sortOrder]);
+  }, [sorted, align, dir, dim, sortOrder, alignImages]);
 
   // When the row is changed in alignment part
   const inputTilingRows = (event) => {
-    if (!tiles || tiles.length === 0) return;
+    if (!alignImages || alignImages.length === 0) return;
     let r = Number(event.target.value);
     if (r <= 0) r = 1;
     setAlignRow(event.target.value === '' ? '' : r);
-    if (tiles) {
-      if (tiles.length < r) {
-        setAlignRow(tiles.length);
+    if (alignImages) {
+      if (alignImages.length < r) {
+        setAlignRow(alignImages.length);
         setAlignCol(1);
-        setDim([tiles.length, 1]);
+        setDim([alignImages.length, 1]);
       } else {
-        let c = Math.ceil(tiles.length / r);
+        let c = Math.ceil(alignImages.length / r);
         setAlignCol(c);
         setDim([r, c]);
       }
@@ -696,18 +766,18 @@ const TabTiling = (props) => {
 
   // When the col is changed in alignment part
   const inputTilingCols = (event) => {
-    if (!tiles) return;
+    if (!alignImages) return;
     let c = Number(event.target.value);
     if (c <= 0) c = 1;
     setAlignCol(event.target.value === '' ? '' : c);
 
-    if (tiles) {
-      if (tiles.length < c) {
-        setAlignCol(tiles.length);
+    if (alignImages) {
+      if (alignImages.length < c) {
+        setAlignCol(alignImages.length);
         setAlignRow(1);
-        setDim([1, tiles.length]);
+        setDim([1, alignImages.length]);
       }
-      let r = Math.ceil(tiles.length / c);
+      let r = Math.ceil(alignImages.length / c);
       setAlignRow(r);
       setDim([r, c]);
     }
@@ -837,28 +907,41 @@ const TabTiling = (props) => {
 
   // When the list item of Edting is changed
   const handleListContentItemClick = async (event, index) => {
-    if (holeImageList.length > 0) {
-      setSelectedImageFileIndex(index);
-      setResultImagePath(getOmeTiffUrl(holeImageList[index].url));
-    }
+    // if (holeImageList.length > 0) {
+    //   setSelectedImageFileIndex(index);
+    //   //setResultImagePath(getOmeTiffUrl(holeImageList[index].url));
+    // }
   };
 
   const onClickedBuildButton = async () => {
-    const ashlarParams = {
-      width: dim[1],
-      height: dim[0],
-      layout: align,
-      direction: dir,
-    };
+    if (alignImages && alignImages.length > 0) {
+      const filepath = alignImages[0].thumbnail.split('/static/')[1];
+      const filename = alignImages[0].filename.split('.')[0];
+      const dir_name = filepath.split(filename)[0].trim();
 
-    setInfoMessage('Build Started');
-    const output = await buildPyramid(ashlarParams);
-    const outputUrl = getResultPath();
-    setFinalResultImagePath(outputUrl);
-    //setResultImagePath(outputUrl);
-    setInfoMessage(
-      'Build Finished. You can see the result Image in result page.',
-    );
+      const ashlarParams = {
+        width: alignCol,
+        height: alignRow,
+        layout: align,
+        direction: dir,
+        dirname: dir_name,
+        sortOrder: sortOrder === SortOrder.ascending,
+      };
+
+      setInfoMessage('Build Started');
+      const output = await buildPyramid(ashlarParams);
+
+      //console.log(output);
+
+      const outputUrl = getResultPath();
+      setFinalResultImagePath(outputUrl);
+      setResultImagePath(outputUrl);
+      setInfoMessage(
+        'Build Finished. You can see the result Image in result page.',
+      );
+    } else {
+      setInfoMessage('There is no image to merge, please check the images.');
+    }
   };
 
   //When the list item clicked in left tab in the Tiling Part
@@ -1342,6 +1425,78 @@ const TabTiling = (props) => {
         >
           {/*  Tiling Preview  */}
           <div style={{ flexDirection: 'column' }}>
+            {selectedIndex === 0 && displayEditingEnabled === false && (
+              <Paper
+                variant="outlined"
+                sx={{ height: '800px', width: '600px' }}
+              >
+                <TransformWrapper minScale={0.2}>
+                  <TransformComponent
+                    wrapperStyle={{ height: '800px', width: '600px' }}
+                  >
+                    <ImageList
+                      cols={1}
+                      sx={{
+                        mb: 0,
+                        pointerEvents: 'none',
+                        userSelect: 'none',
+                        height: '100%',
+                        width: '100%',
+                      }}
+                    >
+                      {holeImageList.map(({ _id, thumbnail, filename }) => (
+                        <>
+                          <p style={{ fontFamily: 'monospace' }}>{filename}</p>
+                          <ImageListItem key={_id}>
+                            <img
+                              src={thumbnail}
+                              alt={filename}
+                              style={{ width: 200, height: 'auto' }}
+                            />
+                          </ImageListItem>
+                        </>
+                      ))}
+                    </ImageList>
+                  </TransformComponent>
+                </TransformWrapper>
+              </Paper>
+            )}
+            {selectedIndex === 0 && displayEditingEnabled === true && (
+              <Paper
+                variant="outlined"
+                sx={{ height: '800px', width: '600px' }}
+              >
+                <TransformWrapper minScale={0.2}>
+                  <TransformComponent
+                    wrapperStyle={{ height: '800px', width: '600px' }}
+                  >
+                    <ImageList
+                      cols={alignCol}
+                      gap={alignGapX}
+                      padding={alignBorder}
+                      sx={{
+                        mb: 0,
+                        pointerEvents: 'none',
+                        userSelect: 'none',
+                        height: '100%',
+                        width: '100%',
+                      }}
+                    >
+                      {alignedImageList.map(({ _id, thumbnail, filename }) => (
+                        <ImageListItem key={_id}>
+                          <img
+                            src={thumbnail}
+                            alt={filename}
+                            style={{ width: 100, height: 'auto' }}
+                          />
+                        </ImageListItem>
+                      ))}
+                    </ImageList>
+                  </TransformComponent>
+                </TransformWrapper>
+              </Paper>
+            )}
+
             {selectedIndex === 1 && (
               <Paper
                 variant="outlined"
@@ -1363,7 +1518,7 @@ const TabTiling = (props) => {
                         width: '100%',
                       }}
                     >
-                      {tilesAligned.map(({ _id, thumbnail, filename }) => (
+                      {alignedImageList.map(({ _id, thumbnail, filename }) => (
                         <ImageListItem key={_id}>
                           <img
                             src={thumbnail}
@@ -1378,8 +1533,7 @@ const TabTiling = (props) => {
               </Paper>
             )}
 
-            {(selectedIndex === 0 ||
-              selectedIndex === 2 ||
+            {(selectedIndex === 2 ||
               selectedIndex === 3 ||
               selectedIndex === 4) && (
               <Avivator type={'tiling'} source={resultImagePath} />

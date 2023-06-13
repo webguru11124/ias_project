@@ -130,6 +130,16 @@ async def get_tiles(
     return JSONResponse(tiles)
 
 
+
+def getDirName(dir,series,row, col):
+    dir_name =  str(series).replace(" ","") + "_" + str(row) + "_" + str(col)
+    new_path = f"{CURRENT_STATIC}/{dir}/{dir_name}"
+    new_rel_path = new_path.rsplit("/static/", 1)[1]
+    new_abs_path = os.path.join(STATIC_PATH, new_rel_path)
+
+    return new_abs_path
+
+
 @router.post(
     "/delete_tiles",
     response_description="Delete Tiles",
@@ -157,22 +167,75 @@ async def update_tiles_meta_info(
 
     for meta_info in data["tiles_meta_info"]:
         dir = meta_info["path"].rsplit("/", 1)[0]
-        ext = meta_info["filename"].rsplit(".", 1)[1]
-        new_path = f"{CURRENT_STATIC}/{dir}/tile_image_series{str(meta_info['series']).rjust(5, '0')}.{ext}"
-        old_rel_path = meta_info["path"].rsplit("/static/", 1)[1]
-        new_rel_path = new_path.rsplit("/static/", 1)[1]
-        
-       
-        old_abs_path = os.path.join(STATIC_PATH, old_rel_path)
-        new_abs_path = os.path.join(STATIC_PATH, new_rel_path)
+        new_abs_dir_path = getDirName( dir, meta_info["strSeries"],meta_info["row"],meta_info["col"])
 
-        shutil.copy(old_abs_path, new_abs_path)
+        if not os.path.exists(new_abs_dir_path):
+            os.makedirs(new_abs_dir_path)
+    
+    check_arr = []
+    for meta_info in data["tiles_meta_info"]:
+        name = str(meta_info["row"]) + str(meta_info["col"]) + str(meta_info["field"])
+        series = meta_info["field"].split("f")[1]
+        row = meta_info["row"]
+        col = meta_info["col"]
+        ashlar_path = ""
+        
+
+        if not name in  check_arr:
+            merge_arr = []
+            check_arr.append(name)
+            for meta in data["tiles_meta_info"]:
+                if meta["row"] == row and meta["col"] == col and meta["field"] == meta_info["field"]:
+                    old_rel_path = meta["path"].rsplit("/static/", 1)[1]
+                    old_abs_path = os.path.join(STATIC_PATH, old_rel_path)
+
+                    #Merge the images by field
+
+                    image = cv2.imread(old_abs_path,-1)
+                    if image.dtype == 'uint16' :
+                        image = cv2.normalize(image, dst=None, alpha=0, beta=65535, norm_type=cv2.NORM_MINMAX)
+                    merge_arr.append(image)
+
+            dir = meta_info["path"].rsplit("/", 1)[0]
+            new_abs_dir_path = getDirName( dir, meta_info["strSeries"],meta_info["row"],meta_info["col"])
+            series = meta_info["field"].split("f")[1]
+            ext = meta_info["filename"].rsplit(".", 1)[1]
+            file_name = f"tile_image_series{str(series).rjust(5, '0')}.{ext}"
+            
+
+            
+
+            if(len(merge_arr) == 2):
+                merge_arr.append(merge_arr[0])
+            
+            if(len(merge_arr) == 1 and len(merge_arr[0].shape) < 3):
+                merge_arr.append(merge_arr[0])
+                merge_arr.append(merge_arr[0])
+            
+            res_image = cv2.merge(merge_arr)
+            
+        
+            save_file_path = os.path.join(new_abs_dir_path,file_name)
+            cv2.imwrite(save_file_path,res_image)
+
+
+            ashlar_path = save_file_path
+
+            input_pre = os.path.splitext(ashlar_path)[0]
+            try :
+                img = Image.open(ashlar_path)
+                img.thumbnail([100, 100])
+                img.save(input_pre + '.timg', 'png')
+            except :
+                pass
+
+
 
         await db["tile-image-cache"].update_one(
             {"_id": ObjectId(meta_info["_id"])},
             {
                 "$set": {
-                    "series": int(meta_info["series"]),
+                    "series": int(series),
                     "field" : meta_info["field"],
                     "strSeries" : meta_info["strSeries"],
                     "row" : meta_info["row"],
@@ -180,10 +243,25 @@ async def update_tiles_meta_info(
                     "time" : meta_info["time"],
                     "z" : meta_info["z"],
                     "channel" : meta_info["channel"],
-                    "ashlar_path": new_abs_path
+                    "ashlar_path": ashlar_path
                 }
             },
         )
+
+        #dir = meta_info["path"].rsplit("/", 1)[0]
+        #ext = meta_info["filename"].rsplit(".", 1)[1]
+
+        # new_path = f"{CURRENT_STATIC}/{dir}/tile_image_series{str(meta_info['series']).rjust(5, '0')}.{ext}"
+        # old_rel_path = meta_info["path"].rsplit("/static/", 1)[1]
+        # new_rel_path = new_path.rsplit("/static/", 1)[1]
+        
+       
+        # old_abs_path = os.path.join(STATIC_PATH, old_rel_path)
+        # new_abs_path = os.path.join(STATIC_PATH, new_rel_path)
+
+        # shutil.copy(old_abs_path, new_abs_path)
+
+        
 
 @router.post(
     "/create_tiles",
@@ -370,6 +448,101 @@ async def snapToEdge(rel_dir):
     await shell(bfconv_cmd)
 
 
+
+
+async def merge_Image(dir,rows,cols,align,direction,sortOrder,ext):
+    filenames = os.listdir(dir)
+    
+    imageFileNames = []
+
+    for filename in  filenames:
+        if "tile_image_series" in filename:
+            if str("." + ext) in filename:
+                imageFileNames.append(filename)
+
+
+    imageFileNames = sorted(imageFileNames, key = lambda x : x.lower())
+
+    fullsize = len(imageFileNames)
+
+
+
+    if sortOrder == False :
+        imageFileNames.reverse()
+
+    chunks = []
+
+    
+    if (direction == "horizontal") :
+        for i in range(0, fullsize, cols) :
+            chunks.append(imageFileNames[i:i+cols])
+        # Reverse every second sub-array for snake layout
+        if (align == "snake") :
+            for i in range(1, len(chunks), 2):
+                    chunks[i] = chunks[i][::-1]
+        
+
+
+    #if the direction is vertical
+    if direction == "horizontal":
+        chunks = [imageFileNames[i:i+cols] for i in range(0, fullsize, cols)]
+        if align == "snake":
+            for i in range(1, len(chunks), 2):
+                chunks[i] = chunks[i][::-1]
+    elif direction == "vertical":
+        chunks = [[] for i in range(rows)]
+        for i in range(rows):
+            for j in range(cols):
+                chunks[i].append(imageFileNames[j * rows + i])
+        if align == "snake":
+            temp = chunks
+            chunks = [[] for i in range(rows)]
+            for i in range(rows):
+                for j in range(cols):
+                    if j % 2 == 1:
+                        chunks[i].append(temp[rows - i - 1][j])
+                    else:
+                        chunks[i].append(temp[i][j])
+
+
+    print(chunks)
+    finalArr = []
+    # Iterate over each row
+    for row in chunks:
+        tempArr = []
+        # Iterate over each column in the row
+        for item in row:
+            t =  os.path.join(dir, str(item))
+            img = cv2.imread(t)
+            tempArr.append(img)
+        finalArr.append(tempArr)
+
+
+    row_images = []
+
+    for i in range(rows):
+        merge_Image = cv2.hconcat(finalArr[i])
+        row_images.append(merge_Image)
+
+    result = cv2.vconcat(row_images)
+
+
+    result_path = os.path.join(dir, "result_merge.tiff")
+    output_filename = "ashlar_output.ome.tiff"
+    output_filePath = os.path.join(dir, output_filename)
+
+
+
+    cv2.imwrite( result_path,result)
+
+    bf_cmd = f"sh /app/mainApi/bftools/bfconvert -separate -overwrite '{result_path}' '{output_filePath}'"
+    await shell(bf_cmd)
+
+    
+
+
+
+
 @router.post(
     "/build_pyramid",
     response_description="Build Pyramid",
@@ -387,17 +560,29 @@ async def build_pyramid(
         {"user_id": user.id}
     )
     rel_path = tile["path"].rsplit('/static/', 1)[1]
-    rel_dir = rel_path.rsplit("/", 1)[0]
+    #rel_dir = rel_path.rsplit("/", 1)[0]
+
+    #print(rel_dir)
+    rel_dir = ashlar_params["dirname"] 
     tiles_dir = os.path.join(STATIC_PATH, rel_dir)
+
+
     ext = tile["filename"].rsplit(".", 1)[1]
     output_filename = "ashlar_output.ome.tiff"
     output_path = os.path.join(STATIC_PATH, rel_dir, output_filename)
     output_rel_path = os.path.join(CURRENT_STATIC, rel_dir, output_filename)
 
-
-    ashlar_cmd = f'ashlar --output {output_path} "fileseries|{tiles_dir}|pattern=tile_image_series{{series}}.{ext}|overlap=0.1|width={ashlar_params["width"]}|height={ashlar_params["height"]}|layout={ashlar_params["layout"]}"'
-    await shell(ashlar_cmd)
-
+    # try :
+    #     ashlar_cmd = f'ashlar --output {output_path} "fileseries|{tiles_dir}|pattern=tile_image_series{{series}}.{ext}|overlap=0.1|width={ashlar_params["width"]}|height={ashlar_params["height"]}|layout={ashlar_params["layout"]}|direction = {ashlar_params["direction"]}"'
+    #     await shell(ashlar_cmd)
+    # except :
+    dir = tiles_dir
+    rows = ashlar_params["height"]
+    cols = ashlar_params["width"]
+    align = ashlar_params["layout"]
+    direction = ashlar_params["direction"]
+    sortOrder = ashlar_params["sortOrder"]
+    await merge_Image(dir,rows,cols,align,direction,sortOrder,ext)
 
     result_path = os.path.join(STATIC_PATH, rel_dir, TILING_RESULT_IMAGE_FILE_NAME)
     
